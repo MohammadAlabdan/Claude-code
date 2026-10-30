@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.45.4",
+    "web-push": "npm:web-push@3.6.7",
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@0.135.0",
+    "@anthropic-ai/sdk/helpers/zod": "npm:@anthropic-ai/sdk@0.135.0/helpers/zod",
+    "zod": "npm:zod@4.6.7"
+  },
+  "compilerOptions": { "strict": true }
+}

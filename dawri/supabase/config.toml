@@ -1,0 +1,67 @@
+# Supabase CLI configuration for Dawri (local development and deploy settings).
+project_id = "dawri"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+file_size_limit = "3MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:8888"
+additional_redirect_urls = ["http://localhost:8888/owner", "http://localhost:8888/start"]
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+# No phone/SMS auth anywhere in Dawri.
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+# Every function authenticates inside its own code (ticket token, device token, owner JWT or cron key),
+# so the gateway JWT check is off. This also keeps them working with the new publishable API keys.
+[functions.customer]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.staff]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.owner]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.onboard]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.ai]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.daily-summary]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.maintenance]
+verify_jwt = false
+import_map = "./functions/deno.json"
+[functions.admin]
+verify_jwt = false
+import_map = "./functions/deno.json"
