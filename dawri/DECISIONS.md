@@ -48,3 +48,32 @@ One line each: defaults chosen where the brief left room, and what was verified.
 - Deno 2.9.6: `deno check` passes on all 8 functions; `deno test` passes 13 tests for `_shared/logic.ts` (estimates, rotating code vector, Riyadh time, phone validation, quiet hours, summary template).
 - End-to-end: the `customer`, `staff` and `maintenance` functions ran under Deno against the local database through `scripts/local-db/fake-rest.ts` (a stand-in for the REST gateway): join, remote limit, snooze, call next, walk-in, leave, feedback guard, receipt ready-before-scan, dropoff + claim, Bengali staff labels, broadcast payloads, cron auth.
 - Not exercised locally: real Web Push delivery (VAPID keys were generated and accepted by `web-push`), Supabase Auth sign-in, Storage uploads, and live Claude calls (no API key here).
+
+## Frontend (Part 2)
+
+- Lives in `dawri/web/` (the repo root already holds the marketing site in `site/`). Plain HTML + ES modules + two CSS files; no build.
+- One small DOM helper (`h()`) instead of a framework; screens are lazy-loaded modules (`js/screens/*.js`), so the customer pages never load owner/staff code.
+- supabase-js is loaded only in real mode, from jsDelivr's ESM build (`@supabase/supabase-js@2.45.4/+esm`); demo mode needs no external JS. qrcode-generator is loaded on demand as a classic script (`window.qrcode`), with the link shown as text if the CDN fails.
+- Edge Functions are called with `fetch` (not `functions.invoke`) to send `x-device-token` and read the `{error, message_ar, message_en}` body directly.
+- The owner, onboarding and admin screens are Arabic only (strings in the modules); customer screens have Arabic/English (`i18n/customer.*.json`), staff screens five languages (`i18n/staff.*.json`). Server error messages show in Arabic for ar devices and in English for the other staff languages.
+- Arabic-Indic digits everywhere in Arabic UI (`show_arabic_digits`); the LED board, keypad and codes use Western digits in the Doto face.
+- Demo mode keeps its state in `localStorage` and shares changes between tabs with `BroadcastChannel`, so customer and staff pages in two tabs behave like the real system. Only one tab advances the demo every ~15 s (a timestamp lock); `localStorage["dawri.demo.auto"] = false` stops it (the tests do this).
+- Demo data re-seeds itself each Riyadh day; demo shops are open 24 hours so the demo works at any time.
+- Demo mode has no push server: enabling alerts asks for permission and marks the ticket; the ticket page itself vibrates, chimes and shows a local notification when called/ready.
+- Ticket alerts: vibration on return-now, called and ready; the chime plays only after the first tap unlocked audio.
+- The shop page sends a returning customer straight to their active ticket (`dawri.ticket.<public_id>`); `?stay` keeps them on the shop page.
+- Staff offline queue: taps made while offline are stored in `localStorage` and replayed in order when the browser is back online; a dot in the top bar shows synced/pending.
+- "Open staff screen" from the owner app means pairing a device (Settings → devices), because staff screens authenticate as devices, not owners.
+- The printable poster uses `window.print()` with A5/A4 `@page` rules; it is the only place that calls print.
+- Icons: Tabler Icons webfont 3.19.0 from jsDelivr. PWA icons are rendered from `assets/logo.svg` by `scripts/make-icons.mjs` (Playwright).
+- `dawri-web.zip` is written by a dependency-free ZIP writer (`scripts/package-web.mjs`), contents of `web/` at the zip root.
+- The service worker caches the shell (network-first for pages, stale-while-revalidate for own files) and handles `push` / `notificationclick`; it opens `/s/<public_id>`, which redirects to the active ticket.
+- Tests mirror the pinned jsDelivr packages from local npm copies (`tests/e2e/cdn.js`) because this build sandbox blocks jsDelivr; the files are the same npm releases the CDN serves.
+
+## Checks that ran (Part 2)
+
+- Playwright 1.63 (Chromium), demo mode, 390×844: `tests/e2e` — 10 tests pass: remote join → staff calls → full-screen «حان دورك» → done → 👍 feedback → Google review button + loyalty prompt; receipt scan → kitchen keypad marks ready → «طلبك جاهز»; dropoff register → QR claim link → stage changes → «جاهزة للاستلام»; staff in Urdu renders RTL and in Bengali LTR; owner dashboard and «نبضي» show lost customers in SAR and the absent list; basic-plan owner sees lock cards with the required plan; unpaired device message; no horizontal scroll at 360 px on 18 routes (customer, ticket, staff ×3, owner ×5, poster, onboarding, admin, gallery, 404); screenshots in light and dark saved to `screenshots/`.
+- Every screen loaded with no console errors in a separate smoke run.
+- Size: a customer's first load (shell, shop page, shared components, Arabic strings) is ~74 KB of our own HTML/JS/CSS/JSON in real mode (~140 KB in demo mode, which adds the in-browser backend); owner and staff modules load only on their routes.
+- `dawri-web.zip` built and verified with Python's `zipfile.testzip()`.
+- Not exercised here: the real Supabase backend from the browser (no project keys in this environment), real Web Push delivery, and iPhone Safari.

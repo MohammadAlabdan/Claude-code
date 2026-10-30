@@ -1,0 +1,14 @@
+{
+  "name": "dawri",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node scripts/serve-web.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "package": "node scripts/package-web.mjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

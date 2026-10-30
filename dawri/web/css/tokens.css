@@ -1,0 +1,30 @@
+/* Dawri brand tokens. Light by default, dark by system or by the manual toggle (data-theme). */
+:root {
+  --paper: #F3F5F1; --sheet: #FFFFFF; --ink: #1B2725; --muted: #56655F; --line: #D3DBD5;
+  --accent: #0B8F6E; --on-accent: #FFFFFF; --ticket: #D4F1E6; --board: #151B1A; --led: #FFB21E; --danger: #C2412D;
+  --amber: #B7791F; --side: #E4E9E3;
+  --f-display: "Lalezar", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  --f-hand: "Aref Ruqaa", "IBM Plex Sans Arabic", serif;
+  --f-led: "Doto", ui-monospace, "Courier New", monospace;
+  --r-card: 20px; --r-sm: 12px; --gap: 16px; --tap: 48px;
+  --shadow: 0 1px 2px rgba(20, 40, 35, .06), 0 8px 24px -12px rgba(20, 40, 35, .18);
+  --ease: cubic-bezier(.2, .7, .2, 1); --t-fast: 160ms; --t: 220ms;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #101614; --sheet: #172120; --ink: #E7EEEA; --muted: #9AABA4; --line: #2A3734;
+    --accent: #34D6A5; --on-accent: #06231B; --ticket: #163329; --board: #070A09; --led: #FFB21E; --danger: #F07A66;
+    --amber: #F2B640; --side: #0B100F;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px -12px rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #101614; --sheet: #172120; --ink: #E7EEEA; --muted: #9AABA4; --line: #2A3734;
+  --accent: #34D6A5; --on-accent: #06231B; --ticket: #163329; --board: #070A09; --led: #FFB21E; --danger: #F07A66;
+  --amber: #F2B640; --side: #0B100F;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px -12px rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}

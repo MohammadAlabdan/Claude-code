@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>دوري</title>
+  <meta name="description" content="دوري: خذ رقمك من جوالك ونبّهك قبل دورك.">
+  <meta name="theme-color" content="#0B8F6E" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101614" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="دوري">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Doto:wght@900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Lalezar&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <script>
+    try { var th = localStorage.getItem("dawri.theme"); if (th) document.documentElement.dataset.theme = JSON.parse(th); } catch (e) {}
+  </script>
+  <script src="/config.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="content" aria-busy="true">
+      <div style="display:grid;place-items:center;min-height:60vh"><img src="/assets/logo.svg" alt="دوري" width="84" height="84"></div>
+    </div>
+  </div>
+  <noscript>دوري يحتاج تفعيل JavaScript.</noscript>
+</body>
+</html>

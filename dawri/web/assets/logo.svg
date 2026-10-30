@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="دوري">
+  <title>دوري</title>
+  <!-- ticket stub: rounded rectangle with a semicircle notch on each side -->
+  <path fill="#0B8F6E" d="M24 22h80a14 14 0 0 1 14 14v18a10 10 0 0 0 0 20v18a14 14 0 0 1-14 14H24a14 14 0 0 1-14-14V74a10 10 0 0 0 0-20V36a14 14 0 0 1 14-14z"/>
+  <!-- perforation near one end -->
+  <path d="M90 32v64" stroke="#D4F1E6" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9"/>
+  <!-- the line: three dots, the front one solid -->
+  <circle cx="68" cy="64" r="11" fill="#FFFFFF"/>
+  <circle cx="44" cy="64" r="8" fill="#FFFFFF" fill-opacity=".7"/>
+  <circle cx="25" cy="64" r="5.5" fill="#FFFFFF" fill-opacity=".4"/>
+</svg>
