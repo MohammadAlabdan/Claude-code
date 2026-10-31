@@ -1,0 +1,29 @@
+# Dawri on one domain: the app at /, the Supabase APIs under their usual paths,
+# Supabase Studio (dashboard) on port 8443 behind a password.
+{$PROXY_DOMAIN} {
+	encode zstd gzip
+
+	@supabase_api path /auth/v1/* /rest/v1/* /graphql/v1 /realtime/v1/* /storage/v1/* /functions/v1/*
+	handle @supabase_api {
+		reverse_proxy api-gw:8000
+	}
+
+	handle {
+		root * /srv/dawri
+		header /sw.js Cache-Control "no-cache"
+		header /config.js Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+
+	header -server
+}
+
+{$PROXY_DOMAIN}:8443 {
+	basic_auth {
+		# PROXY_AUTH_PASSWORD is replaced with its bcrypt hash when the container starts
+		{$PROXY_AUTH_USERNAME} {$PROXY_AUTH_PASSWORD}
+	}
+	reverse_proxy studio:3000
+	header -server
+}

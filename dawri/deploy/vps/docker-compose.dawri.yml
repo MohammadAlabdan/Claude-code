@@ -1,0 +1,24 @@
+# Dawri additions on top of Supabase's docker-compose.yml + docker-compose.caddy.yml.
+services:
+  caddy:
+    ports: !override
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+      - "8443:8443"
+    volumes: !override
+      - ./volumes/proxy/dawri:/etc/caddy
+      - ../web-live:/srv/dawri:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  # Postgres pooler only on localhost (reach it over SSH if needed).
+  supavisor:
+    ports: !override
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
+      - "127.0.0.1:${POOLER_PROXY_PORT_TRANSACTION}:6543"
+
+  # Dawri secrets for the Edge Functions (VAPID keys, site URL, Claude key).
+  functions:
+    env_file:
+      - ../dawri.env

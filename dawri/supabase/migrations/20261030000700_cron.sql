@@ -11,8 +11,13 @@ begin
     return;
   end if;
 
-  create extension if not exists pg_cron;
-  create extension if not exists pg_net;
+  begin
+    create extension if not exists pg_cron;
+    create extension if not exists pg_net;
+  exception when others then
+    raise notice 'pg_cron/pg_net could not be enabled (%): cron jobs not registered', sqlerrm;
+    return;
+  end;
 
   create or replace function public.call_edge_function(p_name text) returns bigint
   language plpgsql security definer set search_path = public as $fn$
