@@ -16,6 +16,11 @@ export const CATALOG: Record<string, Spec> = {
     columns: ["branch_id", "kind", "title", "terms", "discount_text", "weekdays", "start_time", "end_time", "valid_from", "valid_to", "max_redemptions", "is_active"],
     feature: (r) => (r.kind === "quiet_coupon" ? "quiet_coupon" : "timed_offers"),
   },
+  quests: {
+    columns: ["branch_id", "kind", "title", "description", "service_id", "provider_id", "required_visits", "reward_text", "rarity",
+              "max_participants", "weekdays", "time_start", "time_end", "starts_at", "ends_at", "is_active"],
+    feature: (r) => (r.kind && r.kind !== "visits" ? "smart_quests" : "quests"),
+  },
   news_posts: { columns: ["branch_id", "title", "body", "published_at"], feature: () => "news" },
   business_pages: { columns: ["branch_id", "bio", "photos", "highlights", "is_published"], feature: () => "full_page", key: "branch_id", noDelete: true },
   branches: { columns: ["name", "address", "map_url", "phone", "google_review_url", "hours"], noDelete: true, noInsert: true },
@@ -54,7 +59,7 @@ export function dbError(error: { code?: string; message?: string } | null) {
 }
 
 export async function listRows(db: SupabaseClient, table: string, branchId: string) {
-  const order = table === "news_posts" ? "published_at" : table === "offers" || table === "providers" ? "created_at" : table === "branches" || table === "business_pages" ? null : "sort";
+  const order = table === "news_posts" ? "published_at" : table === "offers" || table === "providers" || table === "quests" ? "created_at" : table === "branches" || table === "business_pages" ? null : "sort";
   let q = db.from(table).select("*").eq(table === "branches" ? "id" : "branch_id", branchId);
   if (order) q = q.order(order, { ascending: order !== "published_at" });
   const { data, error } = await q;

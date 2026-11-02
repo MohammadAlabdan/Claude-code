@@ -4,7 +4,7 @@ import { checkFeature, dbError, listRows, pick, spec } from "../_shared/catalog.
 import { env, rpc, rpcOk, userClient } from "../_shared/db.ts";
 import { settle } from "../_shared/effects.ts";
 import { HttpError, json, serve, str, subscription, uuid } from "../_shared/http.ts";
-import { busiestSlot, quietCouponDraft, quietWindows } from "../_shared/logic.ts";
+import { busiestSlot, questSuggestions, quietCouponDraft, quietWindows } from "../_shared/logic.ts";
 
 async function quiet(userId: string, branchId: string) {
   const data = await rpcOk<{ arrivals: number[][]; open: boolean[][] }>("o_quiet_data", { p_user: userId, p_branch: branchId });
@@ -70,6 +70,23 @@ serve(async (req, body) => {
       if (!q.windows.length) return json({ suggestion: null });
       const locked = !(await rpc<boolean>("has_feature", { p_branch: b, p_feature: "quiet_coupon" }));
       return json({ suggestion: { ...quietCouponDraft(q.windows[0]), branch_id: b }, locked, required_plan: locked ? "full" : null });
+    }
+
+    case "quests":
+      return json(await rpcOk("o_quests", { p_user: user.id, p_branch: branch() }));
+
+    case "suggest_quests": {
+      const b = branch();
+      const q = await quiet(user.id, b);
+      const d = await rpcOk<Record<string, unknown>>("o_dashboard", { p_user: user.id, p_branch: b, p_range: "30d" });
+      const smart = await rpc<boolean>("has_feature", { p_branch: b, p_feature: "smart_quests" });
+      return json({
+        suggestions: questSuggestions({
+          quiet: q.windows[0] ?? null,
+          absent: Array.isArray(d.absent) ? d.absent.length : 0,
+          providers: (d.provider_times as { provider_id: string; name: string; served: number }[] | null) ?? [],
+        }).map((s) => ({ ...s, locked: s.kind !== "visits" && !smart, required_plan: s.kind !== "visits" && !smart ? "full" : null })),
+      });
     }
 
     // ---------- catalog: list / upsert / delete / bulk insert ----------

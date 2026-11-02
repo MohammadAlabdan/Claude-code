@@ -5,7 +5,7 @@
 import { ApiError } from "./errors.js";
 import { store } from "./ui/dom.js";
 
-const KEY = "dawri.demo.v1";
+const KEY = "dawri.demo.v3";
 const PASSWORD = "Dawri-Demo-2026";
 const DAY_MS = 86400000;
 
@@ -22,8 +22,8 @@ const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 // ---------- plans ----------
 const BASIC = ["queue", "fadeet", "return_now", "card", "evening_summary", "late_button", "family_ticket", "priority", "lost_customers", "staff_language"];
-const GROWTH = [...BASIC, "menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "preferred_provider", "best_time", "busy_alert"];
-const FULL = [...GROWTH, "full_page", "news", "qa_assistant", "quiet_coupon", "peak_report", "absent_customers"];
+const GROWTH = [...BASIC, "menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "preferred_provider", "best_time", "busy_alert", "quests", "upsell"];
+const FULL = [...GROWTH, "full_page", "news", "qa_assistant", "quiet_coupon", "peak_report", "absent_customers", "smart_quests"];
 const PLANS = { basic: BASIC, seasonal: BASIC, growth: GROWTH, full: FULL };
 const minPlan = (f) => (BASIC.includes(f) ? "basic" : GROWTH.includes(f) ? "growth" : "full");
 const DEFAULTS = { return_now_threshold: 2, remote_join_limit: 5, remote_close_minutes_before_closing: 30, avg_ticket_value_sar: 50,
@@ -37,7 +37,7 @@ const DEMO_HOURS = { rukn: ALL_DAY, aseel: ALL_DAY, lamaa: ALL_DAY };
 function seed() {
   const now = Date.now(), today = dayOf();
   const db = {
-    version: 1, seededAt: now, counters: {}, ready: [], redemptions: [], feedback: [], summaries: [], status: {}, pushSubs: [],
+    version: 3, seededAt: now, counters: {}, ready: [], redemptions: [], feedback: [], summaries: [], status: {}, pushSubs: [],
     users: [
       { id: "u-admin", email: "admin@demo.dawri.app" }, { id: "u-cafe", email: "cafe@demo.dawri.app" },
       { id: "u-barber", email: "barber@demo.dawri.app" }, { id: "u-wash", email: "wash@demo.dawri.app" }],
@@ -74,7 +74,8 @@ function seed() {
       ["br-rukn", "قهوة", "قهوة اليوم", "محصول إثيوبي، تقطير", 14], ["br-rukn", "قهوة", "لاتيه", null, 18], ["br-rukn", "قهوة", "سبانش لاتيه", null, 20],
       ["br-rukn", "حلا", "كيكة تمر", "بصوص التوفي", 16], ["br-rukn", "حلا", "كوكيز", null, 9],
       ["br-aseel", "حلاقة", "حلاقة شعر", null, 40, 20], ["br-aseel", "حلاقة", "حلاقة ذقن", null, 25, 10], ["br-aseel", "حلاقة", "شعر وذقن", null, 60, 30], ["br-aseel", "عناية", "تنظيف بشرة", null, 50, 25],
-    ].map(([branch_id, category, name, description, price_sar, duration_min], i) => ({ id: `m-${i}`, branch_id, category, name, description, price_sar, duration_min: duration_min ?? null, is_available: true, sort: i, service_id: null })),
+    ].map(([branch_id, category, name, description, price_sar, duration_min], i) => ({ id: `m-${i}`, branch_id, category, name, description, price_sar, duration_min: duration_min ?? null, is_available: true, sort: i,
+      service_id: { "حلاقة شعر": "svc-hair", "حلاقة ذقن": "svc-beard", "شعر وذقن": "svc-both" }[name] ?? null })),
     offers: [
       { id: "of-1", branch_id: "br-rukn", kind: "timed", title: "قهوة الصباح", terms: "قهوة اليوم مع أي حلا قبل ١٠ الصباح", discount_text: "١٠ ر.س", weekdays: [0, 1, 2, 3, 4, 5, 6], start_time: "06:00", end_time: "10:00", valid_from: null, valid_to: null, max_redemptions: null, is_active: true, created_at: iso(now - 20 * DAY_MS) },
       { id: "of-2", branch_id: "br-rukn", kind: "timed", title: "حلا اليوم", terms: "الحلا الثاني بنصف السعر", discount_text: "٥٠٪", weekdays: [0, 1, 2, 3, 4, 5, 6], start_time: null, end_time: null, valid_from: null, valid_to: null, max_redemptions: null, is_active: true, created_at: iso(now - 20 * DAY_MS) },
@@ -89,6 +90,21 @@ function seed() {
     ].map(([branch_id, phone, visits, rewards_redeemed, ago], i) => ({ id: `l-${i}`, branch_id, phone, visits, goal: 6, rewards_redeemed, last_visit_at: iso(now - ago * DAY_MS) })),
     history: {},
     tickets: [],
+    quests: [
+      { id: "q-quiet", branch_id: "br-aseel", kind: "quiet", title: "تحدّي العصر الهادئ", description: "احلق مرتين وقت العصر هالأسبوع", service_id: null, provider_id: null,
+        required_visits: 2, reward_text: "خصم ٢٠٪", rarity: "rare", max_participants: 20, weekdays: [0, 1, 2, 3, 4, 5, 6], time_start: "15:00", time_end: "17:00",
+        starts_at: iso(now - 2 * DAY_MS), ends_at: iso(now + 5 * DAY_MS), is_active: true, created_at: iso(now - 2 * DAY_MS) },
+      { id: "q-three", branch_id: "br-aseel", kind: "visits", title: "ثلاث حلاقات", description: "ثلاث حلاقات شعر خلال أسبوعين", service_id: "svc-hair", provider_id: null,
+        required_visits: 3, reward_text: "الرابعة علينا", rarity: "common", max_participants: null, weekdays: [0, 1, 2, 3, 4, 5, 6], time_start: null, time_end: null,
+        starts_at: iso(now - 3 * DAY_MS), ends_at: iso(now + 11 * DAY_MS), is_active: true, created_at: iso(now - 3 * DAY_MS) },
+      { id: "q-friend", branch_id: "br-aseel", kind: "friend", title: "تعال مع خويك", description: "زيارتين بتذكرة لشخصين", service_id: null, provider_id: null,
+        required_visits: 2, reward_text: "ذقن مجاناً للاثنين", rarity: "common", max_participants: null, weekdays: [0, 1, 2, 3, 4, 5, 6], time_start: null, time_end: null,
+        starts_at: iso(now - DAY_MS), ends_at: iso(now + 13 * DAY_MS), is_active: true, created_at: iso(now - DAY_MS) },
+      { id: "q-coffee", branch_id: "br-rukn", kind: "visits", title: "قهوة الأسبوع", description: "ثلاث قهاوي خلال ٧ أيام", service_id: "svc-rukn", provider_id: null,
+        required_visits: 3, reward_text: "خصم ١٥٪", rarity: "common", max_participants: null, weekdays: [0, 1, 2, 3, 4, 5, 6], time_start: null, time_end: null,
+        starts_at: iso(now - DAY_MS), ends_at: iso(now + 6 * DAY_MS), is_active: true, created_at: iso(now - DAY_MS) }],
+    questProgress: Array.from({ length: 14 }, (_, i) => ({ id: `qp-${i}`, quest_id: "q-quiet", branch_id: "br-aseel", phone: `05512345${String(10 + i).padStart(2, "0")}`,
+      visits: 1, started_at: iso(now - DAY_MS), completed_at: null, redeemed_at: null })),
   };
 
   // 28 days of history per branch: busy evenings, quiet 3–5 pm, fewer on Sunday.
@@ -112,7 +128,7 @@ function seed() {
     const joined = now - (extra.ago ?? 0) * 60000;
     db.tickets.push({ id: uid(), branch_id: b, service_id: svc, provider_id: null, mode: "remote", day: today, number: n, receipt_code: null, item_label: null,
       party_size: 1, source: "remote", status: "waiting", stage: null, priority: false, priority_reason: null, snooze_count: 0, push_back_count: 0,
-      push_enabled: false, return_now_sent: false, sort_key: joined, token: null, claim: null, phone: null, consent: false, loyalty_counted: false, lang: "ar",
+      push_enabled: false, return_now_sent: false, sort_key: joined, token: null, claim: null, phone: null, consent: false, loyalty_counted: false, lang: "ar", interests: [], quest_counted: [],
       called_by: null, joined_at: iso(joined), called_at: null, served_at: null, done_at: null, left_at: null, ...extra });
   };
   const ago = (m) => iso(now - m * 60000);
@@ -140,7 +156,7 @@ function seed() {
 let db = load();
 function load() {
   const d = store.get(KEY);
-  if (d?.version === 1 && dayOf(new Date(d.seededAt)) === dayOf()) return d;
+  if (d?.version === 3 && dayOf(new Date(d.seededAt)) === dayOf()) return d;
   const fresh = seed();
   store.set(KEY, fresh);
   return fresh;
@@ -248,13 +264,16 @@ function ticketView(t) {
     loyalty: t.phone && has(b, "loyalty") ? loyaltyView(b, t.phone) : null,
     offers: ["waiting", "called", "serving", "done"].includes(t.status) ? activeOffers(b) : [], features: features(b),
     branch: { public_id: b.public_id, name: b.name, business_name: biz(b).name, phone: b.phone, show_arabic_digits: settings(b).show_arabic_digits },
+    quests: questsView(b, t.phone),
+    showcase: ["waiting", "called", "serving"].includes(t.status) || t.mode === "dropoff" ? showcase(b, t.service_id) : [],
+    interests: t.interests ?? [],
   };
 }
 function newTicket(b, s, extra) {
   const today = dayOf(), n = (db.counters[`${b.id}|${today}`] = (db.counters[`${b.id}|${today}`] ?? 0) + 1), now = Date.now();
   const t = { id: uid(), branch_id: b.id, service_id: s.id, provider_id: null, mode: s.mode, day: today, number: n, receipt_code: null, item_label: null, party_size: 1,
     source: "remote", status: "waiting", stage: null, priority: false, priority_reason: null, snooze_count: 0, push_back_count: 0, push_enabled: false,
-    return_now_sent: false, sort_key: now, token: null, claim: null, phone: null, consent: false, loyalty_counted: false, lang: "ar", called_by: null,
+    return_now_sent: false, sort_key: now, token: null, claim: null, phone: null, consent: false, loyalty_counted: false, lang: "ar", called_by: null, interests: [], quest_counted: [],
     joined_at: iso(now), called_at: null, served_at: null, done_at: null, left_at: null, ...extra };
   db.tickets.push(t);
   return t;
@@ -272,10 +291,45 @@ function applyLoyalty(t) {
   if (c) { c.visits++; c.last_visit_at = iso(); } else db.loyalty.push({ id: uid(), branch_id: b.id, phone: t.phone, visits: 1, goal: settings(b).loyalty_goal, rewards_redeemed: 0, last_visit_at: iso() });
   t.loyalty_counted = true;
 }
+// ---------- «تحدّياتي» ----------
+const questFeature = (kind) => (kind === "visits" ? "quests" : "smart_quests");
+const questOpen = (q, at = Date.now()) => q.is_active && at >= Date.parse(q.starts_at) && at < Date.parse(q.ends_at) && has(branch(q.branch_id), questFeature(q.kind));
+function questMatches(q, t) {
+  const j = new Date(t.joined_at), hm = `${String(hourOf(j)).padStart(2, "0")}:${String(riyadh(j).getUTCMinutes()).padStart(2, "0")}`;
+  return (!q.service_id || q.service_id === t.service_id) && (!q.provider_id || q.provider_id === t.provider_id) && (q.kind !== "friend" || t.party_size >= 2)
+    && (q.kind !== "quiet" || (q.weekdays.includes(dowOf(j)) && (!q.time_start || hm >= q.time_start.slice(0, 5)) && (!q.time_end || hm < q.time_end.slice(0, 5))))
+    && j.getTime() >= Date.parse(q.starts_at) && j.getTime() < Date.parse(q.ends_at);
+}
+function applyQuests(t) {
+  if (t.status !== "done" || !t.consent || !t.phone) return;
+  t.quest_counted ??= [];
+  for (const p of db.questProgress.filter((x) => x.branch_id === t.branch_id && x.phone === t.phone && !x.completed_at)) {
+    const q = db.quests.find((x) => x.id === p.quest_id);
+    if (!q || t.quest_counted.includes(q.id) || !has(branch(q.branch_id), questFeature(q.kind)) || !questMatches(q, t)) continue;
+    p.visits++;
+    if (p.visits >= q.required_visits) p.completed_at = iso();
+    t.quest_counted.push(q.id);
+  }
+}
+function questsView(b, phone) {
+  if (!has(b, "quests")) return [];
+  return db.quests.filter((q) => q.branch_id === b.id && questOpen(q)).sort((x, y) => (y.rarity === "rare") - (x.rarity === "rare") || (x.ends_at < y.ends_at ? -1 : 1)).map((q) => {
+    const parts = db.questProgress.filter((p) => p.quest_id === q.id), mine = phone && parts.find((p) => p.phone === phone);
+    return { id: q.id, kind: q.kind, title: q.title, description: q.description, required_visits: q.required_visits, reward_text: q.reward_text, rarity: q.rarity,
+      ends_at: q.ends_at, weekdays: q.weekdays, time_start: q.time_start, time_end: q.time_end,
+      service: db.services.find((x) => x.id === q.service_id)?.name ?? null, provider: db.providers.find((x) => x.id === q.provider_id)?.display_name ?? null,
+      participants: parts.length, spots_left: q.max_participants ? Math.max(0, q.max_participants - parts.length) : null,
+      mine: mine ? { visits: mine.visits, completed: !!mine.completed_at, redeemed: !!mine.redeemed_at } : null };
+  });
+}
+const showcase = (b, serviceId) => (has(b, "menu") ? db.menu.filter((m) => m.branch_id === b.id && m.is_available && (!serviceId || m.service_id !== serviceId)).sort((x, y) => (!!x.service_id - !!y.service_id) || x.sort - y.sort).slice(0, 6)
+  .map(({ id, name, category, description, price_sar, duration_min }) => ({ id, name, category, description, price_sar, duration_min })) : []);
+
 function finish(t) {
   if (["done", "cancelled", "left", "no_show"].includes(t.status)) return;
   Object.assign(t, { status: "done", done_at: iso(), served_at: t.served_at ?? t.called_at ?? iso(), called_at: t.called_at ?? iso(), stage: t.mode === "dropoff" ? "picked_up" : t.stage });
   applyLoyalty(t);
+  applyQuests(t);
 }
 const byToken = (tok) => db.tickets.find((t) => t.token && t.token === tok) ?? fail("ticket_not_found");
 
@@ -455,6 +509,41 @@ const customer = {
     commit(b.public_id);
     return { ok: true, redeemed: "offer", title: o.title };
   },
+  quest_start({ token: tok, quest_id }) {
+    const t = byToken(tok), b = branch(t.branch_id);
+    const q = db.quests.find((x) => x.id === quest_id && x.branch_id === b.id) ?? fail("quest_not_found");
+    need(b, questFeature(q.kind));
+    if (!questOpen(q)) fail("quest_ended");
+    if (!t.phone || !t.consent) fail("phone_required");
+    if (!db.questProgress.some((p) => p.quest_id === q.id && p.phone === t.phone)) {
+      if (q.max_participants && db.questProgress.filter((p) => p.quest_id === q.id).length >= q.max_participants) fail("quest_full");
+      db.questProgress.push({ id: uid(), quest_id: q.id, branch_id: b.id, phone: t.phone, visits: 0, started_at: iso(), completed_at: null, redeemed_at: null });
+      if (t.status === "done") applyQuests(t);
+    }
+    commit(b.public_id);
+    return { ok: true, quests: questsView(b, t.phone) };
+  },
+  async redeem_quest({ token: tok, quest_id, code }) {
+    const t = byToken(tok), b = branch(t.branch_id), m = Math.floor(Date.now() / 60000);
+    if (!/^\d{4}$/.test(code ?? "") || ![await rotatingCode(b.secret, m), await rotatingCode(b.secret, m - 1)].includes(code)) fail("invalid_code");
+    const p = db.questProgress.find((x) => x.quest_id === quest_id && x.phone === t.phone);
+    if (!p?.completed_at) fail("no_reward");
+    if (p.redeemed_at) fail("already_redeemed");
+    p.redeemed_at = iso();
+    const q = db.quests.find((x) => x.id === quest_id);
+    db.redemptions.push({ id: uid(), branch_id: b.id, offer_id: null, loyalty_card_id: null, quest_id, ticket_id: t.id, redeemed_at: iso(), ticket_number: t.number });
+    commit(b.public_id);
+    return { ok: true, redeemed: "quest", title: q.reward_text, quests: questsView(b, t.phone) };
+  },
+  interest({ token: tok, item_id, on = true }) {
+    const t = byToken(tok), b = branch(t.branch_id);
+    need(b, "upsell");
+    db.menu.find((m) => m.id === item_id && m.branch_id === b.id) ?? fail("invalid_input", { field: "item_id" });
+    t.interests ??= [];
+    t.interests = on ? [...new Set([...t.interests, item_id])].slice(0, 5) : t.interests.filter((x) => x !== item_id);
+    commit(b.public_id);
+    return { ok: true, interests: t.interests };
+  },
   claim_dropoff({ claim_token }) {
     const t = db.tickets.find((x) => x.claim && x.claim === claim_token) ?? fail("ticket_not_found");
     Object.assign(t, { token: token(), claim: null });
@@ -492,7 +581,8 @@ function staffAction(d, action, body) {
           .sort((x, y) => (before(x, y) ? -1 : 1))
           .map((t) => ({ id: t.id, number: t.number, mode: t.mode, status: t.status, stage: t.stage, service_id: t.service_id, provider_id: t.provider_id, party_size: t.party_size,
             priority: t.priority, priority_reason: t.priority_reason, push_enabled: t.push_enabled, source: t.source, receipt_code: t.receipt_code, item_label: t.item_label,
-            push_back_count: t.push_back_count, joined_at: t.joined_at, called_at: t.called_at, called_by_me: t.called_by === d.id, position: t.status === "waiting" && t.mode === "remote" ? position(t) : null })),
+            push_back_count: t.push_back_count, joined_at: t.joined_at, called_at: t.called_at, called_by_me: t.called_by === d.id, position: t.status === "waiting" && t.mode === "remote" ? position(t) : null,
+            interests: (t.interests ?? []).map((id) => db.menu.find((m) => m.id === id)?.name).filter(Boolean) })),
         ready_numbers: db.ready.filter((r) => r.branch_id === b.id && r.day === dayOf()).sort((x, y) => (x.ready_at < y.ready_at ? 1 : -1)).slice(0, 12).map((r) => r.code),
         labels: LABELS[d.language] ?? LABELS.ar, server_time: iso(),
       };
@@ -564,7 +654,7 @@ function staffAction(d, action, body) {
     case "set_busy": db.status[b.id] = { ...db.status[b.id], manual: body.level ?? null, at: iso() }; return { ok: true, busy_level: busyLevel(b) };
     case "redeem_check":
       return { redemptions: db.redemptions.filter((r) => r.branch_id === b.id && Date.now() - Date.parse(r.redeemed_at) < 12 * 3600000).slice(-10).reverse()
-        .map((r) => ({ id: r.id, redeemed_at: r.redeemed_at, ticket_number: r.ticket_number, kind: r.loyalty_card_id ? "loyalty" : "offer", title: db.offers.find((o) => o.id === r.offer_id)?.title ?? settings(b).loyalty_reward_text })) };
+        .map((r) => ({ id: r.id, redeemed_at: r.redeemed_at, ticket_number: r.ticket_number, kind: r.loyalty_card_id ? "loyalty" : "offer", title: db.offers.find((o) => o.id === r.offer_id)?.title ?? db.quests.find((q) => q.id === r.quest_id)?.reward_text ?? settings(b).loyalty_reward_text })) };
     default: fail("invalid_action");
   }
 }
@@ -583,11 +673,13 @@ const TABLES = {
   menu_items: ["branch_id", "category", "name", "description", "price_sar", "duration_min", "is_available", "sort", "service_id"],
   offers: ["branch_id", "kind", "title", "terms", "discount_text", "weekdays", "start_time", "end_time", "valid_from", "valid_to", "max_redemptions", "is_active"],
   news_posts: ["branch_id", "title", "body", "published_at"],
+  quests: ["branch_id", "kind", "title", "description", "service_id", "provider_id", "required_visits", "reward_text", "rarity", "max_participants", "weekdays", "time_start", "time_end", "starts_at", "ends_at", "is_active"],
   business_pages: ["branch_id", "bio", "photos", "highlights", "is_published"],
   branches: ["name", "address", "map_url", "phone", "google_review_url", "hours"],
 };
-const COLLECTION = { services: "services", providers: "providers", menu_items: "menu", offers: "offers", news_posts: "news" };
-const tableFeature = (table, row) => ({ menu_items: "menu", news_posts: "news", business_pages: "full_page", offers: row.kind === "quiet_coupon" ? "quiet_coupon" : "timed_offers" })[table];
+const COLLECTION = { services: "services", providers: "providers", menu_items: "menu", offers: "offers", news_posts: "news", quests: "quests" };
+const tableFeature = (table, row) => ({ menu_items: "menu", news_posts: "news", business_pages: "full_page", offers: row.kind === "quiet_coupon" ? "quiet_coupon" : "timed_offers",
+  quests: row.kind && row.kind !== "visits" ? "smart_quests" : "quests" })[table];
 function pick(row, cols) { const o = {}; for (const c of cols) if (row && c in row) o[c] = row[c]; return o; }
 
 function ownerAction(user, action, body) {
@@ -629,6 +721,28 @@ function ownerAction(user, action, body) {
     case "revoke_device": { const d = db.devices.find((x) => x.id === body.device_id) ?? fail("forbidden"); ownedBranch(user, d.branch_id); d.revoked_at = iso(); commit(null); return { ok: true }; }
     case "settings_update": { const b = ownedBranch(user, body.branch_id); b.settings = { ...b.settings, ...body.settings }; commit(b.public_id); return { ok: true, settings: settings(b) }; }
     case "subscribe_push": return { ok: true };
+    case "quests": {
+      const b = ownedBranch(user, body.branch_id);
+      return { quests: db.quests.filter((q) => q.branch_id === b.id).sort((x, y) => (x.created_at < y.created_at ? 1 : -1)).map((q) => {
+        const parts = db.questProgress.filter((p) => p.quest_id === q.id);
+        return { ...q, open: questOpen(q), participants: parts.length, completed: parts.filter((p) => p.completed_at).length, redeemed: parts.filter((p) => p.redeemed_at).length, visits: parts.reduce((a, p) => a + p.visits, 0) };
+      }), interests_7d: db.tickets.filter((t) => t.branch_id === b.id && (t.interests ?? []).length).length };
+    }
+    case "suggest_quests": {
+      const b = ownedBranch(user, body.branch_id), smart = has(b, "smart_quests");
+      const w = quietWindows(arrivalsMatrix(b), openMatrix(b))[0], d = dashboard(b, "30d");
+      const days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"], ar = (n) => String(n).replace(/\d/g, (x) => "٠١٢٣٤٥٦٧٨٩"[x]);
+      const lab = (h) => `${ar(h % 12 || 12)} ${h < 12 ? "الصباح" : h < 15 ? "الظهر" : h < 18 ? "العصر" : "المساء"}`, pad = (h) => `${String(h % 24).padStart(2, "0")}:00`;
+      const all = [0, 1, 2, 3, 4, 5, 6], base = { rarity: "common", max_participants: null, weekdays: all, time_start: null, time_end: null, provider_id: null };
+      const out = [{ ...base, kind: "visits", title: "ثلاث زيارات", description: "ثلاث زيارات خلال أسبوعين", required_visits: 3, reward_text: "الرابعة علينا", duration_days: 14, why: "يرجّع الزبون مرة ثانية وثالثة خلال أسبوعين" }];
+      if (w) out.unshift({ ...base, kind: "quiet", title: `تحدّي ${lab(w.start_hour).split(" ")[1]} الهادئ`, description: `زيارتين من ${lab(w.start_hour)} لمدة ساعتين`, required_visits: 2, reward_text: "خصم ٢٠٪",
+        rarity: "rare", max_participants: 20, time_start: pad(w.start_hour), time_end: pad(w.start_hour + 2), duration_days: 7, why: `أهدأ وقت عندك ${days[w.weekday]} ${lab(w.start_hour)}: التحدّي يملأه بدل الخصم وقت الزحمة` });
+      if (d.absent?.length) out.push({ ...base, kind: "comeback", title: "اشتقنا لك", description: "ارجع لنا خلال ١٠ أيام", required_visits: 1, reward_text: "هدية مع زيارتك", duration_days: 10, why: `${ar(d.absent.length)} زباين غابوا عنك أكثر من ٣٠ يوم` });
+      const least = [...(d.provider_times ?? [])].sort((a, c) => a.served - c.served)[0];
+      if (least && (d.provider_times ?? []).length > 1) out.push({ ...base, kind: "provider", title: `جرّب ${least.name}`, description: `زيارتين مع ${least.name}`, required_visits: 2, reward_text: "خصم ١٥٪", provider_id: least.provider_id, duration_days: 14, why: `${least.name} أقل واحد خدم زباين هالشهر: التحدّي يوزّع الطابور` });
+      out.push({ ...base, kind: "friend", title: "تعال مع خويك", description: "زيارتين بتذكرة لشخصين", required_visits: 2, reward_text: "خصم للاثنين", duration_days: 14, why: "كل زيارة تجيب لك زبون جديد" });
+      return { suggestions: out.map((x) => ({ ...x, locked: x.kind !== "visits" && !smart, required_plan: x.kind !== "visits" && !smart ? "full" : null })) };
+    }
     case "quiet_hours": { const b = ownedBranch(user, body.branch_id); const arrivals = arrivalsMatrix(b), open = openMatrix(b); return { arrivals, open, windows: quietWindows(arrivals, open), busiest: busiest(arrivals) }; }
     case "suggest_quiet_coupon": {
       const b = ownedBranch(user, body.branch_id), w = quietWindows(arrivalsMatrix(b), openMatrix(b))[0];
@@ -658,7 +772,7 @@ function ownerAction(user, action, body) {
       const list = db[COLLECTION[body.table]];
       let existing = body.row?.id && list.find((r) => r.id === body.row.id);
       if (existing) Object.assign(existing, row);
-      else { existing = { id: uid(), created_at: iso(), ...(body.table === "news_posts" ? { published_at: iso() } : {}), ...(body.table === "offers" ? { weekdays: [0, 1, 2, 3, 4, 5, 6], is_active: true, kind: "timed" } : {}), ...(body.table === "menu_items" ? { is_available: true, sort: list.length } : {}), ...(body.table === "services" || body.table === "providers" ? { is_active: true, sort: list.length } : {}), ...row }; list.push(existing); }
+      else { existing = { id: uid(), created_at: iso(), ...(body.table === "quests" ? { is_active: true, rarity: "common", weekdays: [0, 1, 2, 3, 4, 5, 6], starts_at: iso(), ends_at: iso(Date.now() + 7 * DAY_MS) } : {}), ...(body.table === "news_posts" ? { published_at: iso() } : {}), ...(body.table === "offers" ? { weekdays: [0, 1, 2, 3, 4, 5, 6], is_active: true, kind: "timed" } : {}), ...(body.table === "menu_items" ? { is_available: true, sort: list.length } : {}), ...(body.table === "services" || body.table === "providers" ? { is_active: true, sort: list.length } : {}), ...row }; list.push(existing); }
       commit(b.public_id);
       return { ok: true, row: existing };
     }
@@ -745,6 +859,7 @@ export async function createApi() {
         menu: f.includes("menu") ? db.menu.filter((m) => m.branch_id === b.id && m.is_available).sort((x, y) => x.sort - y.sort) : [],
         offers: activeOffers(b),
         best_time: f.includes("best_time") ? { arrivals: arrivalsMatrix(b), open: openMatrix(b) } : null,
+        quests: questsView(b, null),
         news: f.includes("news") ? db.news.filter((n) => n.branch_id === b.id).sort((x, y) => (x.published_at < y.published_at ? 1 : -1)).slice(0, 10) : [],
         server_time: iso(),
       };

@@ -168,7 +168,8 @@ export async function render(ctx) {
           x.party_size > 1 ? h("span", icon("users"), " ", num(x.party_size)) : null,
           x.provider_id ? h("span", prov(x.provider_id)?.name) : null,
           x.priority ? h("span.badge.warn", t(`priority.${x.priority_reason ?? "other"}`)) : null,
-          x.source === "walk_in" ? h("span.badge", t("source.walk_in")) : null)),
+          x.source === "walk_in" ? h("span.badge", t("source.walk_in")) : null,
+          (x.interests ?? []).map((n) => h("span.staff-want", { "data-testid": "staff-want" }, `+ ${n}`)))),
       !x.push_enabled ? h("span", { title: t("bell.off"), "data-testid": "bell-off", style: { color: "var(--danger)", fontSize: "1.3rem" } }, icon("bell-off", t("bell.off"))) : null);
     return el;
   }
@@ -235,7 +236,8 @@ export async function render(ctx) {
       card(t("dropoff.items", { n: num(items.length) }), "list",
         items.length ? h("div.stack", items.map((x) => h("div.staff-ticket", { "data-ticket": x.number },
           h("span.n", num(x.number)),
-          h("div", { style: { flex: 1, minWidth: 0 } }, h("div", x.item_label), h("div.small.muted", state.labels[x.stage] ?? x.stage)),
+          h("div", { style: { flex: 1, minWidth: 0 } }, h("div", x.item_label), h("div.small.muted", state.labels[x.stage] ?? x.stage),
+            (x.interests ?? []).length ? h("div.row", { style: { gap: "4px" } }, x.interests.map((n) => h("span.staff-want", `+ ${n}`))) : null),
           next[x.stage] ? h("button.btn", { type: "button", "data-testid": `stage-${next[x.stage]}`, onclick: () => act("dropoff_stage", { ticket_id: x.id, stage: next[x.stage] }) }, t(`stage.${next[x.stage]}`)) : null))) : h("p.muted.center", t("dropoff.empty"))),
     ];
   }

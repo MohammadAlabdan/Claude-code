@@ -306,3 +306,88 @@ table.simple th, table.simple td { text-align: start; padding: 8px 6px; border-t
   .content { padding: 0; }
   .poster { padding: 0; }
 }
+
+/* ---------- «وأنت تنتظر»: waiting showcase ---------- */
+.wait-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.wait-head h2 { font-size: 1.45rem; }
+.wait-head .muted { font-size: .85rem; }
+.story { display: grid; gap: 10px; }
+.story-bars { display: flex; gap: 4px; direction: ltr; }
+[dir="rtl"] .story-bars { direction: rtl; }
+.story-bars span { flex: 1; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.story-bars span i { display: block; height: 100%; width: 0; background: var(--accent); }
+.story-bars span.done i { width: 100%; }
+.story-bars span.now i { animation: storyfill 6s linear forwards; }
+.story.paused .story-bars span.now i { animation: none; width: 100%; }
+@keyframes storyfill { to { width: 100%; } }
+.story-track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 26px; }
+.story-track::-webkit-scrollbar { display: none; }
+.story-slide { scroll-snap-align: start; min-width: 0; display: grid; }
+.story-slide > * { height: 100%; }
+
+/* ---------- QuestCard: a challenge drawn as a ticket stub ---------- */
+.quest {
+  --q-bg: linear-gradient(155deg, var(--ticket), color-mix(in srgb, var(--ticket) 45%, var(--sheet)));
+  --q-ink: var(--ink); --q-muted: var(--muted); --q-hi: var(--accent); --q-stop: color-mix(in srgb, var(--accent) 14%, var(--sheet));
+  position: relative; background: var(--q-bg); color: var(--q-ink); border-radius: 26px; padding: 18px 20px 16px; display: grid; gap: 8px; min-width: 0;
+  --notch: 15px;
+  -webkit-mask: radial-gradient(circle var(--notch) at 0 63%, transparent 98%, #000) left / 51% 100% no-repeat,
+                radial-gradient(circle var(--notch) at 100% 63%, transparent 98%, #000) right / 51% 100% no-repeat;
+          mask: radial-gradient(circle var(--notch) at 0 63%, transparent 98%, #000) left / 51% 100% no-repeat,
+                radial-gradient(circle var(--notch) at 100% 63%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+.quest.rare { --q-bg: radial-gradient(120% 90% at 85% 0%, #2B2410 0%, var(--board) 55%); --q-ink: #EDE6D3; --q-muted: #B8AF98; --q-hi: var(--led); --q-stop: rgba(255, 178, 30, .12); }
+.q-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.q-kind { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; color: var(--q-hi); }
+.q-kind i { font-size: 1.05rem; }
+.q-rare { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--led); color: #2A1B00; }
+.q-title { font: 400 1.35rem/1.25 var(--f-display); margin: 0; }
+.q-reward { display: grid; }
+.q-reward small { font-size: .75rem; color: var(--q-muted); font-weight: 600; }
+.q-reward b { font: 400 2.5rem/1.05 var(--f-display); color: var(--q-hi); }
+.quest.rare .q-reward b { text-shadow: 0 0 18px rgba(255, 178, 30, .35); }
+.q-desc { font-size: .86rem; color: var(--q-muted); margin: 0; }
+.q-perf { border-top: 2px dashed color-mix(in srgb, var(--q-hi) 35%, transparent); margin: 8px -20px 6px; }
+.q-path { display: flex; align-items: center; gap: 0; }
+.q-stop { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .85rem;
+  background: var(--q-stop); color: var(--q-muted); border: 2px solid color-mix(in srgb, var(--q-hi) 30%, transparent); position: relative; }
+.q-stop + .q-stop { margin-inline-start: 0; }
+.q-path .q-stop:not(:last-child)::after { content: ""; position: absolute; inset-inline-start: 100%; top: 50%; width: var(--gapw, 18px); height: 2px; background: color-mix(in srgb, var(--q-hi) 30%, transparent); }
+.q-path { gap: 18px; }
+.q-stop.on { background: var(--q-hi); color: var(--sheet); border-color: var(--q-hi); }
+.quest.rare .q-stop.on { color: #2A1B00; }
+.q-stop.on:not(:last-child)::after { background: var(--q-hi); }
+.q-stop.gift { font-size: 1.1rem; color: var(--q-hi); }
+.q-stop.gift.on { animation: giftpop .6s var(--ease) 2; }
+@keyframes giftpop { 50% { transform: scale(1.18) rotate(-8deg); } }
+.q-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.q-meta { font-size: .78rem; color: var(--q-muted); }
+.q-cta { min-height: 42px; padding: 8px 16px; border-radius: 12px; background: var(--q-hi); border-color: transparent; color: var(--sheet); }
+.quest.rare .q-cta, .promo .q-cta.q-win { color: #2A1B00; }
+.quest:not(.rare) .q-cta { color: var(--on-accent); }
+.q-cta.q-win { background: var(--led); color: #2A1B00; }
+.q-state { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: .88rem; color: var(--q-hi); }
+.quest.won { box-shadow: 0 0 0 3px var(--led), 0 0 30px -6px var(--led); }
+
+/* ---------- promo slides ---------- */
+.promo { border-radius: 26px; padding: 20px; display: grid; gap: 8px; align-content: start; min-height: 260px; }
+.promo h3 { font: 400 1.35rem/1.25 var(--f-display); margin: 0; }
+.promo p { margin: 0; font-size: .9rem; }
+.promo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; justify-self: start; padding: 3px 10px; border-radius: 999px; }
+.promo.offer { background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 65%, var(--board))); color: var(--on-accent); }
+.promo.offer .promo-tag { background: color-mix(in srgb, var(--on-accent) 18%, transparent); }
+.promo.offer .promo-big { font: 400 3.6rem/1 var(--f-display); }
+.promo.offer .q-cta { background: var(--on-accent); color: var(--accent); justify-self: start; margin-top: auto; }
+.promo.item { background: var(--sheet); border: 1.5px solid var(--line); }
+.promo.item .promo-tag { background: var(--ticket); color: var(--accent); }
+.promo.item.wanted { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.promo-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.promo-price { font: 400 1.9rem/1 var(--f-display); color: var(--accent); }
+.promo-min { display: inline-flex; gap: 4px; align-items: center; font-size: .82rem; color: var(--muted); }
+.promo.item .q-cta { justify-self: stretch; background: var(--accent); color: var(--on-accent); margin-top: auto; }
+.promo.item .q-cta.q-win { background: var(--led); color: #2A1B00; }
+.promo-note { font-size: .8rem !important; color: var(--muted); }
+.promo.news { background: var(--board); color: #E7EEEA; }
+.promo.news .promo-tag { background: rgba(255, 178, 30, .15); color: var(--led); }
+.quest-list { display: grid; gap: 14px; }
+.staff-want { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--led); color: #2A1B00; }

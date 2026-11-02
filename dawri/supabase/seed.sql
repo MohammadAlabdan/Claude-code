@@ -231,3 +231,23 @@ on conflict do nothing;
 insert into public.ticket_counters (branch_id, day, last_number)
 select branch_id, day, max(number) from public.tickets group by branch_id, day
 on conflict (branch_id, day) do update set last_number = excluded.last_number;
+
+-- ---------- «تحدّياتي»: demo challenges ----------
+insert into public.quests (branch_id, kind, title, description, service_id, required_visits, reward_text, rarity, max_participants,
+                           weekdays, time_start, time_end, starts_at, ends_at) values
+  ('c0000000-0000-4000-8000-000000000002', 'quiet', 'تحدّي العصر الهادئ', 'احلق مرتين وقت العصر هالأسبوع', null, 2, 'خصم ٢٠٪', 'rare', 20,
+   '{0,1,2,3,4,5,6}', '15:00', '17:00', now() - interval '2 days', now() + interval '5 days'),
+  ('c0000000-0000-4000-8000-000000000002', 'visits', 'ثلاث حلاقات', 'ثلاث حلاقات شعر خلال أسبوعين', 'd0000000-0000-4000-8000-000000000021', 3, 'الرابعة علينا', 'common', null,
+   '{0,1,2,3,4,5,6}', null, null, now() - interval '3 days', now() + interval '11 days'),
+  ('c0000000-0000-4000-8000-000000000002', 'friend', 'تعال مع خويك', 'زيارتين بتذكرة لشخصين', null, 2, 'ذقن مجاناً للاثنين', 'common', null,
+   '{0,1,2,3,4,5,6}', null, null, now() - interval '1 day', now() + interval '13 days'),
+  ('c0000000-0000-4000-8000-000000000001', 'visits', 'قهوة الأسبوع', 'ثلاث قهاوي خلال ٧ أيام', 'd0000000-0000-4000-8000-000000000011', 3, 'خصم ١٥٪', 'common', null,
+   '{0,1,2,3,4,5,6}', null, null, now() - interval '1 day', now() + interval '6 days');
+
+insert into public.quest_progress (quest_id, branch_id, phone, visits)
+select q.id, q.branch_id, p.phone, 1
+from public.quests q cross join (values ('0551234501'), ('0551234502'), ('0551234503'), ('0551234504'), ('0551234505'),
+  ('0551234510'), ('0551234511'), ('0551234512'), ('0551234513'), ('0551234514'), ('0551234515'), ('0551234516'),
+  ('0551234517'), ('0551234518')) p(phone)
+where q.title = 'تحدّي العصر الهادئ'
+on conflict do nothing;

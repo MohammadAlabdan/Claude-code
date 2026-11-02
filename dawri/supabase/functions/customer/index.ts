@@ -50,6 +50,15 @@ serve(async (req, body) => {
       })));
     }
 
+    case "quest_start":
+      return json(await settle(await rpc("c_quest_start", { p_token: token(), p_quest: uuid(body, "quest_id") })));
+
+    case "redeem_quest":
+      return json(await settle(await rpc("c_redeem_quest", { p_token: token(), p_quest: uuid(body, "quest_id"), p_code: str(body, "code", 4) })));
+
+    case "interest":
+      return json(await settle(await rpc("c_interest", { p_token: token(), p_item: uuid(body, "item_id"), p_on: body.on !== false })));
+
     case "claim_dropoff":
       return json(await settle(await rpc("c_claim_dropoff", { p_claim_token: str(body, "claim_token", 100) })));
 

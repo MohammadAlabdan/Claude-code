@@ -166,3 +166,62 @@ export function imageMediaType(b64: string): "image/jpeg" | "image/png" | "image
   if (b64.startsWith("UklGR")) return "image/webp";
   return null;
 }
+
+export interface QuestDraft {
+  kind: "visits" | "quiet" | "comeback" | "provider" | "friend";
+  title: string;
+  description: string;
+  required_visits: number;
+  reward_text: string;
+  rarity: "common" | "rare";
+  max_participants: number | null;
+  weekdays: number[];
+  time_start: string | null;
+  time_end: string | null;
+  provider_id: string | null;
+  duration_days: number;
+  why: string;
+}
+
+/** Ready-made challenges from the shop's own numbers: quiet hours, absent customers, the least busy provider. */
+export function questSuggestions(input: {
+  quiet: QuietWindow | null;
+  absent: number;
+  providers: { provider_id: string; name: string; served: number }[];
+}): QuestDraft[] {
+  const all = [0, 1, 2, 3, 4, 5, 6];
+  const out: QuestDraft[] = [{
+    kind: "visits", title: "ثلاث زيارات", description: "ثلاث زيارات خلال أسبوعين", required_visits: 3, reward_text: "الرابعة علينا",
+    rarity: "common", max_participants: null, weekdays: all, time_start: null, time_end: null, provider_id: null, duration_days: 14,
+    why: "يرجّع الزبون مرة ثانية وثالثة خلال أسبوعين",
+  }];
+  if (input.quiet) {
+    const h = input.quiet.start_hour, pad = (x: number) => `${String(x % 24).padStart(2, "0")}:00`;
+    out.unshift({
+      kind: "quiet", title: `تحدّي ${hourLabelAr(h).split(" ")[1]} الهادئ`, description: `زيارتين ${WEEKDAYS_AR[input.quiet.weekday]} أو أي يوم من ${hourLabelAr(h)} لمدة ساعتين`,
+      required_visits: 2, reward_text: "خصم ٢٠٪", rarity: "rare", max_participants: 20, weekdays: all, time_start: pad(h), time_end: pad(h + 2),
+      provider_id: null, duration_days: 7, why: `أهدأ وقت عندك ${WEEKDAYS_AR[input.quiet.weekday]} ${hourLabelAr(h)}: التحدّي يملأه بدل الخصم وقت الزحمة`,
+    });
+  }
+  if (input.absent > 0) {
+    out.push({
+      kind: "comeback", title: "اشتقنا لك", description: "ارجع لنا خلال ١٠ أيام", required_visits: 1, reward_text: "هدية مع زيارتك",
+      rarity: "common", max_participants: null, weekdays: all, time_start: null, time_end: null, provider_id: null, duration_days: 10,
+      why: `${toArabicDigits(input.absent)} زباين غابوا عنك أكثر من ٣٠ يوم`,
+    });
+  }
+  const least = [...input.providers].sort((a, b) => a.served - b.served)[0];
+  if (least && input.providers.length > 1) {
+    out.push({
+      kind: "provider", title: `جرّب ${least.name}`, description: `زيارتين مع ${least.name}`, required_visits: 2, reward_text: "خصم ١٥٪",
+      rarity: "common", max_participants: null, weekdays: all, time_start: null, time_end: null, provider_id: least.provider_id, duration_days: 14,
+      why: `${least.name} أقل واحد خدم زباين هالشهر: التحدّي يوزّع الطابور`,
+    });
+  }
+  out.push({
+    kind: "friend", title: "تعال مع خويك", description: "زيارتين بتذكرة لشخصين", required_visits: 2, reward_text: "خصم للاثنين",
+    rarity: "common", max_participants: null, weekdays: all, time_start: null, time_end: null, provider_id: null, duration_days: 14,
+    why: "كل زيارة تجيب لك زبون جديد",
+  });
+  return out;
+}

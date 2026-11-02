@@ -56,8 +56,8 @@ The public RPCs return `{ "error": "branch_not_found" }` / `{ "error": "ticket_n
 | plan | price (SAR/month) | features |
 |---|---|---|
 | `basic` | 199 | `queue`, `fadeet`, `return_now`, `card`, `evening_summary`, `late_button`, `family_ticket`, `priority`, `lost_customers`, `staff_language` |
-| `growth` | 399 | basic + `menu`, `menu_photo_ai`, `timed_offers`, `loyalty`, `feedback`, `preferred_provider`, `best_time`, `busy_alert` |
-| `full` | 699 | growth + `full_page`, `news`, `qa_assistant`, `quiet_coupon`, `peak_report`, `absent_customers` |
+| `growth` | 399 | basic + `menu`, `menu_photo_ai`, `timed_offers`, `loyalty`, `feedback`, `preferred_provider`, `best_time`, `busy_alert`, `quests`, `upsell` |
+| `full` | 699 | growth + `full_page`, `news`, `qa_assistant`, `quiet_coupon`, `peak_report`, `absent_customers`, `smart_quests` |
 | `seasonal` | by season | same as basic until `plan_until` |
 
 A trial (`trial_until` in the future) counts as `full`. An inactive business or expired `plan_until` has **no** features. Responses carry `features: string[]` so the UI can show locked cards.
@@ -90,9 +90,23 @@ A trial (`trial_until` in the future) counts as `full`. An inactive business or 
   "loyalty": { "visits": 3, "goal": 6, "reward_available": false, "reward_text": "الزيارة السادسة علينا" },  // null without phone or feature
   "offers": [Offer],
   "features": ["queue", "…"],
-  "branch": { "public_id": "aseel2026", "name": "…", "business_name": "…", "phone": "011…", "show_arabic_digits": true }
+  "branch": { "public_id": "aseel2026", "name": "…", "business_name": "…", "phone": "011…", "show_arabic_digits": true },
+  "quests": [Quest],          // open challenges (feature quests), with "mine" when the ticket has a phone
+  "showcase": [{ "id", "name", "category", "description", "price_sar", "duration_min" }],  // extras for «أبيها», never the booked service
+  "interests": ["menu item id"]
 }
 ```
+
+### Quest («تحدّياتي»)
+
+```json
+{ "id": "uuid", "kind": "visits|quiet|comeback|provider|friend", "title": "…", "description": "…", "required_visits": 3,
+  "reward_text": "خصم ١٥٪", "rarity": "common|rare", "ends_at": "…", "weekdays": [0,1,2,3,4,5,6],
+  "time_start": "15:00:00|null", "time_end": "17:00:00|null", "service": "name|null", "provider": "name|null",
+  "participants": 14, "spots_left": 6, "mine": { "visits": 1, "completed": false, "redeemed": false } }
+```
+
+A visit counts automatically when a ticket with that phone is finished and matches the quest (service, provider, time window for `quiet`, 2+ people for `friend`, inside starts_at–ends_at). `visits` needs `quests`; the other kinds need `smart_quests`.
 
 `provider` is `null` when any provider is fine.
 
@@ -147,6 +161,9 @@ Busy level: manual level if staff/owner set one in the last 30 minutes, else `fr
 | `set_phone` | `{token, phone: "05XXXXXXXX", consent: true}` | `{ok, loyalty}` (feature `loyalty`) |
 | `redeem` | `{token, offer_id, code}` or `{token, loyalty: true, code}` | `{ok, redeemed: "offer"|"loyalty", title, loyalty?}` |
 | `claim_dropoff` | `{claim_token}` | `{ticket_token, ticket}`; the claim link works once |
+| `quest_start` | `{token, quest_id}` | `{ok, quests: [Quest]}` — needs a phone on the ticket (`phone_required`); `quest_full`, `quest_ended`, `quest_not_eligible` |
+| `redeem_quest` | `{token, quest_id, code}` | `{ok, redeemed: "quest", title, quests}` (rotating staff code) |
+| `interest` | `{token, item_id, on?: bool}` | `{ok, interests: [menu item ids]}` — «أبيها» (feature `upsell`, max 5) |
 
 Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). Join rate limit: 3 per device (IP+UA) per branch per hour; 30 actions per ticket per hour. Join refusals: `closed`, `closing_soon`, `remote_limit`, `rate_limited`.
 
@@ -180,7 +197,7 @@ Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). 
   "providers": [{ "id", "name", "service_ids" }],
   "tickets": [{ "id", "number", "mode", "status", "stage", "service_id", "provider_id", "party_size", "priority", "priority_reason",
                 "push_enabled", "source", "receipt_code", "item_label", "push_back_count", "joined_at", "called_at",
-                "called_by_me", "position" }],          // queue order; waiting/called/serving + open dropoffs
+                "called_by_me", "position", "interests": ["names of extras the customer asked for"] }],          // queue order; waiting/called/serving + open dropoffs
   "ready_numbers": ["44"],
   "labels": { "waiting": "…", … },                   // status/stage labels in the device language
   "server_time": "…"
@@ -208,6 +225,8 @@ Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). 
 | `upsert` | `{table, row}` (`row.id` updates, else inserts; `business_pages` keys on `branch_id`; `branches` needs `row.id`) | `{ok, row}` |
 | `delete` | `{table, id}` | `{ok}` |
 | `menu_bulk` | `{branch_id, items: [menu rows], replace?: bool}` | `{ok, inserted}` |
+| `quests` | `{branch_id}` | `{quests: [quest row + open, participants, completed, redeemed, visits], interests_7d}` |
+| `suggest_quests` | `{branch_id}` | `{suggestions: [{kind, title, description, required_visits, reward_text, rarity, max_participants, weekdays, time_start, time_end, provider_id, duration_days, why, locked, required_plan}]}` → save with `upsert` on `quests` |
 
 Catalog tables and writable columns:
 
@@ -218,6 +237,7 @@ Catalog tables and writable columns:
 | `menu_items` | branch_id, category, name, description, price_sar, duration_min, is_available, sort, service_id | `menu` |
 | `offers` | branch_id, kind, title, terms, discount_text, weekdays (0=Sun), start_time, end_time, valid_from, valid_to, max_redemptions, is_active | `timed_offers` / `quiet_coupon` |
 | `news_posts` | branch_id, title, body, published_at | `news` |
+| `quests` | branch_id, kind, title, description, service_id, provider_id, required_visits, reward_text, rarity, max_participants, weekdays, time_start, time_end, starts_at, ends_at, is_active | `quests` / `smart_quests` |
 | `business_pages` | branch_id, bio, photos (storage paths), highlights, is_published | `full_page` |
 | `branches` (update only) | name, address, map_url, phone, google_review_url, hours | – |
 

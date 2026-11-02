@@ -77,3 +77,15 @@ One line each: defaults chosen where the brief left room, and what was verified.
 - Size: a customer's first load (shell, shop page, shared components, Arabic strings) is ~74 KB of our own HTML/JS/CSS/JSON in real mode (~140 KB in demo mode, which adds the in-browser backend); owner and staff modules load only on their routes.
 - `dawri-web.zip` built and verified with Python's `zipfile.testzip()`.
 - Not exercised here: the real Supabase backend from the browser (no project keys in this environment), real Web Push delivery, and iPhone Safari.
+
+## «تحدّياتي» and the waiting showcase (added 2026-11-02)
+
+- Challenges are counted from finished tickets (no stamps, no scanning): a customer starts a challenge on their ticket with a consented phone, and every later finished ticket with that phone that matches the challenge adds one visit. The reward is redeemed with the rotating staff code.
+- Duration is per challenge (`starts_at`–`ends_at`), like the editor in the reference video; visits must fall inside it.
+- Plans: simple visit challenges and «أبيها» in growth; time-window, comeback, provider and friend challenges (`smart_quests`) in full.
+- Suggestions are computed from the shop's own numbers (quietest 2-hour window, absent customers, least busy provider) and open the same 4-step editor prefilled.
+- No rewards for Google reviews (against Google's policy) and no public leaderboards (minimal personal data); participant counts are shown without names.
+- Existing views were extended by renaming them (`ticket_view_base`, `public_branch_base`, `s_state_base`) and wrapping them, so the earlier migrations stay untouched.
+- The ticket page order is now: board, ticket, alerts, «وأنت تنتظر» showcase, queue line, actions. The showcase is a story-style carousel (challenges, offers, extras) that auto-advances every 6 s until touched and never with reduced motion; it keeps its position across live refreshes.
+- «أبيها» shows extras only, never the service already booked; staff see them as amber badges on the ticket.
+- Checks: 5 SQL test files (78 assertions, 14 for challenges), 14 Deno tests (one for suggestions), Playwright suite extended with the challenge flow, the owner designer and the locked card.

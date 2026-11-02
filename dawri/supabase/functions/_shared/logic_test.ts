@@ -1,7 +1,7 @@
 import { assertEquals } from "jsr:@std/assert@1.0.13";
 import {
   busiestSlot, estimateMinutes, hourLabelAr, imageMediaType, median, normalizeSaudiPhone, quarterHour,
-  quietCouponDraft, quietWindows, riyadhParts, rotatingCode, roundEstimate, summaryTemplate, toArabicDigits, unixMinute,
+  questSuggestions, quietCouponDraft, quietWindows, riyadhParts, rotatingCode, roundEstimate, summaryTemplate, toArabicDigits, unixMinute,
 } from "./logic.ts";
 
 Deno.test("estimate: rounds to nearest 5, never below 5", () => {
@@ -93,4 +93,13 @@ Deno.test("image media type sniffing", () => {
   assertEquals(imageMediaType("iVBORw0KGgoAAA"), "image/png");
   assertEquals(imageMediaType("UklGRiQAAABXRUJQ"), "image/webp");
   assertEquals(imageMediaType("R0lGOD"), null);
+});
+
+Deno.test("quest suggestions come from the shop's numbers", () => {
+  const s = questSuggestions({ quiet: { weekday: 0, start_hour: 15, avg_arrivals: 0.2 }, absent: 3,
+    providers: [{ provider_id: "a", name: "كرسي ١", served: 70 }, { provider_id: "b", name: "كرسي ٣", served: 40 }] });
+  assertEquals(s.map((x) => x.kind), ["quiet", "visits", "comeback", "provider", "friend"]);
+  assertEquals([s[0].time_start, s[0].time_end, s[0].rarity], ["15:00", "17:00", "rare"]);
+  assertEquals(s[3].provider_id, "b");
+  assertEquals(questSuggestions({ quiet: null, absent: 0, providers: [] }).map((x) => x.kind), ["visits", "friend"]);
 });

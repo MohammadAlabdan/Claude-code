@@ -5,6 +5,7 @@ import { BusyPill, LockedCard } from "../ui/components.js";
 import { openSheet } from "../ui/sheet.js";
 import { toast } from "../ui/toast.js";
 import { Heatmap } from "../ui/charts.js";
+import { QuestCard } from "../ui/quest.js";
 
 const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const fmtHours = (ivs) => ivs.map(([o, c]) => (o === c ? t("shop.all_day") : `${o}–${c}`)).join("، ");
@@ -144,6 +145,9 @@ export async function render(ctx) {
           : h("span.small.muted", { style: { maxWidth: "45%" } }, t("shop.dropoff_hint")))))),
 
       data.ready_numbers.length ? card(t("shop.ready_now"), "bell-ringing", h("div.chips", data.ready_numbers.slice(0, 10).map((n) => h("span.chip", { style: { cursor: "default" } }, num(n))))) : null,
+
+      data.quests?.length ? h("section.stack", { "data-testid": "shop-quests" }, h("div.wait-head", h("h2", t("quest.list_title")), h("span.muted", t("quest.shop_hint"))),
+        h("div.quest-list", data.quests.map((q) => QuestCard(q, { preview: true })))) : null,
 
       data.offers.length ? card(t("shop.offers"), "discount", h("div.list", data.offers.map((o) => h("div.list-item",
         h("div.grow", h("div.title", o.title), o.terms ? h("div.muted.small", o.terms) : null),

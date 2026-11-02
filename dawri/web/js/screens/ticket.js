@@ -2,6 +2,7 @@
 import { h, icon, card, store, skeleton, vibrate, fill } from "../ui/dom.js";
 import { t, num, errorText, lang } from "../i18n.js";
 import { TicketCard, NowServingBoard, QueueLine, StageTracker } from "../ui/components.js";
+import { QuestCard, StoryCarousel, OfferSlide, ItemSlide, NewsSlide } from "../ui/quest.js";
 import { openSheet, confirmSheet } from "../ui/sheet.js";
 import { toast } from "../ui/toast.js";
 import { subscribePush, needsInstallForPush, pushSupported, localNotify, unlockAudio, chime } from "../ui/push.js";
@@ -25,6 +26,7 @@ export async function render(ctx) {
 
   const token = params[0];
   let tk, prev = null, overlayShown = null, pushDenied = false;
+  let carousel = null, lastShowcaseKey = "";
   shell.content.append(...skeleton(3));
 
   const board = NowServingBoard(t("ticket.now_serving"));
@@ -39,6 +41,7 @@ export async function render(ctx) {
     prev = tk;
   }
   try { await load(); } catch (e) {
+    if (!e?.code) console.error(e);
     fill(shell.content, h("div.empty", icon("ticket-off"), h("p", errorText(e)), h("a.btn", { href: "/" }, t("action.home"))));
     return;
   }
@@ -116,19 +119,20 @@ export async function render(ctx) {
         alert: waiting && tk.return_now,
       }),
 
+      active ? pushCard() : null,
+      active ? showcaseSection() : null,
       waiting ? h("section.card", { "aria-label": t("ticket.line") }, line,
         h("p.muted.small.center", [tk.service.name, tk.provider?.name, tk.party_size > 1 ? t("ticket.party", { n: num(tk.party_size) }) : null].filter(Boolean).join(" · "))) : null,
 
       tk.mode === "dropoff" ? card(tk.item_label, "car", StageTracker(["received", "in_progress", "ready", "picked_up"].map((k) => ({ key: k, label: t(`stage.${k}`) })), tk.stage)) : null,
 
-      active ? pushCard() : null,
-      active && tk.offers.length ? offersCard() : null,
 
       waiting ? h("div.grid2",
         tk.features.includes("late_button") ? h("button.btn", { type: "button", "data-testid": "late", disabled: tk.snooze_left < 1, onclick: late }, icon("clock-plus"), t("ticket.late")) : null,
         h("button.btn.btn-danger", { type: "button", "data-testid": "leave", onclick: leave }, icon("door-exit"), t("ticket.leave"))) : null,
 
       tk.status === "done" ? afterCards() : null,
+      !active && tk.quests?.length ? questList() : null,
       ["left", "no_show", "cancelled"].includes(tk.status) ? h("a.btn.btn-primary.btn-block", { href: `/s/${tk.branch.public_id}?stay` }, t("ticket.new_number")) : null,
       h("a.btn.btn-ghost.btn-block", { href: `/s/${tk.branch.public_id}?stay` }, icon("building-store"), t("ticket.shop_page")),
     );
@@ -165,6 +169,76 @@ export async function render(ctx) {
     }
   }
 
+  // ---------- «وأنت تنتظر»: the waiting time becomes the shop's showcase ----------
+  function showcaseSection() {
+    const wanted = new Set(tk.interests ?? []);
+    const key = JSON.stringify([tk.quests?.map((q) => [q.id, q.mine, q.spots_left]), tk.offers?.map((o) => o.id), [...wanted]]);
+    // keep the carousel (and its position) when nothing it shows has changed
+    if (carousel && key === lastShowcaseKey) {
+      const tr = carousel.el.querySelector(".story-track"), sl = tr.scrollLeft;
+      requestAnimationFrame(() => { tr.scrollLeft = sl; });
+      return carousel.wrap;
+    }
+    const prevTrack = carousel?.el?.querySelector(".story-track"), prevLeft = prevTrack?.scrollLeft ?? 0;
+    const wasPaused = carousel?.el?.classList.contains("paused");
+    carousel?.el?.stop?.();
+    const slides = [
+      ...(tk.quests ?? []).map((q) => QuestCard(q, { onStart: startQuest, onRedeem: (x) => redeem({ quest_id: x.id, title: x.reward_text }) })),
+      ...(tk.offers ?? []).map((o) => OfferSlide(o, (x) => redeem({ offer_id: x.id, title: x.title }))),
+      ...(tk.features.includes("upsell") ? (tk.showcase ?? []) : []).map((m) => ItemSlide(m, wanted.has(m.id), toggleItem)),
+    ];
+    if (!slides.length) return null;
+    const el = StoryCarousel(slides, { label: t("showcase.title") });
+    const waiting = tk.mode === "remote" && tk.status === "waiting";
+    const wrap = h("section.stack", { style: { gap: "10px" } },
+      h("div.wait-head", h("h2", t("showcase.title")),
+        h("span.muted", waiting ? t("showcase.sub", { m: num(tk.estimate_min) }) : t("showcase.sub_ready"))), el);
+    if (prevTrack) {
+      if (wasPaused) { el.stop(); el.classList.add("paused"); }
+      requestAnimationFrame(() => { el.querySelector(".story-track").scrollLeft = prevLeft; });
+    }
+    carousel = { el, wrap };
+    lastShowcaseKey = key;
+    ctx.onCleanup(() => el.stop?.());
+    return wrap;
+  }
+
+  function questList() {
+    return h("section.stack", h("div.wait-head", h("h2", t("quest.list_title"))),
+      h("div.quest-list", tk.quests.map((q) => QuestCard(q, { onStart: startQuest, onRedeem: (x) => redeem({ quest_id: x.id, title: x.reward_text }) }))));
+  }
+
+  async function toggleItem(m, on) {
+    try {
+      await api.customer("interest", { token, item_id: m.id, on });
+      vibrate(20);
+      toast(on ? t("showcase.want_toast") : t("showcase.unwant_toast"));
+      await load();
+    } catch (e) { toast(errorText(e), { error: true }); }
+  }
+
+  async function startQuest(q) {
+    const go = async () => {
+      await api.customer("quest_start", { token, quest_id: q.id });
+      vibrate([30, 40, 30]);
+      toast(t("quest.started"));
+      await load();
+    };
+    try {
+      if (tk.has_phone) return await go();
+      const phone = h("input", { id: "quest-phone", type: "tel", inputmode: "tel", placeholder: "05XXXXXXXX", dir: "ltr", maxlength: 14 });
+      const consent = h("input", { id: "quest-consent", type: "checkbox" });
+      const err = h("p.err", { hidden: true });
+      await openSheet({ title: t("quest.phone_title"), body: [QuestCard(q, { preview: true }), h("p.muted.small", t("quest.phone_lead")),
+        h("label.field", h("span", t("loyalty.phone")), phone), h("label.check", consent, h("span", t("loyalty.consent"))), err],
+        actions: [{ id: "quest-confirm", label: t("quest.start"), primary: true, onClick: async (close) => {
+          if (!consent.checked) { err.hidden = false; err.textContent = t("loyalty.need_consent"); return; }
+          try { await api.customer("set_phone", { token, phone: phone.value, consent: true }); await go(); close(); }
+          catch (e) { err.hidden = false; err.textContent = errorText(e); }
+        } }, { label: t("action.cancel"), ghost: true }] });
+    } catch (e) { toast(errorText(e), { error: true }); }
+  }
+
   function offersCard() {
     return card(t("ticket.offers"), "discount", h("div.list", tk.offers.map((o) => h("div.list-item",
       h("div.grow", h("div.title", o.title), o.terms ? h("div.muted.small", o.terms) : null),
@@ -181,7 +255,8 @@ export async function render(ctx) {
         const code = input.value.replace(/[٠-٩]/g, (d) => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).trim();
         if (!/^\d{4}$/.test(code)) { err.hidden = false; err.textContent = t("redeem.four_digits"); return; }
         try {
-          const r = await api.customer("redeem", target.loyalty ? { token, loyalty: true, code } : { token, offer_id: target.offer_id, code });
+          const r = target.quest_id ? await api.customer("redeem_quest", { token, quest_id: target.quest_id, code })
+            : await api.customer("redeem", target.loyalty ? { token, loyalty: true, code } : { token, offer_id: target.offer_id, code });
           close();
           vibrate(60);
           openSheet({ title: t("redeem.done"), body: [h("div.empty", { style: { color: "var(--accent)" } }, icon("circle-check"), h("p", { style: { fontWeight: 700, color: "var(--ink)" } }, r.title))],

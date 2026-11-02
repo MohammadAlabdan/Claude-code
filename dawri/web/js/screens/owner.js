@@ -9,6 +9,7 @@ import { QR } from "../ui/qr.js";
 import { subscribePush } from "../ui/push.js";
 import { setTheme, currentTheme } from "../app.js";
 import { requireSession } from "./auth.js";
+import { QuestCard } from "../ui/quest.js";
 
 const TABS = [
   { key: "home", href: "/owner", icon: "home", label: "الرئيسية" },
@@ -21,6 +22,7 @@ const PLAN_AR = { basic: "الأساسية", growth: "النمو", full: "الم
 const MODE_AR = { remote: "احجز دورك من برّا", receipt: "ادفع وانتظر", dropoff: "سلّم وارجع" };
 const REASON_AR = { long_wait: "الانتظار طويل", quality: "الجودة", treatment: "التعامل", price: "السعر", other: "شي ثاني" };
 const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+const QKIND = { visits: "زيارات", quiet: "الوقت الهادئ", comeback: "اشتقنا لك (للغايبين)", provider: "جرّب مقدّم خدمة", friend: "مع خويك (شخصين)" };
 const LANGS = { ar: "العربية", en: "English", ur: "اردو", bn: "বাংলা", fil: "Filipino" };
 const FEATURE_AR = {
   queue: "الطابور الرقمي", fadeet: "فضيت؟", return_now: "ارجع الآن", card: "بطاقتي", evening_summary: "ملخص المساء", late_button: "تأخرت شوي",
@@ -28,9 +30,10 @@ const FEATURE_AR = {
   menu: "قائمتي", menu_photo_ai: "صوّر قائمتك", timed_offers: "العروض حسب الوقت", loyalty: "مرّيت علينا", feedback: "التقييم بالأسباب",
   preferred_provider: "حالقي المفضّل", best_time: "أفضل وقت تجي", busy_alert: "إنذار الزحمة", full_page: "صفحتي الكاملة", news: "وش الجديد؟",
   qa_assistant: "مساعد الأسئلة", quiet_coupon: "كوبون الهدوء", peak_report: "تقرير الذروة", absent_customers: "الغايبون",
+  quests: "تحدّياتي", upsell: "أبيها (طلب إضافة وقت الانتظار)", smart_quests: "التحديات الذكية",
 };
 const MIN_PLAN = (f) => (["queue", "fadeet", "return_now", "card", "evening_summary", "late_button", "family_ticket", "priority", "lost_customers", "staff_language"].includes(f) ? "basic"
-  : ["menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "preferred_provider", "best_time", "busy_alert"].includes(f) ? "growth" : "full");
+  : ["menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "preferred_provider", "best_time", "busy_alert", "quests", "upsell"].includes(f) ? "growth" : "full");
 
 const field = (label, input, hint) => h("label.field", h("span", label), input, hint ? h("span.muted.small", { style: { fontWeight: 400 } }, hint) : null);
 const locked = (feature, title = FEATURE_AR[feature]) => LockedCard(title, MIN_PLAN(feature));
@@ -141,7 +144,7 @@ export async function render(ctx) {
 
   // ---------------- العروض ----------------
   async function offers() {
-    const parts = [];
+    const parts = [await questsSection()];
     if (has("quiet_coupon") || has("timed_offers")) {
       const sug = await api.owner("suggest_quiet_coupon", { branch_id: br.id }).catch(() => null);
       if (sug?.suggestion) {
@@ -182,6 +185,85 @@ export async function render(ctx) {
     parts.push(card("آخر الاستخدامات (٧ أيام)", "receipt-2", d.redemptions.length ? h("div.list", d.redemptions.map((r) => h("div.list-item", h("span.grow", r.title),
       h("span.muted.small", `${date(r.redeemed_at)} ${time(r.redeemed_at)}`)))) : h("p.muted", "ما فيه استخدامات بعد")));
     fill(root, planBadge(), ...parts);
+  }
+
+  // ---------------- «تحدّياتي» ----------------
+  async function questsSection() {
+    if (!has("quests")) return locked("quests", "تحدّياتي: صمّم تحدّي لعملائك");
+    const [{ quests, interests_7d }, sug] = await Promise.all([api.owner("quests", { branch_id: br.id }), api.owner("suggest_quests", { branch_id: br.id }).catch(() => ({ suggestions: [] }))]);
+    return h("section.stack", { "data-testid": "owner-quests", style: { gap: "14px" } },
+      h("div.wait-head", h("h2", "تحدّياتي"), h("span.muted", "أنت اللي تصمم التحدّي، ودوري يحسب الزيارات تلقائياً")),
+      h("div.grid2", stat("مشتركين", num(quests.reduce((a, q) => a + q.participants, 0))), stat("طلبات «أبيها» ٧ أيام", num(interests_7d))),
+      sug.suggestions.length ? card("اقتراحات من أرقامك", "bulb", h("div.list", sug.suggestions.map((x) => h("div.list-item",
+        h("div.grow", h("div.title", x.title, " · ", h("span", { style: { color: "var(--accent)" } }, x.reward_text)), h("div.muted.small", x.why)),
+        x.locked ? h("span.badge.warn", "المتكاملة") : h("button.btn", { type: "button", "data-testid": "use-suggestion", onclick: () => questBuilder(x) }, "صمّمه"))))) : null,
+      h("button.btn.btn-primary.btn-block", { type: "button", "data-testid": "new-quest", onclick: () => questBuilder() }, icon("plus"), "تحدّي جديد"),
+      quests.length ? card("التحديات", "flag-3", h("div.list", quests.map((q) => h("div.list-item",
+        h("div.grow", h("div.title", q.title, q.rarity === "rare" ? h("span.badge.warn", { style: { marginInlineStart: "6px" } }, "نادر") : null, !q.open ? h("span.badge.danger", { style: { marginInlineStart: "6px" } }, "منتهي") : null),
+          h("div.muted.small", `${QKIND[q.kind]} · ${q.reward_text} · ${num(q.participants)} مشترك · ${num(q.completed)} أنجزوا · ${num(q.redeemed)} استخدموا`)),
+        h("button.icon-btn", { type: "button", "aria-label": q.is_active ? "إيقاف" : "تشغيل", onclick: async () => { await api.owner("upsert", { table: "quests", row: { id: q.id, branch_id: br.id, kind: q.kind, is_active: !q.is_active } }); offers(); } }, icon(q.is_active ? "toggle-right" : "toggle-left")),
+        h("button.icon-btn", { type: "button", "aria-label": "حذف", onclick: async () => { if (await confirmSheet("حذف التحدّي؟", q.title, "احذف", "إلغاء", true)) { await api.owner("delete", { table: "quests", id: q.id }); offers(); } } }, icon("trash")))))) : null);
+  }
+
+  /** Four steps like a quest editor, with the customer's card previewed live under the form. */
+  async function questBuilder(seed = {}) {
+    const [{ rows: svcs }, { rows: provs }] = await Promise.all([api.owner("list", { table: "services", branch_id: br.id }), api.owner("list", { table: "providers", branch_id: br.id })]);
+    const smart = has("smart_quests");
+    const d = { kind: "visits", title: "", description: "", service_id: null, provider_id: null, required_visits: 3, reward_text: "خصم ١٥٪", rarity: "common",
+      max_participants: null, weekdays: [0, 1, 2, 3, 4, 5, 6], time_start: null, time_end: null, duration_days: 7, ...seed };
+    const preview = h("div", { "data-testid": "quest-preview" });
+    const draw = () => fill(preview, QuestCard({ ...d, title: d.title || "اسم التحدّي", id: "preview", participants: 0,
+      spots_left: d.rarity === "rare" ? d.max_participants : null, ends_at: new Date(Date.now() + d.duration_days * 86400000).toISOString(),
+      service: svcs.find((x) => x.id === d.service_id)?.name ?? null, provider: provs.find((x) => x.id === d.provider_id)?.display_name ?? null,
+      mine: { visits: Math.max(0, d.required_visits - 1), completed: false, redeemed: false } }, { preview: true }));
+    const on = (k, f = (v) => v) => (e) => { d[k] = f(e.target.value); draw(); };
+    const step = (n, label, ...body) => h("div.field", h("span", h("span.badge", { style: { marginInlineEnd: "6px" } }, num(n)), label), ...body);
+    const count = h("output.big-num", { style: { fontSize: "1.8rem", minWidth: "2ch", textAlign: "center" } }, num(d.required_visits));
+    const setCount = (v) => { d.required_visits = Math.max(1, Math.min(20, v)); count.textContent = num(d.required_visits); draw(); };
+    const chipRow = (vals, key, fmt) => h("div.chips", vals.map((v) => h("button.chip", { type: "button", "aria-pressed": String(d[key] === v), onclick: (e) => {
+      d[key] = v; e.currentTarget.parentElement.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === e.currentTarget))); draw();
+      if (key === "reward_text") reward.value = v;
+    } }, fmt(v))));
+    const reward = h("input", { id: "quest-reward", maxlength: 40, value: d.reward_text, oninput: on("reward_text") });
+    const title = h("input", { id: "quest-title", maxlength: 80, value: d.title, placeholder: "مثلاً: قهوة الأسبوع", oninput: on("title") });
+    const desc = h("input", { id: "quest-desc", maxlength: 200, value: d.description, placeholder: "سطر قصير يشرح التحدّي", oninput: on("description") });
+    const kindSel = h("select", { id: "quest-kind", onchange: (e) => { d.kind = e.target.value; quietRow.hidden = d.kind !== "quiet"; provRow.hidden = d.kind !== "provider"; draw(); } },
+      Object.entries(QKIND).map(([k, v]) => h("option", { value: k, selected: k === d.kind, disabled: k !== "visits" && !smart }, k !== "visits" && !smart ? `${v} (المتكاملة)` : v)));
+    const tStart = h("input", { type: "time", value: d.time_start?.slice(0, 5) ?? "15:00", oninput: on("time_start") });
+    const tEnd = h("input", { type: "time", value: d.time_end?.slice(0, 5) ?? "17:00", oninput: on("time_end") });
+    const quietRow = h("div.grid2", { hidden: d.kind !== "quiet" }, h("label.field", h("span", "من"), tStart), h("label.field", h("span", "إلى"), tEnd));
+    const provRow = h("label.field", { hidden: d.kind !== "provider" }, h("span", "مقدّم الخدمة"), h("select", { onchange: on("provider_id", (v) => v || null) },
+      h("option", { value: "" }, "اختر"), provs.map((p) => h("option", { value: p.id, selected: p.id === d.provider_id }, p.display_name))));
+    const rare = h("input", { type: "checkbox", checked: d.rarity === "rare", onchange: (e) => { d.rarity = e.target.checked ? "rare" : "common"; spots.disabled = !e.target.checked; d.max_participants = e.target.checked ? +spots.value || 20 : null; draw(); } });
+    const spots = h("input", { type: "number", min: 1, max: 1000, value: d.max_participants ?? 20, disabled: d.rarity !== "rare", style: { maxWidth: "6em" }, oninput: (e) => { d.max_participants = +e.target.value || null; draw(); } });
+    const err = h("p.err", { hidden: true });
+    draw();
+    await openSheet({ title: seed.title ? "صمّم التحدّي" : "تحدّي جديد", body: [
+      step(1, "الخدمة", h("select", { id: "quest-service", onchange: on("service_id", (v) => v || null) }, h("option", { value: "" }, "أي خدمة"),
+        svcs.filter((x) => x.is_active).map((x) => h("option", { value: x.id, selected: x.id === d.service_id }, x.name)))),
+      step(2, "كم مرة يزور؟", h("div.row", { style: { gap: "16px" } },
+        h("button.icon-btn", { type: "button", "aria-label": "−", style: { border: "1.5px solid var(--line)" }, onclick: () => setCount(d.required_visits - 1) }, icon("minus")), count,
+        h("button.icon-btn", { type: "button", "aria-label": "+", style: { border: "1.5px solid var(--line)" }, onclick: () => setCount(d.required_visits + 1) }, icon("plus")))),
+      step(3, "مدة التحدّي", chipRow([3, 7, 14, 30], "duration_days", (v) => `${num(v)} أيام`)),
+      step(4, "الجائزة", chipRow(["خصم ١٠٪", "خصم ١٥٪", "خصم ٢٠٪", "الزيارة علينا"], "reward_text", (v) => v), reward),
+      h("label.field", h("span", "اسم التحدّي"), title), h("label.field", h("span", "الوصف"), desc),
+      h("label.field", h("span", "نوع التحدّي"), kindSel), quietRow, provRow,
+      h("div.row", h("label.check", rare, h("span", "نادر بعدد محدود")), spots),
+      h("div.field", h("span", "هكذا يشوفه الزبون وهو ينتظر"), preview), err],
+      actions: [{ id: "quest-save", label: "انشر التحدّي", primary: true, onClick: async (close) => {
+        if (d.title.trim().length < 2) { err.hidden = false; err.textContent = "اكتب اسم التحدّي"; return; }
+        if (!d.reward_text.trim()) { err.hidden = false; err.textContent = "اكتب الجائزة"; return; }
+        if (d.kind === "provider" && !d.provider_id) { err.hidden = false; err.textContent = "اختر مقدّم الخدمة"; return; }
+        const now = new Date();
+        try {
+          await api.owner("upsert", { table: "quests", row: { branch_id: br.id, kind: d.kind, title: d.title.trim(), description: d.description.trim() || null,
+            service_id: d.service_id, provider_id: d.kind === "provider" ? d.provider_id : null, required_visits: d.required_visits, reward_text: d.reward_text.trim(),
+            rarity: d.rarity, max_participants: d.rarity === "rare" ? d.max_participants : null, weekdays: d.weekdays,
+            time_start: d.kind === "quiet" ? d.time_start ?? "15:00" : null, time_end: d.kind === "quiet" ? d.time_end ?? "17:00" : null,
+            starts_at: now.toISOString(), ends_at: new Date(now.getTime() + d.duration_days * 86400000).toISOString(), is_active: true } });
+          close(); toast("نشرنا التحدّي، بيشوفه زبائنك وهم ينتظرون"); offers();
+        } catch (e) { err.hidden = false; err.textContent = errorText(e); }
+      } }, { label: "إلغاء", ghost: true }] });
   }
 
   async function offerSheet(o = {}) {
