@@ -183,5 +183,7 @@
  "showcase.wanted": "Requested",
  "showcase.wanted_note": "Staff can see it and will have it ready with your turn",
  "showcase.want_toast": "Staff got your request",
- "showcase.unwant_toast": "Removed from your request"
+ "showcase.unwant_toast": "Removed from your request",
+ "action.theme_dark": "Dark mode",
+ "action.theme_light": "Light mode"
 }

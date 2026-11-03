@@ -183,5 +183,7 @@
  "showcase.wanted": "طلبتها",
  "showcase.wanted_note": "وصلت للموظف، بيجهزها لك مع دورك",
  "showcase.want_toast": "وصل طلبك للموظف",
- "showcase.unwant_toast": "شلناها من طلبك"
+ "showcase.unwant_toast": "شلناها من طلبك",
+ "action.theme_dark": "الوضع الداكن",
+ "action.theme_light": "الوضع الفاتح"
 }

@@ -6,11 +6,11 @@ import { QuestCard, StoryCarousel, OfferSlide, ItemSlide, NewsSlide } from "../u
 import { openSheet, confirmSheet } from "../ui/sheet.js";
 import { toast } from "../ui/toast.js";
 import { subscribePush, needsInstallForPush, pushSupported, localNotify, unlockAudio, chime } from "../ui/push.js";
-import { langToggle } from "./shop.js";
+import { langToggle, themeToggle } from "./shop.js";
 
 export async function render(ctx) {
   const { api, params, shell, nav, name } = ctx;
-  shell.setActions(langToggle(ctx.rerender));
+  shell.setActions(themeToggle(), langToggle(ctx.rerender));
 
   if (name === "claim") {
     shell.content.append(...skeleton(2));

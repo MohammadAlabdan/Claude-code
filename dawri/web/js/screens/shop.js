@@ -6,6 +6,7 @@ import { openSheet } from "../ui/sheet.js";
 import { toast } from "../ui/toast.js";
 import { Heatmap } from "../ui/charts.js";
 import { QuestCard } from "../ui/quest.js";
+import { setTheme } from "../app.js";
 
 const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const fmtHours = (ivs) => ivs.map(([o, c]) => (o === c ? t("shop.all_day") : `${o}–${c}`)).join("، ");
@@ -22,6 +23,16 @@ export function bestTime(bt) {
   return best;
 }
 
+/** 🌙 / ☀️ button: switches between dark and light for this device (remembered). */
+export function themeToggle() {
+  const isDark = () => (document.documentElement.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
+  const btn = h("button.icon-btn", { type: "button", "data-testid": "theme-toggle" });
+  const sync = () => { const d = isDark(); btn.replaceChildren(icon(d ? "sun" : "moon")); btn.setAttribute("aria-label", t(d ? "action.theme_light" : "action.theme_dark")); btn.title = btn.getAttribute("aria-label"); };
+  btn.addEventListener("click", () => { setTheme(isDark() ? "light" : "dark"); sync(); });
+  sync();
+  return btn;
+}
+
 export function langToggle(rerender) {
   return h("button.icon-btn", { type: "button", "aria-label": t("action.language"), "data-testid": "lang-toggle",
     onclick: () => { store.set("dawri.lang", lang() === "ar" ? "en" : "ar"); rerender(); } },
@@ -31,7 +42,7 @@ export function langToggle(rerender) {
 export async function render(ctx) {
   const { api, params, shell, nav } = ctx;
   const publicId = params[0].toLowerCase();
-  shell.setActions(langToggle(ctx.rerender));
+  shell.setActions(themeToggle(), langToggle(ctx.rerender));
   shell.content.append(...skeleton(3));
 
   // Returning customer with an active ticket goes straight back to it.

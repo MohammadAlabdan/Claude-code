@@ -94,3 +94,19 @@ test("unpaired staff device sees the pairing message", async ({ page }) => {
   await page.goto("/staff");
   await expect(page.getByText("الجهاز غير مربوط")).toBeVisible();
 });
+
+test("customer can switch to dark mode from the shop page and it is remembered", async ({ page }) => {
+  await page.goto("/s/aseel2026?stay");
+  const toggle = page.getByTestId("theme-toggle");
+  await expect(toggle).toHaveAttribute("aria-label", "الوضع الداكن");
+  await toggle.click();
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
+  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe("rgb(228, 233, 227)");
+  await expect(toggle).toHaveAttribute("aria-label", "الوضع الفاتح");
+  await page.getByTestId("take-number").first().click();
+  await page.click('[data-action="join-confirm"]');
+  await page.waitForURL(/\/t\//);
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
+  await page.getByTestId("theme-toggle").click();
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("light");
+});
