@@ -99,10 +99,10 @@ export async function render(ctx) {
       h("section.card.center", { style: { justifyItems: "center" }, "data-testid": "onboard-done" }, icon("circle-check"), h("h2", "محلك جاهز على دوري"),
         h("p.badge.warn", `تجربة مجانية ${num(14)} يوم`), h("p.hand", "مبروك، أول زبون على الطريق")),
       h("section.card", h("div.card-head", icon("link"), h("h3", "رابط صفحة المحل")), h("p.small", { dir: "ltr", style: { wordBreak: "break-all" } }, r.shop_url),
-        h("div.grid2", h("a.btn", { href: `/s/${r.public_id}` }, "افتح الصفحة"), h("a.btn", { href: "/owner/poster" }, icon("printer"), "ملصق QR"))),
+        h("div.grid2", h("a.btn", { href: `./s/${r.public_id}` }, "افتح الصفحة"), h("a.btn", { href: "./owner/poster" }, icon("printer"), "ملصق QR"))),
       h("section.card", h("div.card-head", icon("device-mobile"), h("h3", "اربط جوال الموظف")), h("p.muted.small", "امسح هذا الرمز من جوال الموظف، ويفتح شاشة النداء مباشرة. يظهر مرة وحدة."),
         QR(r.pairing_url, { label: "رابط ربط الموظف" }), h("p.small", { dir: "ltr", style: { wordBreak: "break-all" } }, r.pairing_url)),
-      h("a.btn.btn-primary.btn-block", { href: "/owner" }, "ادخل لوحة المحل"));
+      h("a.btn.btn-primary.btn-block", { href: "./owner" }, "ادخل لوحة المحل"));
   }
 
   steps[0]();

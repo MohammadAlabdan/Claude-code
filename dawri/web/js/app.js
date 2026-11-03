@@ -42,8 +42,13 @@ const MODULES = {
 let cleanup = [];
 let renderToken = 0;
 
+// The app can live at "/" (Netlify, VPS) or under a sub-path such as "/Claude-code/" (GitHub Pages);
+// <base href> in index.html says which. Routes below are matched relative to it.
+const BASE_PATH = new URL(document.baseURI).pathname;
+const appPath = () => "/" + (location.pathname.startsWith(BASE_PATH) ? location.pathname.slice(BASE_PATH.length) : location.pathname.slice(1));
+
 export function nav(path, { replace = false } = {}) {
-  if (path === location.pathname + location.hash) return render();
+  if (new URL(path, document.baseURI).href === location.href) return render();
   history[replace ? "replaceState" : "pushState"]({}, "", path);
   render();
 }
@@ -52,7 +57,7 @@ export function nav(path, { replace = false } = {}) {
 function makeShell(lang, demo) {
   const titleEl = h("h1");
   const actions = h("div.actions");
-  const top = h("header.topbar", h("a.brand", { href: "/", "aria-label": "دوري" }, h("img", { src: "/assets/logo.svg", alt: "" })), titleEl, actions);
+  const top = h("header.topbar", h("a.brand", { href: "./", "aria-label": "دوري" }, h("img", { src: "./assets/logo.svg", alt: "" })), titleEl, actions);
   const content = h("main.content", { id: "main", tabindex: "-1" });
   const tabbar = h("nav.tabbar", { hidden: true, "aria-label": "tabs" });
   fill(appEl, demo ? h("div.demo-strip", { role: "note" }, "وضع تجريبي · بيانات للعرض فقط") : null, top, content, tabbar);
@@ -76,7 +81,7 @@ async function render() {
   const my = ++renderToken;
   cleanup.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
   cleanup = [];
-  const path = location.pathname;
+  const path = appPath();
   let name = "home", params = [];
   for (const [re, n] of ROUTES) { const m = path.match(re); if (m) { name = n; params = m.slice(1); break; } }
   if (!ROUTES.some(([re]) => re.test(path))) name = "notfound";
@@ -92,7 +97,7 @@ async function render() {
 
   if (name === "notfound") {
     shell.setTitle("دوري");
-    shell.content.append(h("div.empty", icon("map-pin-off"), h("p", "الصفحة غير موجودة"), h("a.btn.btn-primary", { href: "/" }, "الرئيسية")));
+    shell.content.append(h("div.empty", icon("map-pin-off"), h("p", "الصفحة غير موجودة"), h("a.btn.btn-primary", { href: "./" }, "الرئيسية")));
     return;
   }
   const mod = await MODULES[name]();
@@ -124,6 +129,6 @@ document.addEventListener("click", (e) => {
 window.addEventListener("popstate", render);
 
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  navigator.serviceWorker.register("/sw.js").catch(() => { /* optional */ });
+  navigator.serviceWorker.register("sw.js").catch(() => { /* optional */ });
 }
 render();

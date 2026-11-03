@@ -36,7 +36,7 @@ export async function render(ctx) {
     await openSheet({ title: b.name, body: [
       h("label.field", h("span", "الباقة"), plan), h("label.field", h("span", "الاشتراك حتى"), until), h("label.field", h("span", "التجربة حتى"), trial),
       h("label.check", active, h("span", "الحساب نشط")),
-      h("div.list", b.branches.map((br) => h("div.list-item", h("span.grow", br.name), h("a.btn", { href: `/s/${br.public_id}`, target: "_blank", rel: "noopener" }, "الصفحة"),
+      h("div.list", b.branches.map((br) => h("div.list-item", h("span.grow", br.name), h("a.btn", { href: `./s/${br.public_id}`, target: "_blank", rel: "noopener" }, "الصفحة"),
         h("button.btn", { type: "button", onclick: () => view(br) }, "الأرقام"))))],
       actions: [{ label: "احفظ", primary: true, onClick: async (close) => {
         try {

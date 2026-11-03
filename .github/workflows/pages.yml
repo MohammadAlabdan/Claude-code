@@ -1,0 +1,45 @@
+# Publishes the Dawri app (demo mode) to GitHub Pages on every push to main.
+# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+name: Publish Dawri to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["dawri/web/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the site (app at the Pages sub-path, demo mode)
+        run: |
+          mkdir -p _site
+          cp -r dawri/web/. _site/
+          BASE="/${{ github.event.repository.name }}/"
+          sed -i "s|<base href=\"/\">|<base href=\"${BASE}\">|" _site/index.html
+          sed -i 's|DEMO_MODE: false|DEMO_MODE: true|' _site/config.js
+          # Pages has no rewrites: serve the app shell for deep links like /s/aseel2026
+          cp _site/index.html _site/404.html
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

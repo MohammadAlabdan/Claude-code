@@ -40,7 +40,7 @@ export async function render(ctx) {
     try {
       const tk = await api.publicTicket(saved);
       if (["waiting", "called", "serving"].includes(tk.status) || (tk.status === "done" && !tk.feedback && Date.now() - Date.parse(tk.done_at ?? 0) < 2 * 3600000)) {
-        return nav(`/t/${saved}`, { replace: true });
+        return nav(`./t/${saved}`, { replace: true });
       }
     } catch { store.del(`dawri.ticket.${publicId}`); }
   }
@@ -52,7 +52,7 @@ export async function render(ctx) {
     paint();
   };
   try { await load(); } catch (e) {
-    fill(shell.content, h("div.empty", icon("building-store"), h("p", errorText(e)), h("a.btn", { href: "/" }, t("action.home"))));
+    fill(shell.content, h("div.empty", icon("building-store"), h("p", errorText(e)), h("a.btn", { href: "./" }, t("action.home"))));
     return;
   }
   fill(shell.content, root);
@@ -84,7 +84,7 @@ export async function render(ctx) {
           store.set(`dawri.ticket.${publicId}`, r.ticket_token);
           vibrate(30);
           close();
-          nav(`/t/${r.ticket_token}`);
+          nav(`./t/${r.ticket_token}`);
         } catch (e) { close(); refused(e); }
       } },
       { label: t("action.cancel"), ghost: true }] });
@@ -101,7 +101,7 @@ export async function render(ctx) {
           const r = await api.customer("join_receipt", { public_id: publicId, service_id: service.id, receipt_code: code, lang: lang() });
           store.set(`dawri.ticket.${publicId}`, r.ticket_token);
           close();
-          nav(`/t/${r.ticket_token}`);
+          nav(`./t/${r.ticket_token}`);
         } catch (e) { err.hidden = false; err.textContent = errorText(e); }
       } },
       { label: t("action.cancel"), ghost: true }] });

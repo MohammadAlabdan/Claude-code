@@ -51,12 +51,12 @@ export async function createApi(cfg) {
         return data.session;
       },
       async signUp(email, password) {
-        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/start` } });
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: `${new URL(".", document.baseURI).href}start` } });
         if (error) throw new ApiError("invalid_input", { message_ar: "تعذّر إنشاء الحساب: " + error.message, message_en: error.message });
         return data.session;
       },
       async magicLink(email, redirect = "/owner") {
-        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}${redirect}` } });
+        const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: new URL("." + redirect, document.baseURI).href } });
         if (error) throw new ApiError("invalid_input", { message_ar: "تعذّر إرسال الرابط", message_en: error.message });
       },
       async signOut() { await sb.auth.signOut(); },

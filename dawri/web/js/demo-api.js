@@ -632,7 +632,7 @@ function staffAction(d, action, body) {
       if (!label || label.length > 60) fail("invalid_input", { field: "item_label" });
       const claim = token();
       const t = newTicket(b, s, { source: "staff", item_label: label, stage: "received", claim });
-      return { ok: true, ticket_id: t.id, number: t.number, claim_token: claim, claim_url: `${location.origin}/c/${claim}` };
+      return { ok: true, ticket_id: t.id, number: t.number, claim_token: claim, claim_url: `${new URL(".", document.baseURI).href}c/${claim}` };
     }
     case "dropoff_stage": {
       const t = staffTicket(d, body.ticket_id);
@@ -716,7 +716,7 @@ function ownerAction(user, action, body) {
       const tok = token();
       db.devices.push({ id: uid(), branch_id: b.id, label: body.label.trim(), language: body.language ?? "ar", provider_id: body.provider_id ?? null, token: tok, revoked_at: null, last_seen_at: null, created_at: iso() });
       commit(b.public_id);
-      return { ok: true, pairing_url: `${location.origin}/staff/pair#${tok}` };
+      return { ok: true, pairing_url: `${new URL(".", document.baseURI).href}staff/pair#${tok}` };
     }
     case "revoke_device": { const d = db.devices.find((x) => x.id === body.device_id) ?? fail("forbidden"); ownedBranch(user, d.branch_id); d.revoked_at = iso(); commit(null); return { ok: true }; }
     case "settings_update": { const b = ownedBranch(user, body.branch_id); b.settings = { ...b.settings, ...body.settings }; commit(b.public_id); return { ok: true, settings: settings(b) }; }
@@ -893,7 +893,7 @@ export async function createApi() {
       const tok = token();
       db.devices.push({ id: uid(), branch_id: brId, label: "جهاز الكاشير", language: p.staff_language ?? "ar", provider_id: null, token: tok, revoked_at: null, last_seen_at: null, created_at: iso() });
       commit(pid);
-      return { ok: true, business_id: bizId, slug: `d-${pid}`, branch_id: brId, public_id: pid, trial_until: iso(Date.now() + 14 * DAY_MS), shop_url: `${location.origin}/s/${pid}`, pairing_url: `${location.origin}/staff/pair#${tok}` };
+      return { ok: true, business_id: bizId, slug: `d-${pid}`, branch_id: brId, public_id: pid, trial_until: iso(Date.now() + 14 * DAY_MS), shop_url: `${new URL(".", document.baseURI).href}s/${pid}`, pairing_url: `${new URL(".", document.baseURI).href}staff/pair#${tok}` };
     }),
     ai: wrap(async (action, body = {}) => {
       if (action === "status") return { available: true };

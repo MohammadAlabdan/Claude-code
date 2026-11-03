@@ -43,7 +43,7 @@ export function requireSession(ctx, { title = "دخول صاحب المحل", le
         try { await api.auth.magicLink(email.value.trim(), redirect); toast("أرسلنا رابط الدخول على بريدك"); } catch (e2) { err.hidden = false; err.textContent = errorText(e2); }
       } }, icon("mail"), "أرسل لي رابط دخول"));
     fill(shell.content, 
-      h("section.card.center", { style: { justifyItems: "center" } }, h("img.hero-logo", { src: "/assets/logo.svg", alt: "" }), h("h2", title), h("p.muted", lead)),
+      h("section.card.center", { style: { justifyItems: "center" } }, h("img.hero-logo", { src: "./assets/logo.svg", alt: "" }), h("h2", title), h("p.muted", lead)),
       h("section.card", form),
       api.demo ? h("section.card", h("div.card-head", icon("flask"), h("h3", "حسابات تجريبية")), h("p.muted.small", "كلمة المرور لكل الحسابات: Dawri-Demo-2026"),
         h("div.stack", [["barber@demo.dawri.app", "حلاق الأصيل · المتكاملة"], ["cafe@demo.dawri.app", "مقهى الركن · النمو"], ["wash@demo.dawri.app", "مغسلة اللمعة · الأساسية"], ["admin@demo.dawri.app", "مدير المنصة"]]

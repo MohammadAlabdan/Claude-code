@@ -5,7 +5,7 @@ let current = { ns: "customer", lang: "ar", strings: {} };
 export async function loadStrings(ns, lang) {
   const key = `${ns}.${lang}`;
   if (!cache.has(key)) {
-    cache.set(key, fetch(`/i18n/${key}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+    cache.set(key, fetch(`./i18n/${key}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
   }
   current = { ns, lang, strings: await cache.get(key) };
   return current;

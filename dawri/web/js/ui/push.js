@@ -33,7 +33,7 @@ export async function localNotify(title, body, url) {
   try {
     if (Notification.permission !== "granted") return;
     const reg = await navigator.serviceWorker.ready;
-    reg.showNotification(title, { body, icon: "/assets/icons/icon-192.png", badge: "/assets/icons/icon-192.png", data: { url }, tag: url, vibrate: [200, 100, 200] });
+    reg.showNotification(title, { body, icon: "assets/icons/icon-192.png", badge: "assets/icons/icon-192.png", data: { url: new URL(url, document.baseURI).href }, tag: url, vibrate: [200, 100, 200] });
   } catch { /* not available */ }
 }
 

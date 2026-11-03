@@ -12,11 +12,11 @@ import { requireSession } from "./auth.js";
 import { QuestCard } from "../ui/quest.js";
 
 const TABS = [
-  { key: "home", href: "/owner", icon: "home", label: "الرئيسية" },
-  { key: "queue", href: "/owner/queue", icon: "users-group", label: "الطابور" },
-  { key: "offers", href: "/owner/offers", icon: "discount", label: "العروض" },
-  { key: "pulse", href: "/owner/pulse", icon: "activity-heartbeat", label: "نبضي" },
-  { key: "settings", href: "/owner/settings", icon: "settings", label: "الإعدادات" },
+  { key: "home", href: "./owner", icon: "home", label: "الرئيسية" },
+  { key: "queue", href: "./owner/queue", icon: "users-group", label: "الطابور" },
+  { key: "offers", href: "./owner/offers", icon: "discount", label: "العروض" },
+  { key: "pulse", href: "./owner/pulse", icon: "activity-heartbeat", label: "نبضي" },
+  { key: "settings", href: "./owner/settings", icon: "settings", label: "الإعدادات" },
 ];
 const PLAN_AR = { basic: "الأساسية", growth: "النمو", full: "المتكاملة", seasonal: "وضع المواسم" };
 const MODE_AR = { remote: "احجز دورك من برّا", receipt: "ادفع وانتظر", dropoff: "سلّم وارجع" };
@@ -53,9 +53,9 @@ export async function render(ctx) {
   }
   if (!ov.businesses.length) {
     shell.setTitle("أهلاً");
-    fill(shell.content, h("section.card.center", { style: { justifyItems: "center" } }, h("img.hero-logo", { src: "/assets/logo.svg", alt: "" }), h("h2", "ما عندك محل مسجّل"),
-      h("p.muted", "ركّب دوري لمحلك في ١٠ دقائق."), h("a.btn.btn-primary", { href: "/start" }, "ابدأ التهيئة")),
-      ov.is_admin ? h("a.btn.btn-block", { href: "/admin" }, icon("shield"), "لوحة الإدارة") : null,
+    fill(shell.content, h("section.card.center", { style: { justifyItems: "center" } }, h("img.hero-logo", { src: "./assets/logo.svg", alt: "" }), h("h2", "ما عندك محل مسجّل"),
+      h("p.muted", "ركّب دوري لمحلك في ١٠ دقائق."), h("a.btn.btn-primary", { href: "./start" }, "ابدأ التهيئة")),
+      ov.is_admin ? h("a.btn.btn-block", { href: "./admin" }, icon("shield"), "لوحة الإدارة") : null,
       h("button.btn.btn-ghost.btn-block", { type: "button", onclick: async () => { await api.auth.signOut(); ctx.rerender(); } }, "تسجيل خروج"));
     return;
   }
@@ -67,7 +67,7 @@ export async function render(ctx) {
   const has = (x) => f.includes(x);
   shell.setTitle(bz.name);
   shell.setTabs(TABS, tab);
-  shell.setActions(h("a.icon-btn", { href: `/s/${br.public_id}`, target: "_blank", rel: "noopener", "aria-label": "صفحة المحل" }, icon("external-link")));
+  shell.setActions(h("a.icon-btn", { href: `./s/${br.public_id}`, target: "_blank", rel: "noopener", "aria-label": "صفحة المحل" }, icon("external-link")));
 
   const refreshOverview = async () => { ov = await api.owner("overview"); br = ov.businesses.flatMap((b) => b.branches.map((x) => ({ ...x, business: b }))).find((x) => x.id === br.id) ?? br; };
   const draw = { home, queue, offers, pulse, settings }[tab] ?? home;
@@ -100,7 +100,7 @@ export async function render(ctx) {
         h("span.value", `≈ ${num(d.lost.sar)} ريال`),
         h("span.small", `خسرت اليوم ${num(d.lost.count)} زباين ≈ ${num(d.lost.sar)} ريال`)) : locked("lost_customers"),
       card("الطابور الآن", "users-group",
-        h("div.row.between", BusyPill(q.busy_level), h("a.small", { href: "/owner/queue" }, "التفاصيل")),
+        h("div.row.between", BusyPill(q.busy_level), h("a.small", { href: "./owner/queue" }, "التفاصيل")),
         h("div.list", q.services.map((s) => h("div.list-item", h("div.grow", h("div.title", s.name), h("div.muted.small", MODE_AR[s.mode])),
           h("div.small", { style: { textAlign: "end" } }, h("div", `${num(s.waiting)} ينتظرون`), s.mode === "remote" ? h("div.muted", `يُخدم الآن: ${s.now_serving ? num(s.now_serving) : "—"}`) : null))))),
       d.latest_summary ? card("ملخص المساء", "moon", h("p", d.latest_summary.text), h("p.muted.small", date(d.latest_summary.day + "T12:00:00Z"))) : card("ملخص المساء", "moon", h("p.muted", "يوصلك أول ملخص الليلة الساعة " + num(br.settings.summary_time))),
@@ -108,8 +108,8 @@ export async function render(ctx) {
         h("p.small", `ينبّهك إذا وصل الطابور ${num(br.settings.busy_alert_threshold)} وأنت بعيد.`),
         h("p.muted.small", d.live.busy_alert?.last_alert_at ? `آخر إنذار: ${time(d.live.busy_alert.last_alert_at)}` : "ما صار إنذار اليوم")) : locked("busy_alert"),
       h("div.grid2",
-        h("a.btn", { href: `/s/${br.public_id}`, target: "_blank", rel: "noopener" }, icon("building-store"), "صفحة المحل"),
-        h("a.btn", { href: "/owner/poster" }, icon("printer"), "ملصق QR")),
+        h("a.btn", { href: `./s/${br.public_id}`, target: "_blank", rel: "noopener" }, icon("building-store"), "صفحة المحل"),
+        h("a.btn", { href: "./owner/poster" }, icon("printer"), "ملصق QR")),
       h("button.btn.btn-block", { type: "button", onclick: enableOwnerPush }, icon("bell"), "فعّل تنبيهاتي على هذا الجوال"),
     );
   }
@@ -138,7 +138,7 @@ export async function render(ctx) {
         h("strong.num", { style: { minWidth: "3ch", fontSize: "1.2rem" } }, num(x.receipt_code ?? x.number)),
         h("div.grow", h("div", svcName(x.service_id)), h("div.muted.small", [x.item_label, x.party_size > 1 ? `${num(x.party_size)} أشخاص` : null, x.priority ? "أولوية" : null].filter(Boolean).join(" · "))),
         h("span.badge", { waiting: "بالانتظار", called: "تم النداء", serving: "يُخدم" }[x.status] ?? x.status)))) : h("p.muted.center", "ما فيه أحد الحين")),
-      h("a.btn.btn-block", { href: "/owner/settings#devices" }, icon("device-mobile"), "افتح شاشة الموظف (اربط جهاز)"),
+      h("a.btn.btn-block", { href: "./owner/settings#devices" }, icon("device-mobile"), "افتح شاشة الموظف (اربط جهاز)"),
     );
   }
 
@@ -338,9 +338,9 @@ export async function render(ctx) {
       card("التنبيهات", "bell", h("p.muted.small", "إنذار الزحمة وملخص المساء يوصلونك على هذا الجوال."), h("button.btn.btn-block", { type: "button", onclick: enableOwnerPush }, icon("bell"), "فعّل تنبيهاتي")),
       card("المظهر", "contrast", h("div.seg", { role: "group" }, [[null, "تلقائي"], ["light", "فاتح"], ["dark", "داكن"]].map(([v, label]) =>
         h("button", { type: "button", "aria-pressed": String(currentTheme() === v), "data-theme-choice": v ?? "auto", onclick: (e) => { setTheme(v); e.currentTarget.parentElement.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); } }, label)))),
-      card("ملصق QR للطباعة", "printer", h("p.muted.small", "ملصق باسم المحل ورمز يفتح صفحتك."), h("a.btn.btn-block", { href: "/owner/poster" }, "افتح الملصق")),
+      card("ملصق QR للطباعة", "printer", h("p.muted.small", "ملصق باسم المحل ورمز يفتح صفحتك."), h("a.btn.btn-block", { href: "./owner/poster" }, "افتح الملصق")),
       planCard(),
-      h("button.btn.btn-ghost.btn-block", { type: "button", onclick: async () => { await api.auth.signOut(); nav("/"); } }, icon("logout"), "تسجيل خروج"));
+      h("button.btn.btn-ghost.btn-block", { type: "button", onclick: async () => { await api.auth.signOut(); nav("./"); } }, icon("logout"), "تسجيل خروج"));
     fill(root, ...parts.filter(Boolean));
     if (location.hash === "#devices") document.getElementById("devices")?.scrollIntoView({ block: "start" });
   }

@@ -1,10 +1,10 @@
 // Dawri service worker: offline shell, Web Push, notification clicks.
-const VERSION = "dawri-v1";
+const VERSION = "dawri-v2";
 const SHELL = [
-  "/", "/index.html", "/config.js", "/manifest.webmanifest", "/css/tokens.css", "/css/app.css", "/assets/logo.svg",
-  "/js/app.js", "/js/i18n.js", "/js/errors.js", "/js/ui/dom.js", "/js/ui/sheet.js", "/js/ui/toast.js", "/js/ui/components.js",
-  "/js/ui/push.js", "/js/screens/shop.js", "/js/screens/ticket.js", "/i18n/customer.ar.json", "/i18n/customer.en.json",
-  "/assets/icons/icon-192.png",
+  "./", "./index.html", "./config.js", "./manifest.webmanifest", "./css/tokens.css", "./css/app.css", "./assets/logo.svg",
+  "./js/app.js", "./js/i18n.js", "./js/errors.js", "./js/ui/dom.js", "./js/ui/sheet.js", "./js/ui/toast.js", "./js/ui/components.js",
+  "./js/ui/push.js", "./js/screens/shop.js", "./js/screens/ticket.js", "./i18n/customer.ar.json", "./i18n/customer.en.json",
+  "./assets/icons/icon-192.png",
 ];
 
 self.addEventListener("install", (e) => {
@@ -22,7 +22,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).catch(() => caches.match("/index.html")));
+    e.respondWith(fetch(req).catch(() => caches.match(new URL("./index.html", self.registration.scope).href)));
     return;
   }
   e.respondWith(caches.open(VERSION).then(async (cache) => {
@@ -37,15 +37,15 @@ self.addEventListener("push", (e) => {
   try { data = e.data?.json() ?? {}; } catch { data = { title: "دوري", body: e.data?.text() }; }
   const urgent = data.vibrate || ["called", "ready"].includes(data.kind);
   e.waitUntil(self.registration.showNotification(data.title || "دوري", {
-    body: data.body || "", icon: "/assets/icons/icon-192.png", badge: "/assets/icons/icon-192.png",
+    body: data.body || "", icon: "./assets/icons/icon-192.png", badge: "./assets/icons/icon-192.png",
     tag: data.tag || data.kind || "dawri", renotify: true, requireInteraction: urgent,
-    vibrate: urgent ? [300, 120, 300, 120, 300] : [120], data: { url: data.url || "/" }, dir: "rtl", lang: "ar",
+    vibrate: urgent ? [300, 120, 300, 120, 300] : [120], data: { url: data.url || "./" }, dir: "rtl", lang: "ar",
   }));
 });
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  const target = new URL(e.notification.data?.url || "/", location.origin).href;
+  const target = new URL(e.notification.data?.url || "./", self.registration.scope).href;
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
     const same = wins.find((w) => w.url.startsWith(target)) ?? wins.find((w) => /\/(t|s)\//.test(new URL(w.url).pathname));
     if (same) return same.focus().then((w) => (w && !w.url.startsWith(target) ? w.navigate(target) : w));

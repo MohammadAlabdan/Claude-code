@@ -11,9 +11,9 @@ export async function render(ctx) {
   try { ov = await api.owner("overview"); } catch (e) { fill(shell.content, h("p", errorText(e))); return; }
   const branches = ov.businesses.flatMap((b) => b.branches.map((br) => ({ ...br, business: b })));
   const br = branches.find((x) => x.id === store.get("dawri.owner.branch")) ?? branches[0];
-  if (!br) { fill(shell.content, h("a.btn", { href: "/start" }, "ابدأ التهيئة")); return; }
+  if (!br) { fill(shell.content, h("a.btn", { href: "./start" }, "ابدأ التهيئة")); return; }
   shell.setTitle("ملصق QR");
-  const url = `${location.origin}/s/${br.public_id}`;
+  const url = `${new URL(".", document.baseURI).href}s/${br.public_id}`;
   let size = "A5";
   const style = h("style", "@media print { @page { size: A5 portrait; margin: 10mm; } }");
   fill(shell.content, 
@@ -25,7 +25,7 @@ export async function render(ctx) {
       h("button.btn.btn-primary", { type: "button", onclick: () => window.print() }, icon("printer"), "اطبع")),
     style,
     h("section.poster", { "data-testid": "poster" },
-      h("img", { src: "/assets/logo.svg", alt: "دوري", width: 72, height: 72 }),
+      h("img", { src: "./assets/logo.svg", alt: "دوري", width: 72, height: 72 }),
       h("div.p-name", br.business.name),
       h("div", { style: { fontSize: "1.1rem" } }, br.name),
       h("div.p-qr", QR(url, { label: url })),

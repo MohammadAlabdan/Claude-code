@@ -17,7 +17,7 @@ export async function render(ctx) {
     try {
       const r = await api.customer("claim_dropoff", { claim_token: params[0] });
       store.set(`dawri.ticket.${r.ticket.branch.public_id}`, r.ticket_token);
-      return nav(`/t/${r.ticket_token}`, { replace: true });
+      return nav(`./t/${r.ticket_token}`, { replace: true });
     } catch (e) {
       fill(shell.content, h("div.empty", icon("link-off"), h("p", errorText(e)), h("p.muted.small", t("claim.used"))));
       return;
@@ -42,7 +42,7 @@ export async function render(ctx) {
   }
   try { await load(); } catch (e) {
     if (!e?.code) console.error(e);
-    fill(shell.content, h("div.empty", icon("ticket-off"), h("p", errorText(e)), h("a.btn", { href: "/" }, t("action.home"))));
+    fill(shell.content, h("div.empty", icon("ticket-off"), h("p", errorText(e)), h("a.btn", { href: "./" }, t("action.home"))));
     return;
   }
   fill(shell.content, root);
@@ -63,7 +63,7 @@ export async function render(ctx) {
       overlayShown = key;
       vibrate([300, 120, 300, 120, 300]);
       chime();
-      if (document.visibilityState !== "visible" || api.demo) localNotify(tk.branch.name, body ?? title, `/t/${token}`);
+      if (document.visibilityState !== "visible" || api.demo) localNotify(tk.branch.name, body ?? title, `./t/${token}`);
       return true;
     };
     if (tk.mode === "remote" && tk.called && (!was || !was.called)) {
@@ -73,7 +73,7 @@ export async function render(ctx) {
       if (alertOnce(`ready-${tk.id}`, msg)) showOverlay(msg, tk.mode === "receipt" ? tk.receipt_code : tk.number);
     } else if (tk.return_now && was && !was.return_now) {
       vibrate([200, 100, 200]);
-      if (document.visibilityState !== "visible" || api.demo) localNotify(tk.branch.name, t("ticket.return_now"), `/t/${token}`);
+      if (document.visibilityState !== "visible" || api.demo) localNotify(tk.branch.name, t("ticket.return_now"), `./t/${token}`);
     }
   }
 
@@ -133,8 +133,8 @@ export async function render(ctx) {
 
       tk.status === "done" ? afterCards() : null,
       !active && tk.quests?.length ? questList() : null,
-      ["left", "no_show", "cancelled"].includes(tk.status) ? h("a.btn.btn-primary.btn-block", { href: `/s/${tk.branch.public_id}?stay` }, t("ticket.new_number")) : null,
-      h("a.btn.btn-ghost.btn-block", { href: `/s/${tk.branch.public_id}?stay` }, icon("building-store"), t("ticket.shop_page")),
+      ["left", "no_show", "cancelled"].includes(tk.status) ? h("a.btn.btn-primary.btn-block", { href: `./s/${tk.branch.public_id}?stay` }, t("ticket.new_number")) : null,
+      h("a.btn.btn-ghost.btn-block", { href: `./s/${tk.branch.public_id}?stay` }, icon("building-store"), t("ticket.shop_page")),
     );
   }
 

@@ -14,7 +14,7 @@ export async function render(ctx) {
 
   if (name === "pair") {
     const tok = location.hash.slice(1);
-    if (tok.length >= 20) { store.set("dawri.device", tok); history.replaceState({}, "", "/staff"); return nav("/staff", { replace: true }); }
+    if (tok.length >= 20) { store.set("dawri.device", tok); history.replaceState({}, "", "./staff"); return nav("./staff", { replace: true }); }
     return unpaired();
   }
   if (!store.get("dawri.device")) return unpaired();
