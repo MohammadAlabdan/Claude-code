@@ -223,7 +223,8 @@ export async function render(ctx) {
         } })),
       state.ready_numbers.length ? card(t("receipt.last_ready"), "bell-ringing", h("div.chips", state.ready_numbers.map((c) => h("span.chip", { style: { cursor: "default" } }, num(c))))) : null,
       waitingCodes.length ? card(t("receipt.waiting"), "clock", h("div.chips", waitingCodes.map((x) => h("button.chip", { type: "button", onclick: async () => { await act("mark_ready", { receipt_code: x.receipt_code }); toast(t("receipt.marked", { n: num(x.receipt_code) })); } },
-        num(x.receipt_code), !x.push_enabled ? icon("bell-off", t("bell.off")) : null)))) : null,
+        num(x.receipt_code), !x.push_enabled ? icon("bell-off", t("bell.off")) : null,
+        (x.interests ?? []).map((n) => h("span.staff-want", { "data-testid": "staff-want" }, `+ ${n}`)))))) : null,
     ];
   }
 

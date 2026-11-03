@@ -55,3 +55,17 @@ test("basic plan: challenges are a locked card", async ({ page }) => {
   await page.goto("/owner/offers");
   await expect(page.locator(".card.locked", { hasText: "تحدّياتي" })).toContainText("باقة النمو");
 });
+
+test("café: an extra requested while waiting shows on the kitchen screen", async ({ page, context }) => {
+  await page.goto("/s/rukn2026?stay");
+  await page.getByTestId("track-order").click();
+  await page.fill("#receipt-code", "61");
+  await page.click('[data-action="receipt-confirm"]');
+  await page.waitForURL(/\/t\//);
+  const item = page.getByTestId("waiting-showcase").locator(".promo.item", { hasText: "كيكة تمر" });
+  await item.getByTestId("want-item").click();
+  await expect(page.getByTestId("waiting-showcase").locator(".promo.item", { hasText: "كيكة تمر" })).toContainText("طلبتها");
+  const kitchen = await context.newPage();
+  await kitchen.goto("/staff/pair#demo-staff-rukn-kitchen-000000000000");
+  await expect(kitchen.locator(".chip", { hasText: "٦١" }).getByTestId("staff-want")).toContainText("كيكة تمر");
+});
