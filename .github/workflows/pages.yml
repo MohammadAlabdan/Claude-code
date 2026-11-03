@@ -1,10 +1,11 @@
-# Publishes the Dawri app (demo mode) to GitHub Pages on every push to main.
+# Publishes the Dawri app (demo mode) to GitHub Pages on every push to main or the work branch
+# (GitHub only lets the repository's default branch deploy to Pages).
 # One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
 name: Publish Dawri to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/new-session-kshbvu]
     paths: ["dawri/web/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
