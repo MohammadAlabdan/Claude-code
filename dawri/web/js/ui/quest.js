@@ -1,4 +1,4 @@
-// «تحدّياتي» cards and the «وأنت تنتظر» story carousel shown on the ticket page.
+// «تحدّياتي» cards and the «وأنت تنتظر» list of up to 4 surprises shown on the ticket page.
 import { h, icon } from "./dom.js";
 import { t, num, lang } from "../i18n.js";
 
@@ -47,51 +47,103 @@ export function QuestCard(q, { onStart, onRedeem, preview = false } = {}) {
       cta));
 }
 
+// ---------- «وأنت تنتظر»: a fixed list of at most 4 surprises from the shop ----------
+
+export const WAITING_LIMIT = 4;
+
+/** Highest pull first: a reward ready to use, then one visit away, rare, in progress, offers, the rest. */
+export function pickGifts(quests = [], offers = [], limit = WAITING_LIMIT) {
+  const score = (q) => (q.mine?.completed && !q.mine?.redeemed ? 0 : q.mine && q.required_visits - q.mine.visits === 1 ? 1
+    : q.rarity === "rare" ? 2 : q.mine && !q.mine.redeemed ? 3 : 5);
+  const items = [
+    ...quests.filter((q) => !q.mine?.redeemed).map((q) => ({ type: "quest", q, rank: score(q) })),
+    ...offers.map((o) => ({ type: "offer", o, rank: 4 })),
+  ];
+  return items.sort((a, b) => a.rank - b.rank).slice(0, limit);
+}
+
+/** Minutes until an offer's end time today (Riyadh), or null. */
+function offerMinutesLeft(o) {
+  if (!o.end_time) return null;
+  const r = new Date(Date.now() + 3 * 3600000), now = r.getUTCHours() * 60 + r.getUTCMinutes();
+  const [hh, mm] = o.end_time.split(":").map(Number);
+  const left = hh * 60 + mm - now;
+  return left > 0 && left <= 180 ? left : null;
+}
+function durationText(min) {
+  if (min < 60) return t("gift.min", { n: num(min) });
+  const hh = Math.floor(min / 60), mm = min % 60;
+  return mm ? t("gift.hmin", { h: num(hh), m: num(mm) }) : t("gift.hours", { h: num(hh) });
+}
+
+/** The emotional line under each gift: what the customer feels, not what the system does. */
+function hook(item) {
+  if (item.type === "offer") return t("gift.offer_hook");
+  const q = item.q, m = q.mine;
+  if (m?.completed) return t("gift.won");
+  if (m && q.required_visits - m.visits === 1) return t("gift.one_left");
+  if (m) return t("gift.keep_going", { n: num(q.required_visits - m.visits) });
+  return t(`gift.hook.${q.kind}`);
+}
+
+function chips(item) {
+  const out = [];
+  if (item.type === "offer") {
+    const left = offerMinutesLeft(item.o);
+    out.push(left ? h("span.g-chip.urgent", { "data-countdown": item.o.end_time }, icon("hourglass-high"), t("gift.ends_in", { t: durationText(left) }))
+      : h("span.g-chip", icon("clock"), t("gift.today_only")));
+    return out;
+  }
+  const q = item.q;
+  if (q.rarity === "rare" && q.spots_left != null) out.push(h("span.g-chip.urgent", icon("flame"), t("gift.spots", { n: num(q.spots_left) })));
+  const days = Math.ceil((Date.parse(q.ends_at) - Date.now()) / 86400000);
+  out.push(h("span.g-chip", icon("calendar-time"), days <= 1 ? t("quest.ends_today") : t("quest.ends_in", { n: num(days) })));
+  if (q.participants) out.push(h("span.g-chip", icon("users"), t("gift.joined", { n: num(q.participants) })));
+  return out;
+}
+
 /**
- * StoryCarousel(slides) — the «وأنت تنتظر» showcase: swipeable cards with story-style progress bars,
- * auto-advancing every 6 s until the customer touches it (and never with reduced motion).
+ * GiftCard — one surprise from the shop, laid out like a torn coupon:
+ * the reward on the stub, the story and the call to act on the body.
+ * The first card arrives sealed («اكشف المفاجأة») until the customer taps it.
  */
-export function StoryCarousel(slides, { label }) {
-  if (!slides.length) return null;
-  const bars = h("div.story-bars", slides.map(() => h("span", h("i"))));
-  const track = h("div.story-track", { tabindex: "0", "aria-label": label, "aria-roledescription": "carousel" },
-    slides.map((s, i) => h("div.story-slide", { role: "group", "aria-label": `${i + 1} / ${slides.length}` }, s)));
-  const el = h("section.story", { "data-testid": "waiting-showcase" }, bars, track);
-  let idx = 0, timer = null, paused = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const mark = () => bars.querySelectorAll("span").forEach((b, i) => { b.className = i < idx ? "done" : i === idx ? "now" : ""; });
-  const go = (i) => { idx = (i + slides.length) % slides.length; track.scrollTo({ left: -idx * track.clientWidth * (document.documentElement.dir === "rtl" ? 1 : -1), behavior: "smooth" }); mark(); };
-  track.addEventListener("scroll", () => {
-    const i = Math.round(Math.abs(track.scrollLeft) / Math.max(1, track.clientWidth));
-    if (i !== idx) { idx = i; mark(); }
-  }, { passive: true });
-  const stop = () => { paused = true; clearInterval(timer); el.classList.add("paused"); };
-  track.addEventListener("pointerdown", stop, { once: true });
-  track.addEventListener("keydown", (e) => { stop(); if (e.key === "ArrowLeft") go(idx + (document.documentElement.dir === "rtl" ? 1 : -1)); if (e.key === "ArrowRight") go(idx + (document.documentElement.dir === "rtl" ? -1 : 1)); });
-  if (!paused && slides.length > 1) timer = setInterval(() => document.visibilityState === "visible" && go(idx + 1), 6000);
-  el.stop = () => clearInterval(timer);
-  mark();
-  return el;
+export function GiftCard(item, { onStart, onRedeem, onUseOffer, sealed = false, onReveal } = {}) {
+  const isQuest = item.type === "quest", q = item.q, o = item.o, m = q?.mine;
+  const reward = isQuest ? q.reward_text : o.discount_text ?? "🎁";
+  const title = isQuest ? q.title : o.title;
+  const detail = isQuest ? [q.description, q.service, q.provider].filter(Boolean).join(" · ") : o.terms;
+  const kind = isQuest ? (q.rarity === "rare" ? "rare" : m?.completed ? "won" : "challenge") : "offer";
+  let cta;
+  if (!isQuest) cta = h("button.btn.g-cta", { type: "button", onclick: () => onUseOffer?.(o) }, icon("ticket"), t("redeem.use"));
+  else if (!m) cta = h("button.btn.g-cta", { type: "button", "data-testid": "quest-start", onclick: () => onStart?.(q) }, icon("flag-3"), t("gift.start"));
+  else if (m.completed) cta = h("button.btn.g-cta", { type: "button", "data-testid": "quest-redeem", onclick: () => onRedeem?.(q) }, icon("gift"), t("quest.use_reward"));
+  const progress = isQuest && m ? h("div.g-progress", { role: "img", "aria-label": t("quest.progress", { v: num(m.visits), n: num(q.required_visits) }) },
+    Array.from({ length: q.required_visits }, (_, i) => h(`span${i < m.visits ? ".on" : ""}${i === q.required_visits - 1 ? ".last" : ""}`, i === q.required_visits - 1 ? icon("gift") : null))) : null;
+  const card = h(`article.gift.${kind}`, { "data-gift": isQuest ? q.id : o.id, "aria-label": `${title}: ${reward}` },
+    h("div.g-stub", { "aria-hidden": "true" },
+      h("small", isQuest ? t("quest.reward") : t("gift.discount")),
+      h(`b${reward.length > 8 ? ".long" : ""}`, reward),
+      h("span.g-kind", icon(isQuest ? (q.rarity === "rare" ? "diamond" : "flag-3") : "discount"), isQuest ? t(`quest.kind.${q.kind}`) : t("showcase.offer"))),
+    h("div.g-body",
+      h("h3", title),
+      h("p.g-hook", hook(item)),
+      detail ? h("p.g-detail", detail) : null,
+      progress,
+      h("div.g-chips", chips(item)),
+      cta ? h("div.g-act", cta) : m ? h("div.g-act", h("span.q-state", icon("flame"), t("gift.counting"))) : null));
+  if (!sealed) return card;
+  const cover = h("button.g-seal", { type: "button", "data-testid": "gift-reveal", "aria-label": t("gift.reveal") },
+    h("span.g-seal-icon", { "aria-hidden": "true" }, "🎁"), h("b", t("gift.reveal")), h("span", t("gift.reveal_sub")));
+  const wrap = h("div.gift-wrap.sealed", card, cover);
+  cover.addEventListener("click", () => { wrap.classList.add("opening"); setTimeout(() => { wrap.classList.remove("sealed", "opening"); cover.remove(); onReveal?.(); }, 450); });
+  return wrap;
 }
 
-/** Offer slide: the discount is the headline. */
-export function OfferSlide(o, onUse) {
-  return h("article.promo.offer", h("span.promo-tag", icon("discount"), t("showcase.offer")),
-    h("b.promo-big", o.discount_text ?? "%"), h("h3", o.title), o.terms ? h("p", o.terms) : null,
-    h("button.btn.q-cta", { type: "button", onclick: () => onUse(o) }, t("redeem.use")));
-}
-
-/** «أبيها» slide: an extra service or item the customer can ask for while waiting. */
-export function ItemSlide(m, wanted, onToggle) {
-  return h(`article.promo.item${wanted ? ".wanted" : ""}`, { "data-item": m.id },
-    h("span.promo-tag", icon("sparkles"), m.category ?? t("showcase.add")),
-    h("h3", m.name), m.description ? h("p", m.description) : null,
-    h("div.promo-row", m.price_sar != null ? h("b.promo-price", `${num(+m.price_sar)} ${t("unit.sar")}`) : h("span"),
-      m.duration_min ? h("span.promo-min", icon("clock"), t("showcase.minutes", { n: num(m.duration_min) })) : null),
-    h(`button.btn.q-cta${wanted ? ".q-win" : ""}`, { type: "button", "data-testid": "want-item", "aria-pressed": String(wanted), onclick: () => onToggle(m, !wanted) },
-      wanted ? [icon("check"), t("showcase.wanted")] : [icon("hand-finger"), t("showcase.want")]),
-    wanted ? h("p.promo-note", t("showcase.wanted_note")) : null);
-}
-
-export function NewsSlide(n) {
-  return h("article.promo.news", h("span.promo-tag", icon("news"), t("shop.news")), h("h3", n.title), n.body ? h("p", n.body) : null);
+/** «أضف لزيارتك»: compact rows for extras the customer can ask for with «أبيها». */
+export function ExtraRow(m, wanted, onToggle) {
+  return h(`div.extra${wanted ? ".wanted" : ""}`, { "data-item": m.id },
+    h("div.grow", h("div.title", m.name), h("div.muted.small", [m.price_sar != null ? `${num(+m.price_sar)} ${t("unit.sar")}` : null,
+      m.duration_min ? t("showcase.minutes", { n: num(m.duration_min) }) : null].filter(Boolean).join(" · "))),
+    h(`button.btn${wanted ? ".g-want-on" : ".g-want"}`, { type: "button", "data-testid": "want-item", "aria-pressed": String(wanted), onclick: () => onToggle(m, !wanted) },
+      wanted ? [icon("check"), t("showcase.wanted")] : [icon("hand-finger"), t("showcase.want")]));
 }

@@ -193,6 +193,7 @@ export async function render(ctx) {
     const [{ quests, interests_7d }, sug] = await Promise.all([api.owner("quests", { branch_id: br.id }), api.owner("suggest_quests", { branch_id: br.id }).catch(() => ({ suggestions: [] }))]);
     return h("section.stack", { "data-testid": "owner-quests", style: { gap: "14px" } },
       h("div.wait-head", h("h2", "تحدّياتي"), h("span.muted", "أنت اللي تصمم التحدّي، ودوري يحسب الزيارات تلقائياً")),
+      h("div.banner.ok", icon("gift"), h("span", "زبونك يشوف وهو ينتظر أقوى ٤ مفاجآت منك: الجوائز الجاهزة أولاً، ثم النادرة، ثم العروض")),
       h("div.grid2", stat("مشتركين", num(quests.reduce((a, q) => a + q.participants, 0))), stat("طلبات «أبيها» ٧ أيام", num(interests_7d))),
       sug.suggestions.length ? card("اقتراحات من أرقامك", "bulb", h("div.list", sug.suggestions.map((x) => h("div.list-item",
         h("div.grow", h("div.title", x.title, " · ", h("span", { style: { color: "var(--accent)" } }, x.reward_text)), h("div.muted.small", x.why)),

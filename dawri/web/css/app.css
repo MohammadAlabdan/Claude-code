@@ -307,24 +307,6 @@ table.simple th, table.simple td { text-align: start; padding: 8px 6px; border-t
   .poster { padding: 0; }
 }
 
-/* ---------- «وأنت تنتظر»: waiting showcase ---------- */
-.wait-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.wait-head h2 { font-size: 1.45rem; }
-.wait-head .muted { font-size: .85rem; }
-.story { display: grid; gap: 10px; }
-.story-bars { display: flex; gap: 4px; direction: ltr; }
-[dir="rtl"] .story-bars { direction: rtl; }
-.story-bars span { flex: 1; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
-.story-bars span i { display: block; height: 100%; width: 0; background: var(--accent); }
-.story-bars span.done i { width: 100%; }
-.story-bars span.now i { animation: storyfill 6s linear forwards; }
-.story.paused .story-bars span.now i { animation: none; width: 100%; }
-@keyframes storyfill { to { width: 100%; } }
-.story-track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 26px; }
-.story-track::-webkit-scrollbar { display: none; }
-.story-slide { scroll-snap-align: start; min-width: 0; display: grid; }
-.story-slide > * { height: 100%; }
-
 /* ---------- QuestCard: a challenge drawn as a ticket stub ---------- */
 .quest {
   --q-bg: linear-gradient(155deg, var(--ticket), color-mix(in srgb, var(--ticket) 45%, var(--sheet)));
@@ -369,25 +351,73 @@ table.simple th, table.simple td { text-align: start; padding: 8px 6px; border-t
 .q-state { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: .88rem; color: var(--q-hi); }
 .quest.won { box-shadow: 0 0 0 3px var(--led), 0 0 30px -6px var(--led); }
 
-/* ---------- promo slides ---------- */
-.promo { border-radius: 26px; padding: 20px; display: grid; gap: 8px; align-content: start; min-height: 260px; }
-.promo h3 { font: 400 1.35rem/1.25 var(--f-display); margin: 0; }
-.promo p { margin: 0; font-size: .9rem; }
-.promo-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 700; justify-self: start; padding: 3px 10px; border-radius: 999px; }
-.promo.offer { background: linear-gradient(150deg, var(--accent), color-mix(in srgb, var(--accent) 65%, var(--board))); color: var(--on-accent); }
-.promo.offer .promo-tag { background: color-mix(in srgb, var(--on-accent) 18%, transparent); }
-.promo.offer .promo-big { font: 400 3.6rem/1 var(--f-display); }
-.promo.offer .q-cta { background: var(--on-accent); color: var(--accent); justify-self: start; margin-top: auto; }
-.promo.item { background: var(--sheet); border: 1.5px solid var(--line); }
-.promo.item .promo-tag { background: var(--ticket); color: var(--accent); }
-.promo.item.wanted { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
-.promo-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.promo-price { font: 400 1.9rem/1 var(--f-display); color: var(--accent); }
-.promo-min { display: inline-flex; gap: 4px; align-items: center; font-size: .82rem; color: var(--muted); }
-.promo.item .q-cta { justify-self: stretch; background: var(--accent); color: var(--on-accent); margin-top: auto; }
-.promo.item .q-cta.q-win { background: var(--led); color: #2A1B00; }
-.promo-note { font-size: .8rem !important; color: var(--muted); }
-.promo.news { background: var(--board); color: #E7EEEA; }
-.promo.news .promo-tag { background: rgba(255, 178, 30, .15); color: var(--led); }
 .quest-list { display: grid; gap: 14px; }
 .staff-want { font-size: .74rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--led); color: #2A1B00; }
+
+/* ---------- «وأنت تنتظر»: up to 4 surprises as torn coupons ---------- */
+.waiting { display: grid; gap: 12px; }
+.w-head { display: grid; gap: 2px; }
+.w-head .hand { margin: 0; font-size: 1.2rem; }
+.w-head h2 { font-size: 1.55rem; }
+.gift-list { display: grid; gap: 12px; }
+.gift {
+  --g-stub-bg: var(--ticket); --g-stub-ink: var(--accent); --g-body-bg: var(--sheet); --g-ink: var(--ink); --g-muted: var(--muted); --g-line: var(--line);
+  display: grid; grid-template-columns: minmax(96px, 30%) 1fr; border-radius: 22px; overflow: hidden; background: var(--g-body-bg); color: var(--g-ink);
+  border: 1px solid var(--g-line); box-shadow: var(--shadow); position: relative; min-width: 0;
+}
+.gift.offer { --g-stub-bg: var(--accent); --g-stub-ink: var(--on-accent); }
+.gift.won { --g-stub-bg: var(--led); --g-stub-ink: #2A1B00; border-color: var(--led); box-shadow: 0 0 0 2px var(--led), 0 10px 30px -12px var(--led); }
+.gift.rare { --g-stub-bg: radial-gradient(120% 120% at 50% 0%, #3A2E0E, #120F07); --g-stub-ink: var(--led); --g-body-bg: var(--board); --g-ink: #EDE6D3; --g-muted: #B8AF98; --g-line: #3A321C; }
+.g-stub { background: var(--g-stub-bg); color: var(--g-stub-ink); display: grid; align-content: center; justify-items: center; gap: 4px; padding: 14px 8px; text-align: center; position: relative; }
+/* perforation between the stub and the body, with a bite at top and bottom */
+.g-stub::after { content: ""; position: absolute; inset-block: 10px; inset-inline-end: 0; border-inline-end: 2px dashed color-mix(in srgb, var(--g-stub-ink) 40%, transparent); }
+.gift::before, .gift::after { content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--paper); inset-inline-start: calc(max(96px, 30%) - 9px); z-index: 1; }
+.gift::before { top: -9px; } .gift::after { bottom: -9px; }
+.g-stub small { font-size: .72rem; font-weight: 700; opacity: .8; }
+.g-stub b { font: 400 1.9rem/1.05 var(--f-display); word-break: break-word; }
+.g-stub b.long { font-size: 1.3rem; line-height: 1.2; }
+.gift.rare .g-stub b { text-shadow: 0 0 16px rgba(255, 178, 30, .45); }
+.g-kind { display: inline-flex; align-items: center; gap: 4px; font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--g-stub-ink) 14%, transparent); }
+.g-body { padding: 14px 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.g-body h3 { font: 400 1.2rem/1.25 var(--f-display); margin: 0; }
+.g-hook { margin: 0; font-weight: 700; font-size: .95rem; }
+.gift.rare .g-hook { color: var(--led); }
+.gift.won .g-hook { color: var(--amber); }
+.g-detail { margin: 0; font-size: .82rem; color: var(--g-muted); }
+.g-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.g-chip { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: color-mix(in srgb, var(--g-ink) 7%, transparent); color: var(--g-muted); }
+.g-chip.urgent { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.gift.rare .g-chip.urgent { background: rgba(255, 178, 30, .16); color: var(--led); }
+.g-chip.urgent i { animation: tick 1.6s ease-in-out infinite; }
+@keyframes tick { 50% { transform: scale(1.25); } }
+.g-progress { display: flex; gap: 6px; align-items: center; }
+.g-progress span { width: 22px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--g-ink) 12%, transparent); display: grid; place-items: center; }
+.g-progress span.on { background: var(--accent); }
+.gift.rare .g-progress span.on { background: var(--led); }
+.g-progress span.last { width: 26px; height: 26px; border-radius: 50%; font-size: .9rem; color: var(--amber); background: color-mix(in srgb, var(--led) 18%, transparent); }
+.g-progress span.last.on { background: var(--led); color: #2A1B00; animation: giftpop .6s var(--ease) 2; }
+.g-act { margin-top: 4px; }
+.g-cta { min-height: 42px; padding: 8px 16px; border-radius: 12px; background: var(--accent); border-color: transparent; color: var(--on-accent); }
+.gift.rare .g-cta, .gift.won .g-cta { background: var(--led); color: #2A1B00; }
+.gift.offer .g-cta { background: var(--accent); }
+/* the sealed first gift */
+.gift-wrap { position: relative; }
+.gift-wrap.sealed .gift { filter: blur(6px) saturate(.6); pointer-events: none; }
+.g-seal { position: absolute; inset: 0; z-index: 2; border: 0; border-radius: 22px; cursor: pointer; display: grid; place-content: center; justify-items: center; gap: 4px; text-align: center;
+  color: #2A1B00; background: linear-gradient(120deg, var(--led) 0%, #FFD26A 40%, var(--led) 60%, #F2A100 100%); background-size: 250% 100%; animation: shimmer 2.4s linear infinite; font-family: var(--f-body); }
+.g-seal-icon { font-size: 2.4rem; animation: wiggle 1.8s ease-in-out infinite; }
+.g-seal b { font: 400 1.35rem var(--f-display); }
+.g-seal span:last-child { font-size: .82rem; font-weight: 600; }
+@keyframes wiggle { 0%, 70%, 100% { transform: rotate(0); } 80% { transform: rotate(-12deg); } 90% { transform: rotate(12deg); } }
+.gift-wrap.opening .g-seal { animation: none; transform: scale(1.06); opacity: 0; transition: transform .45s var(--ease), opacity .45s var(--ease); }
+.gift-wrap.opening .gift { filter: none; transition: filter .45s var(--ease); }
+/* extras («أبيها») */
+.extras { display: grid; gap: 8px; padding: 14px 16px; border-radius: 20px; border: 1.5px dashed var(--line); background: var(--sheet); }
+.extras h3 { display: flex; align-items: center; gap: 6px; font-size: 1rem; }
+.extras h3 i { color: var(--accent); }
+.extra { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); }
+.extra:first-of-type { border-top: 0; }
+.extra .grow { flex: 1; min-width: 0; }
+.g-want { min-height: 40px; padding: 6px 14px; border-radius: 12px; border-color: var(--accent); color: var(--accent); background: transparent; }
+.g-want-on { min-height: 40px; padding: 6px 14px; border-radius: 12px; background: var(--led); border-color: var(--led); color: #2A1B00; }
+@media (max-width: 380px) { .gift { grid-template-columns: 88px 1fr; } .gift::before, .gift::after { inset-inline-start: 79px; } .g-stub b { font-size: 1.5rem; } }

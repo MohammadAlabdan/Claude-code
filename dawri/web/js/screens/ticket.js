@@ -2,7 +2,7 @@
 import { h, icon, card, store, skeleton, vibrate, fill } from "../ui/dom.js";
 import { t, num, errorText, lang } from "../i18n.js";
 import { TicketCard, NowServingBoard, QueueLine, StageTracker } from "../ui/components.js";
-import { QuestCard, StoryCarousel, OfferSlide, ItemSlide, NewsSlide } from "../ui/quest.js";
+import { QuestCard, GiftCard, ExtraRow, pickGifts } from "../ui/quest.js";
 import { openSheet, confirmSheet } from "../ui/sheet.js";
 import { toast } from "../ui/toast.js";
 import { subscribePush, needsInstallForPush, pushSupported, localNotify, unlockAudio, chime } from "../ui/push.js";
@@ -26,7 +26,6 @@ export async function render(ctx) {
 
   const token = params[0];
   let tk, prev = null, overlayShown = null, pushDenied = false;
-  let carousel = null, lastShowcaseKey = "";
   shell.content.append(...skeleton(3));
 
   const board = NowServingBoard(t("ticket.now_serving"));
@@ -170,37 +169,30 @@ export async function render(ctx) {
   }
 
   // ---------- «وأنت تنتظر»: the waiting time becomes the shop's showcase ----------
+  // Variety sells: one item from each menu section first (coffee, then a sweet…), then the rest.
+  function pickExtras(items, n) {
+    const seen = new Set(), first = [], rest = [];
+    for (const m of items) (seen.has(m.category ?? "") ? rest : (seen.add(m.category ?? ""), first)).push(m);
+    return [...first, ...rest].slice(0, n);
+  }
+
   function showcaseSection() {
+    const gifts = pickGifts(tk.quests ?? [], tk.offers ?? []);
     const wanted = new Set(tk.interests ?? []);
-    const key = JSON.stringify([tk.quests?.map((q) => [q.id, q.mine, q.spots_left]), tk.offers?.map((o) => o.id), [...wanted]]);
-    // keep the carousel (and its position) when nothing it shows has changed
-    if (carousel && key === lastShowcaseKey) {
-      const tr = carousel.el.querySelector(".story-track"), sl = tr.scrollLeft;
-      requestAnimationFrame(() => { tr.scrollLeft = sl; });
-      return carousel.wrap;
-    }
-    const prevTrack = carousel?.el?.querySelector(".story-track"), prevLeft = prevTrack?.scrollLeft ?? 0;
-    const wasPaused = carousel?.el?.classList.contains("paused");
-    carousel?.el?.stop?.();
-    const slides = [
-      ...(tk.quests ?? []).map((q) => QuestCard(q, { onStart: startQuest, onRedeem: (x) => redeem({ quest_id: x.id, title: x.reward_text }) })),
-      ...(tk.offers ?? []).map((o) => OfferSlide(o, (x) => redeem({ offer_id: x.id, title: x.title }))),
-      ...(tk.features.includes("upsell") ? (tk.showcase ?? []) : []).map((m) => ItemSlide(m, wanted.has(m.id), toggleItem)),
-    ];
-    if (!slides.length) return null;
-    const el = StoryCarousel(slides, { label: t("showcase.title") });
+    const extras = tk.features.includes("upsell") ? pickExtras(tk.showcase ?? [], 3) : [];
+    if (!gifts.length && !extras.length) return null;
+    const sealKey = `dawri.revealed.${token}`;
+    const sealed = gifts.length > 1 && !store.get(sealKey);
     const waiting = tk.mode === "remote" && tk.status === "waiting";
-    const wrap = h("section.stack", { style: { gap: "10px" } },
-      h("div.wait-head", h("h2", t("showcase.title")),
-        h("span.muted", waiting ? t("showcase.sub", { m: num(tk.estimate_min) }) : t("showcase.sub_ready"))), el);
-    if (prevTrack) {
-      if (wasPaused) { el.stop(); el.classList.add("paused"); }
-      requestAnimationFrame(() => { el.querySelector(".story-track").scrollLeft = prevLeft; });
-    }
-    carousel = { el, wrap };
-    lastShowcaseKey = key;
-    ctx.onCleanup(() => el.stop?.());
-    return wrap;
+    const handlers = { onStart: startQuest, onRedeem: (x) => redeem({ quest_id: x.id, title: x.reward_text }), onUseOffer: (x) => redeem({ offer_id: x.id, title: x.title }) };
+    return h("section.waiting", { "data-testid": "waiting-showcase" },
+      h("header.w-head",
+        h("p.hand", t("gift.eyebrow")),
+        h("h2", gifts.length > 1 ? t("gift.title", { n: num(gifts.length) }) : gifts.length ? t("gift.title_one") : t("showcase.title")),
+        h("p.muted.small", waiting ? t("showcase.sub", { m: num(tk.estimate_min) }) : t("showcase.sub_ready"))),
+      gifts.length ? h("div.gift-list", gifts.map((g, i) => GiftCard(g, { ...handlers, sealed: sealed && i === 0, onReveal: () => { store.set(sealKey, true); vibrate([20, 30, 60]); } }))) : null,
+      extras.length ? h("div.extras", h("h3", icon("sparkles"), t("gift.extras_title")), h("p.muted.small", t("gift.extras_sub")),
+        extras.map((m) => ExtraRow(m, wanted.has(m.id), toggleItem))) : null);
   }
 
   function questList() {

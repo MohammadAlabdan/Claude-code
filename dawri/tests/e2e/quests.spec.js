@@ -12,17 +12,21 @@ test("waiting showcase: start a challenge, ask for an extra, the visit counts wh
 
   const showcase = page.getByTestId("waiting-showcase");
   await expect(showcase).toBeVisible();
+  // a fixed list, never more than 4 surprises; the first one is sealed until tapped
+  expect(await showcase.locator(".gift").count()).toBeLessThanOrEqual(4);
+  await showcase.getByTestId("gift-reveal").click();
+  await expect(showcase.getByTestId("gift-reveal")).toHaveCount(0);
   // the «ثلاث حلاقات» challenge counts haircuts, which this ticket is
-  const card = showcase.locator(".quest", { hasText: "ثلاث حلاقات" });
+  const card = showcase.locator(".gift", { hasText: "ثلاث حلاقات" });
   await card.getByTestId("quest-start").click();
   await page.fill("#quest-phone", "0559998877");
   await page.check("#quest-consent");
   await page.click('[data-action="quest-confirm"]');
-  await expect(showcase.locator(".quest", { hasText: "ثلاث حلاقات" })).toContainText("باقي");
+  await expect(showcase.locator(".gift", { hasText: "ثلاث حلاقات" })).toContainText("باقي");
 
-  const item = showcase.locator(".promo.item", { hasText: "تنظيف بشرة" });
+  const item = showcase.locator(".extra", { hasText: "تنظيف بشرة" });
   await item.getByTestId("want-item").click();
-  await expect(showcase.locator(".promo.item", { hasText: "تنظيف بشرة" })).toContainText("طلبتها");
+  await expect(showcase.locator(".extra", { hasText: "تنظيف بشرة" })).toContainText("طلبتها");
 
   const staff = await context.newPage();
   await staff.goto("/staff/pair#demo-staff-aseel-chair1-000000000000");
@@ -62,9 +66,9 @@ test("café: an extra requested while waiting shows on the kitchen screen", asyn
   await page.fill("#receipt-code", "61");
   await page.click('[data-action="receipt-confirm"]');
   await page.waitForURL(/\/t\//);
-  const item = page.getByTestId("waiting-showcase").locator(".promo.item", { hasText: "كيكة تمر" });
+  const item = page.getByTestId("waiting-showcase").locator(".extra", { hasText: "كيكة تمر" });
   await item.getByTestId("want-item").click();
-  await expect(page.getByTestId("waiting-showcase").locator(".promo.item", { hasText: "كيكة تمر" })).toContainText("طلبتها");
+  await expect(page.getByTestId("waiting-showcase").locator(".extra", { hasText: "كيكة تمر" })).toContainText("طلبتها");
   const kitchen = await context.newPage();
   await kitchen.goto("/staff/pair#demo-staff-rukn-kitchen-000000000000");
   await expect(kitchen.locator(".chip", { hasText: "٦١" }).getByTestId("staff-want")).toContainText("كيكة تمر");
