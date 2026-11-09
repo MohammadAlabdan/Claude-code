@@ -6,7 +6,7 @@ name: Publish Dawri to GitHub Pages
 on:
   push:
     branches: [main, claude/new-session-kshbvu]
-    paths: ["dawri/web/**", ".github/workflows/pages.yml"]
+    paths: ["dawri/web/**", "site/**", "build.sh", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -39,6 +39,10 @@ jobs:
           # Pages has no rewrites: serve the app shell for deep links like /s/aseel2026
           cp _site/index.html _site/404.html
           touch _site/.nojekyll
+          # Introductory marketing site at /about/
+          bash build.sh
+          mkdir -p _site/about
+          cp site/index.html _site/about/index.html
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

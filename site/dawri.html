@@ -1,668 +1,754 @@
 <title>دوري</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="دوري: طابور رقمي للمحلات الصغيرة في السعودية. الزبون يأخذ دوره من جواله، وصاحب المحل يعرف أرقامه كل مساء، بلا أجهزة ولا تطبيق ولا رسائل مدفوعة.">
+<meta name="description" content="دوري: طابور رقمي للمحلات الصغيرة في السعودية. الزبون يأخذ دوره من جواله ويعيش وقته، وصاحب المحل يكسب زبونه بدل ما يخسره عند الباب. بلا أجهزة ولا تطبيق ولا رسائل مدفوعة.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Doto:wght@900&display=swap">
 <style>
-/* Layout: ticket-roll concept. A live queue ticket anchors the hero; sections read like perforated slips on a counter. */
+/* دوري · الموقع التعريفي. الفكرة: «لحظة الانتظار» تُروى كقصة؛ تذكرة حيّة في البطل، ولوحة LED تعلن الدور، وملاحظات بخط اليد كأن صاحب المحل يكتبها. */
 :root{
-  --paper:#F3F6F4;      /* page ground, faint green-grey */
-  --slip:#FFFFFF;       /* raised surfaces */
-  --ink:#0F2E33;        /* text and dark bands */
-  --muted:#4F6A6E;
-  --line:#D5E0DD;
-  --amber:#E9A21F;      /* ticket-roll amber, the one bold accent */
-  --amber-ink:#5A3A00;
-  --teal:#13707A;
-  --good:#1F8A5B;
-  --band:#0F2E33; --band-fg:#EAF2F0; --band-muted:#9FB8B5;
-  --f-display:"Reem Kufi","IBM Plex Sans Arabic",Tahoma,sans-serif;
+  --paper:#F3F5F1; --sheet:#FFFFFF; --ink:#1B2725; --muted:#56655F; --line:#D3DBD5;
+  --accent:#0B8F6E; --on-accent:#FFFFFF; --ticket:#D4F1E6; --board:#151B1A; --board-fg:#E7EEEA; --board-muted:#93A59E;
+  --led:#FFB21E; --danger:#C2412D; --warm:#FBEFD9; --warm-ink:#6B4300;
+  --f-display:"Lalezar","IBM Plex Sans Arabic",Tahoma,sans-serif;
   --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
-  --r:14px;
+  --f-hand:"Aref Ruqaa","IBM Plex Sans Arabic",serif;
+  --f-led:"Doto",ui-monospace,monospace;
+  --r:18px; --shadow:0 1px 0 rgba(0,0,0,.04),0 18px 40px -24px rgba(16,40,34,.35);
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --paper:#0C1B1E; --slip:#132A2E; --ink:#E6F0EE; --muted:#9DB4B1; --line:#244247;
-  --amber:#F2B640; --amber-ink:#2A1B00; --teal:#5CC3CC; --good:#4FCB8F;
-  --band:#08171A; --band-fg:#E6F0EE; --band-muted:#8EA9A6; color-scheme:dark}}
+  --paper:#101614; --sheet:#172120; --ink:#E7EEEA; --muted:#9AABA4; --line:#2A3734;
+  --accent:#34D6A5; --on-accent:#06231B; --ticket:#163329; --board:#070A09; --board-fg:#E7EEEA; --board-muted:#8A9C95;
+  --led:#FFB21E; --danger:#F07A66; --warm:#2B2414; --warm-ink:#F4C877;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 18px 40px -24px rgba(0,0,0,.8); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#0C1B1E; --slip:#132A2E; --ink:#E6F0EE; --muted:#9DB4B1; --line:#244247;
-  --amber:#F2B640; --amber-ink:#2A1B00; --teal:#5CC3CC; --good:#4FCB8F;
-  --band:#08171A; --band-fg:#E6F0EE; --band-muted:#8EA9A6; color-scheme:dark}
+  --paper:#101614; --sheet:#172120; --ink:#E7EEEA; --muted:#9AABA4; --line:#2A3734;
+  --accent:#34D6A5; --on-accent:#06231B; --ticket:#163329; --board:#070A09; --board-fg:#E7EEEA; --board-muted:#8A9C95;
+  --led:#FFB21E; --danger:#F07A66; --warm:#2B2414; --warm-ink:#F4C877;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 18px 40px -24px rgba(0,0,0,.8); color-scheme:dark}
 
 *{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.75}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
-.page{direction:rtl;text-align:right}
-.wrap{max-width:1120px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.35;margin:0}
-h2{font-size:clamp(1.7rem,3.4vw,2.4rem)}
-h3{font-size:1.2rem}
-p{margin:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.75 var(--f-body);direction:rtl;overflow-x:hidden}
 a{color:inherit}
-:focus-visible{outline:3px solid var(--amber);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.25;margin:0;letter-spacing:0}
+p{margin:0}
+.wrap{max-width:1140px;margin:0 auto;padding-inline:max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-left))}
+section{padding:96px 0}
+.hand{font-family:var(--f-hand);color:var(--accent);font-size:1.25em}
+.eyebrow{display:inline-flex;gap:8px;align-items:center;font-weight:600;font-size:14px;color:var(--accent)}
+.eyebrow::before{content:"";width:22px;height:2px;background:currentColor;border-radius:2px}
+.sec-head{max-width:720px;margin-bottom:48px}
+.sec-head h2{font-size:clamp(30px,4.6vw,46px);margin-top:10px}
+.sec-head p{color:var(--muted);margin-top:14px;font-size:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 24px;border-radius:999px;border:1.5px solid transparent;font:600 16px var(--f-body);text-decoration:none;cursor:pointer;transition:transform .15s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn-main{background:var(--accent);color:var(--on-accent)}
+.btn-main:hover{filter:brightness(1.07)}
+.btn-ghost{border-color:var(--line);background:var(--sheet);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--accent)}
 .num{font-variant-numeric:tabular-nums}
-.eyebrow{font-size:.85rem;font-weight:700;color:var(--teal);letter-spacing:.02em}
-.lede{color:var(--muted);max-width:62ch}
-section{padding-block:clamp(56px,8vw,96px)}
-.sec-head{display:grid;gap:10px;margin-bottom:36px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
 
-/* buttons */
-.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font:700 1rem var(--f-body);padding:12px 22px;border-radius:999px;text-decoration:none;transition:transform .15s}
-.btn:hover{transform:translateY(-1px)}
-.btn-amber{background:var(--amber);color:var(--amber-ink)}
-.btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s}
+.top.scrolled{border-color:var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--f-display);font-size:28px}
+.logo i{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--board);color:var(--led);font:900 17px var(--f-led);font-style:normal}
+.nav{display:flex;gap:4px;margin-inline-start:auto}
+.nav a{text-decoration:none;color:var(--muted);font-weight:500;font-size:15px;padding:8px 12px;border-radius:10px}
+.nav a:hover{color:var(--ink);background:var(--sheet)}
+.theme{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer;display:grid;place-items:center;font-size:18px}
+.top .btn{min-height:42px;padding:0 18px;font-size:15px}
+@media (max-width:900px){.nav{display:none}.top .wrap>.theme{margin-inline-start:auto}}
 
-/* header */
-header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
-.logo{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:700;font-size:1.5rem;text-decoration:none}
-.logo-mark{width:34px;height:34px;border-radius:9px;background:var(--amber);color:var(--amber-ink);display:grid;place-items:center;font-size:1.05rem}
-nav.links{display:flex;gap:22px;font-size:.95rem}
-nav.links a{text-decoration:none;color:var(--muted)}
-nav.links a:hover{color:var(--ink)}
-@media (max-width:820px){nav.links{display:none}}
+/* ---------- hero ---------- */
+.hero{padding:56px 0 90px;position:relative}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.hero .hand{font-size:26px;display:block;margin-bottom:6px}
+.hero h1{font-size:clamp(40px,6.4vw,74px)}
+.hero h1 em{font-style:normal;color:var(--accent);position:relative;white-space:nowrap}
+.hero h1 em::after{content:"";position:absolute;inset-inline:0;bottom:.06em;height:.16em;background:var(--led);opacity:.45;border-radius:4px;z-index:-1}
+.hero .lede{font-size:clamp(18px,2vw,21px);color:var(--muted);margin-top:22px;max-width:560px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px}
+.trust{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:28px;color:var(--muted);font-size:14px;list-style:none;padding:0}
+.trust li::before{content:"✓";color:var(--accent);font-weight:700;margin-inline-end:6px}
 
-/* hero */
-.hero{padding-block:clamp(40px,6vw,80px) clamp(48px,7vw,88px)}
-.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
-.hero h1{font-size:clamp(2.1rem,5vw,3.5rem)}
-.hero h1 em{font-style:normal;color:var(--teal)}
-.hero-copy{display:grid;gap:22px;min-width:0}
-.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
-.chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0}
-.chips li{font-size:.85rem;padding:4px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
-@media (max-width:860px){.hero .wrap{grid-template-columns:1fr}}
+.stage{position:relative;display:grid;place-items:center;min-height:560px}
+.phone{width:min(320px,100%);border-radius:44px;background:var(--board);padding:12px;box-shadow:0 40px 80px -30px rgba(0,0,0,.55);position:relative;z-index:2}
+.screen{border-radius:34px;background:var(--paper);overflow:hidden;padding:22px 18px 20px;min-height:540px;display:flex;flex-direction:column;gap:14px}
+.notch{width:96px;height:24px;border-radius:0 0 14px 14px;background:var(--board);margin:-22px auto 0}
+.shop-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.shop-row b{color:var(--ink);font-size:15px}
+.shop-row .av{width:34px;height:34px;border-radius:10px;background:var(--warm);display:grid;place-items:center;font-size:18px}
+.tkt{background:var(--ticket);border-radius:22px;padding:18px;text-align:center;position:relative}
+.tkt::before,.tkt::after{content:"";position:absolute;top:62%;width:18px;height:18px;border-radius:50%;background:var(--paper)}
+.tkt::before{right:-9px}.tkt::after{left:-9px}
+.tkt small{display:block;color:var(--muted);font-size:13px}
+.tkt .big{font:900 64px/1.1 var(--f-led);color:var(--ink);letter-spacing:2px;direction:ltr}
+.tkt .ahead{font-weight:700;font-size:17px;margin-top:4px}
+.tkt .eta{color:var(--muted);font-size:13px}
+.tkt hr{border:0;border-top:2px dashed color-mix(in srgb,var(--muted) 40%,transparent);margin:14px 0 12px}
+.dots{display:flex;gap:6px;justify-content:center;direction:ltr}
+.dots span{width:10px;height:10px;border-radius:50%;background:color-mix(in srgb,var(--muted) 35%,transparent);transition:background .3s,transform .3s}
+.dots span.on{background:var(--accent)}
+.dots span.me{background:var(--led);transform:scale(1.3)}
+.feel{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:center}
+.feel .ic{font-size:22px}
+.feel b{display:block;font-size:14px}
+.feel span{color:var(--muted);font-size:12.5px}
+.turn{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;background:var(--accent);color:var(--on-accent);border-radius:22px;padding:24px;animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+.turn .big{font:900 58px/1 var(--f-led);direction:ltr}
+.turn h3{font-size:32px}
+.screen.done .turn{display:flex}
+.screen.done .wait-only{display:none}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+.board{position:absolute;z-index:3;inset-inline-start:-14px;top:36px;background:var(--board);color:var(--led);border-radius:16px;padding:12px 16px;box-shadow:var(--shadow);text-align:center;min-width:132px}
+.board small{display:block;color:var(--board-muted);font-size:11px;font-family:var(--f-body)}
+.board b{font:900 40px/1.1 var(--f-led);direction:ltr;display:block;text-shadow:0 0 14px rgba(255,178,30,.45)}
+.callnext{position:absolute;z-index:3;inset-inline-end:-10px;bottom:48px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.callnext .note{font-family:var(--f-hand);color:var(--muted);font-size:17px;transform:rotate(-4deg)}
+.callnext .btn{box-shadow:var(--shadow)}
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr;gap:40px}
+  .stage{min-height:0;padding:20px 0 40px}
+  .board{inset-inline-start:0;top:-14px;padding:8px 12px;min-width:0}.board b{font-size:30px}
+  .callnext{inset-inline-end:0;bottom:-6px}
+}
 
-/* demo */
-.demo{display:grid;gap:14px;justify-items:center}
-.phone{width:min(300px,100%);background:var(--slip);border:1px solid var(--line);border-radius:30px;padding:18px 18px 22px;box-shadow:0 24px 50px -24px rgba(15,46,51,.35);transition:transform .2s}
-.phone.buzz{animation:buzz .5s linear 2}
-@keyframes buzz{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px) rotate(-1deg)}75%{transform:translateX(5px) rotate(1deg)}}
-.phone-bar{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
-.ticket{margin-top:14px;border-radius:18px;background:var(--paper);padding:18px;text-align:center;position:relative}
-.ticket::before,.ticket::after{content:"";position:absolute;top:58%;width:18px;height:18px;border-radius:50%;background:var(--slip)}
-.ticket::before{right:-9px}.ticket::after{left:-9px}
-.ticket .shop{font-weight:700;font-size:.95rem}
-.ticket .label{font-size:.8rem;color:var(--muted)}
-.ticket .big{font-family:var(--f-display);font-size:5.2rem;line-height:1.1;color:var(--ink)}
-.ticket .perf{border-top:2px dashed var(--line);margin:10px -18px 12px}
-.status{font-weight:700;font-size:1.05rem}
-.status small{display:block;font-weight:400;color:var(--muted);font-size:.85rem}
-.ticket.alert{background:color-mix(in srgb,var(--amber) 22%,var(--paper))}
-.ticket.now{background:color-mix(in srgb,var(--good) 20%,var(--paper))}
-.staff{width:min(300px,100%);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--band);color:var(--band-fg);border-radius:16px;padding:12px 14px}
-.staff .who{font-size:.8rem;color:var(--band-muted)}
-.staff .serving{font-family:var(--f-display);font-size:1.3rem}
-.demo-note{font-size:.8rem;color:var(--muted)}
+/* ---------- moments (stories) ---------- */
+.moments{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.moment{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.moment .who{display:flex;align-items:center;gap:12px}
+.moment .who .av{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:var(--warm)}
+.moment .who b{display:block;font-size:17px}
+.moment .who span{color:var(--muted);font-size:14px}
+.moment blockquote{margin:0;font-size:17px;line-height:1.85}
+.moment .before{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--danger) 60%,transparent)}
+.moment .after{margin-top:auto;padding-top:14px;border-top:1px dashed var(--line);font-family:var(--f-hand);font-size:20px;color:var(--accent);line-height:1.5}
+.disclaim{color:var(--muted);font-size:13px;margin-top:18px}
+@media (max-width:900px){.moments{grid-template-columns:1fr}}
 
-/* problem/solution */
-.compare{display:grid;gap:0;border:1px solid var(--line);border-radius:var(--r);background:var(--slip);overflow:hidden}
-.compare .row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;padding:18px 22px;border-top:1px solid var(--line)}
-.compare .row:first-child{border-top:0}
-.compare .head{background:var(--paper);font-weight:700;font-size:.9rem;color:var(--muted)}
-.compare .old{color:var(--muted)}
-.compare .arrow{color:var(--amber);font-weight:700}
-.compare .new{font-weight:500}
-@media (max-width:640px){.compare .row{grid-template-columns:1fr;gap:4px}.compare .arrow{display:none}.compare .head{display:none}.compare .old::before{content:"اليوم: ";font-weight:700}.compare .new::before{content:"مع دوري: ";font-weight:700;color:var(--teal)}}
+/* ---------- then / now ---------- */
+.band{background:var(--board);color:var(--board-fg)}
+.band .sec-head p,.band .muted{color:var(--board-muted)}
+.band .eyebrow{color:var(--led)}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:var(--r);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.vs>div{padding:30px}
+.vs .then{background:rgba(255,255,255,.03)}
+.vs .now{background:rgba(52,214,165,.08)}
+.vs h3{font-size:26px;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.vs .then h3{color:var(--board-muted)}
+.vs .now h3{color:#34D6A5}
+.vs ul{list-style:none;margin:0;padding:0;display:grid;gap:16px}
+.vs li{display:flex;gap:12px;align-items:flex-start;font-size:16.5px}
+.vs li i{font-style:normal;flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+.vs .then li i{background:rgba(240,122,102,.15);color:#F07A66}
+.vs .now li i{background:rgba(52,214,165,.16);color:#34D6A5}
+.vs .then li{color:var(--board-muted)}
+@media (max-width:760px){.vs{grid-template-columns:1fr}}
 
-/* modes */
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media (max-width:900px){.modes{grid-template-columns:1fr}}
-.mode{background:var(--slip);border:1px solid var(--line);border-radius:var(--r);padding:24px;display:grid;gap:14px;align-content:start}
-.mode .for{font-size:.9rem;color:var(--teal);font-weight:700}
-.mode dl{display:grid;gap:10px;margin:0}
-.mode dt{font-size:.8rem;color:var(--muted)}
-.mode dd{margin:0;font-size:.95rem}
-.note{margin-top:20px;font-size:.92rem;color:var(--muted);max-width:80ch}
+/* ---------- steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+.step{position:relative;padding:28px;border-radius:var(--r);background:var(--sheet);border:1px solid var(--line)}
+.step .n{font:900 46px/1 var(--f-led);color:var(--accent);direction:ltr;display:block;margin-bottom:12px}
+.step h3{font-size:24px;margin-bottom:8px}
+.step p{color:var(--muted)}
+.modes{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.modes span{padding:10px 16px;border-radius:999px;background:var(--ticket);font-weight:600;font-size:15px}
+.modes span small{font-weight:400;color:var(--muted);margin-inline-start:6px}
+@media (max-width:900px){.steps{grid-template-columns:1fr}}
 
-/* journey */
-.band{background:var(--band);color:var(--band-fg)}
-.band .lede,.band .eyebrow{color:var(--band-muted)}
-.band .eyebrow{color:var(--amber)}
-.journey{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;list-style:none;margin:0;padding:0}
-@media (max-width:760px){.journey{grid-template-columns:1fr}}
-.journey li{display:grid;grid-template-columns:92px 1fr;gap:14px;padding:14px 0;border-top:1px solid color-mix(in srgb,var(--band-fg) 14%,transparent)}
-.journey time{font-family:var(--f-display);color:var(--amber);font-size:1.05rem}
-.journey .actor{font-size:.78rem;color:var(--band-muted);display:block}
-.loop-line{margin-top:28px;padding:18px 22px;border-radius:var(--r);background:color-mix(in srgb,var(--amber) 16%,transparent);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent)}
+/* ---------- while you wait (gifts) ---------- */
+.waiting{display:grid;grid-template-columns:.85fr 1.15fr;gap:48px;align-items:center}
+.gifts{display:grid;gap:14px}
+.gift{display:grid;grid-template-columns:110px 1fr;background:var(--sheet);border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
+.gift .stub{background:var(--ticket);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px 8px;border-inline-start:2px dashed color-mix(in srgb,var(--muted) 40%,transparent)}
+.gift .stub small{font-size:11px;color:var(--muted)}
+.gift .stub b{font-family:var(--f-display);font-weight:400;font-size:24px;line-height:1.2}
+.gift.rare .stub{background:var(--warm);color:var(--warm-ink)}
+.gift .body{padding:14px 16px}
+.gift h3{font-size:19px}
+.gift .hook{color:var(--accent);font-family:var(--f-hand);font-size:17px;line-height:1.5}
+.gift .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.gift .chips span{font-size:12px;padding:3px 10px;border-radius:999px;background:var(--paper);color:var(--muted)}
+.gift .chips .hot{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger);font-weight:600}
+.gift .path{display:flex;gap:6px;margin-top:8px;direction:ltr;justify-content:flex-end}
+.gift .path span{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:11px}
+.gift .path span.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.gift.sealed .stub,.gift.sealed .body{filter:blur(7px);opacity:.6}
+.gift .seal{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;border:0;background:color-mix(in srgb,var(--accent) 88%,transparent);color:var(--on-accent);font:600 18px var(--f-body);cursor:pointer;transition:opacity .4s}
+.gift .seal span{font-size:28px}
+.gift.open .seal{opacity:0;pointer-events:none}
+.gift.open .stub,.gift.open .body{filter:none;opacity:1;transition:filter .45s,opacity .45s}
+.want{display:flex;align-items:center;gap:12px;background:var(--sheet);border:1px dashed var(--line);border-radius:16px;padding:12px 16px}
+.want .grow{flex:1}
+.want b{display:block}
+.want small{color:var(--muted)}
+.want button{min-height:40px;padding:0 16px;font-size:14px}
+.want button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.points{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:14px}
+.points li{display:flex;gap:12px}
+.points li i{font-style:normal;flex:none;width:34px;height:34px;border-radius:12px;background:var(--ticket);display:grid;place-items:center}
+.points b{display:block}
+.points span{color:var(--muted);font-size:15.5px}
+@media (max-width:900px){.waiting{grid-template-columns:1fr}}
 
-/* calculator */
-.calc{display:grid;grid-template-columns:1fr 1fr;gap:28px;background:var(--slip);border:1px solid var(--line);border-radius:22px;padding:clamp(20px,4vw,40px)}
-@media (max-width:820px){.calc{grid-template-columns:1fr}}
-.field{display:grid;gap:6px;margin-bottom:18px}
-.field label{font-weight:700;font-size:.95rem}
-.field .hint{font-size:.8rem;color:var(--muted)}
-.field .inline{display:flex;align-items:center;gap:12px}
-input[type=range]{flex:1;accent-color:var(--teal);min-width:0}
-.field output{min-width:72px;text-align:center;font-weight:700;padding:4px 8px;border-radius:8px;background:var(--paper)}
-.result{background:var(--band);color:var(--band-fg);border-radius:var(--r);padding:26px;display:grid;gap:10px;align-content:center}
-.result .k{font-size:.9rem;color:var(--band-muted)}
-.result .v{font-family:var(--f-display);font-size:clamp(2.4rem,6vw,3.4rem);color:var(--amber);line-height:1.2}
-.result .sub{font-size:.95rem}
-.result .vs{font-size:.88rem;color:var(--band-muted);border-top:1px solid color-mix(in srgb,var(--band-fg) 15%,transparent);padding-top:12px}
+/* ---------- owner ---------- */
+.owner{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:28px;box-shadow:var(--shadow)}
+.card h3{font-size:26px;margin-bottom:6px}
+.card>p{color:var(--muted)}
+.calc label{display:block;margin-top:20px;font-weight:600;font-size:15px}
+.calc .row{display:flex;align-items:center;gap:14px;margin-top:6px}
+.calc input[type=range]{flex:1;accent-color:var(--accent);height:28px}
+.calc output{min-width:74px;text-align:center;font-weight:700;background:var(--paper);border-radius:10px;padding:4px 8px}
+.loss{margin-top:24px;background:var(--board);color:var(--board-fg);border-radius:16px;padding:20px;text-align:center}
+.loss small{color:var(--board-muted);display:block}
+.loss b{display:block;font:900 46px/1.2 var(--f-led);color:var(--led);direction:ltr}
+.loss p{font-size:14.5px;color:var(--board-muted);margin-top:6px}
+.summary{margin-top:18px;background:var(--paper);border-radius:16px;padding:18px;font-size:15px}
+.summary .hd{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin-bottom:10px}
+.summary .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.summary .kp div{background:var(--sheet);border-radius:12px;padding:10px 4px}
+.summary .kp b{display:block;font-size:22px}
+.summary .kp span{font-size:12px;color:var(--muted)}
+.summary .bars{display:flex;align-items:flex-end;gap:4px;height:64px;margin-top:14px;direction:ltr}
+.summary .bars i{flex:1;background:color-mix(in srgb,var(--accent) 35%,transparent);border-radius:4px 4px 0 0}
+.summary .bars i.pk{background:var(--accent)}
+.summary .tip{margin-top:12px;font-family:var(--f-hand);color:var(--accent);font-size:18px;line-height:1.5}
+.wins{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+.win{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:20px}
+.win i{font-style:normal;font-size:26px}
+.win b{display:block;margin-top:8px;font-size:17px}
+.win span{color:var(--muted);font-size:14.5px}
+@media (max-width:900px){.owner{grid-template-columns:1fr}.wins{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.wins{grid-template-columns:1fr}}
 
-/* features */
-.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
-.filters button{font:500 .9rem var(--f-body);padding:7px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--slip);color:var(--ink);cursor:pointer}
-.filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.modules{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-@media (max-width:820px){.modules{grid-template-columns:1fr}}
-.module{background:var(--slip);border:1px solid var(--line);border-radius:var(--r);padding:22px}
-.module header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
-.module header span{font-size:.85rem;color:var(--muted)}
-.feat{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line)}
-.feat b{font-weight:700}
-.feat p{grid-column:1/-1;font-size:.92rem;color:var(--muted)}
-.feat.new b::after{content:"جديد";margin-inline-start:8px;font-size:.7rem;padding:1px 8px;border-radius:999px;background:var(--amber);color:var(--amber-ink);vertical-align:2px}
-.tier{font-size:.75rem;padding:2px 10px;border-radius:999px;white-space:nowrap;align-self:start;border:1px solid var(--line)}
-.tier[data-t="1"]{color:var(--teal);border-color:var(--teal)}
-.tier[data-t="2"]{color:var(--amber-ink);background:color-mix(in srgb,var(--amber) 35%,transparent);border-color:transparent}
-.tier[data-t="3"]{color:var(--paper);background:var(--ink);border-color:var(--ink)}
-.tier[data-t="0"]{color:var(--muted)}
+/* ---------- staff ---------- */
+.staff{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.langs{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.langs button{border:1.5px solid var(--line);background:transparent;color:var(--board-fg);border-radius:999px;padding:8px 16px;font:500 15px var(--f-body);cursor:pointer}
+.langs button[aria-pressed="true"]{background:var(--led);border-color:var(--led);color:#1B1300}
+.tablet{background:#0E1312;border:1px solid rgba(255,255,255,.08);border-radius:28px;padding:24px;display:grid;gap:14px}
+.tablet .tnow{display:flex;justify-content:space-between;align-items:center;color:var(--board-muted);font-size:14px}
+.tablet .tnow b{font:900 54px/1 var(--f-led);color:var(--led);direction:ltr}
+.tablet .callbig{min-height:84px;border-radius:20px;border:0;background:#34D6A5;color:#06231B;font:700 26px var(--f-body);cursor:pointer;transition:transform .15s}
+.tablet .callbig:active{transform:scale(.98)}
+.tablet .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tablet .row2 span{border-radius:14px;padding:14px;text-align:center;background:rgba(255,255,255,.06);font-size:15px}
+.tablet .want-badge{font-size:13px;background:rgba(255,178,30,.14);color:var(--led);border-radius:10px;padding:8px 12px}
+@media (max-width:900px){.staff{grid-template-columns:1fr}}
 
-/* principles */
-.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 32px;list-style:none;margin:0;padding:0}
-@media (max-width:860px){.principles{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:520px){.principles{grid-template-columns:1fr}}
-.principles li{display:grid;gap:6px;padding-top:16px;border-top:3px solid var(--ink)}
-.principles p{color:var(--muted);font-size:.95rem}
+/* ---------- promises ---------- */
+.promises{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.promise{border-top:3px solid var(--accent);padding-top:18px}
+.promise b{font-family:var(--f-display);font-weight:400;font-size:24px;display:block}
+.promise span{color:var(--muted);font-size:15.5px}
+@media (max-width:900px){.promises{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.promises{grid-template-columns:1fr}}
 
-/* cases */
-.cases{display:grid;gap:10px}
-.cases details{background:var(--slip);border:1px solid var(--line);border-radius:12px;padding:0 20px}
-.cases summary{cursor:pointer;padding:16px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
-.cases summary::-webkit-details-marker{display:none}
-.cases summary::after{content:"+";color:var(--teal);font-size:1.3rem;line-height:1}
-.cases details[open] summary::after{content:"−"}
-.cases details p{padding-bottom:16px;color:var(--muted)}
+/* ---------- pricing ---------- */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.plan{background:var(--sheet);border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;gap:14px;position:relative}
+.plan.feat{border:2px solid var(--accent);box-shadow:var(--shadow)}
+.plan .tag{position:absolute;top:-14px;inset-inline-start:24px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:600;padding:4px 12px;border-radius:999px}
+.plan h3{font-size:28px}
+.plan .for{color:var(--muted);font-size:15px;margin-top:-8px}
+.plan .price{display:flex;align-items:baseline;gap:8px}
+.plan .price b{font:900 52px/1 var(--f-led);direction:ltr}
+.plan .price span{color:var(--muted);font-size:15px}
+.plan ul{list-style:none;padding:0;margin:0;display:grid;gap:9px;font-size:15.5px}
+.plan li::before{content:"✓";color:var(--accent);font-weight:700;margin-inline-end:8px}
+.plan .inh{font-size:14px;color:var(--muted)}
+.plan .btn{margin-top:6px}
+.terms{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:28px;font-size:14.5px;color:var(--muted)}
+.terms b{display:block;color:var(--ink);font-size:15.5px}
+@media (max-width:900px){.plans{grid-template-columns:1fr}.terms{grid-template-columns:1fr 1fr}}
 
-/* pricing */
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.plans{grid-template-columns:1fr}}
-.plan{background:var(--slip);border:1px solid var(--line);border-radius:18px;padding:26px;display:grid;gap:14px}
-.plan.featured{border:2px solid var(--amber);box-shadow:0 20px 40px -28px rgba(15,46,51,.45)}
-.plan .tag{justify-self:start;font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--amber);color:var(--amber-ink)}
-.price{display:flex;align-items:baseline;gap:8px}
-.price b{font-family:var(--f-display);font-size:2.8rem;line-height:1}
-.price span{color:var(--muted);font-size:.9rem}
-.plan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:.93rem}
-.plan li{display:flex;gap:8px}
-.plan li::before{content:"✓";color:var(--good);font-weight:700}
-.plan .inherit{font-size:.85rem;color:var(--muted)}
-.terms{margin-top:24px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-@media (max-width:900px){.terms{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:480px){.terms{grid-template-columns:1fr}}
-.terms div{padding:16px;border-radius:12px;border:1px dashed var(--line);font-size:.9rem}
-.terms b{display:block;margin-bottom:4px}
-.season{margin-top:18px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:center;padding:18px 22px;border-radius:14px;background:var(--slip);border:1px solid var(--line)}
+/* ---------- faq ---------- */
+.faq{max-width:820px;display:grid;gap:12px}
+.faq details{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:0 22px}
+.faq summary{cursor:pointer;list-style:none;padding:18px 0;font-weight:600;font-size:17px;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--accent);font-size:22px;line-height:1}
+.faq details[open] summary::after{content:"−"}
+.faq details p{padding-bottom:18px;color:var(--muted)}
 
-/* contact */
-.contact .wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
-@media (max-width:860px){.contact .wrap{grid-template-columns:1fr}}
-form.lead{display:grid;gap:14px;background:var(--slip);color:var(--ink);border-radius:18px;padding:24px}
-form.lead label{display:grid;gap:6px;font-weight:700;font-size:.92rem}
-form.lead input,form.lead select{font:400 1rem var(--f-body);padding:11px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);width:100%}
-form.lead .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:480px){form.lead .two{grid-template-columns:1fr}}
-.form-msg{font-size:.92rem;padding:12px 14px;border-radius:10px;background:color-mix(in srgb,var(--good) 16%,transparent)}
-.steps{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:14px}
-.steps li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
-.steps .n{width:30px;height:30px;border-radius:50%;background:var(--amber);color:var(--amber-ink);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+/* ---------- final ---------- */
+.final{text-align:center}
+.final .hand{font-size:28px;display:block}
+.final h2{font-size:clamp(34px,5.6vw,60px);margin-top:8px}
+.final p{color:var(--board-muted);max-width:620px;margin:18px auto 0;font-size:18px}
+.final .ctas{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin-top:32px}
+.final .btn-ghost{background:transparent;color:var(--board-fg);border-color:rgba(255,255,255,.2)}
+.final .btn-main{background:#34D6A5;color:#06231B}
+.final .hand{color:var(--led)}
+.demo-links{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:26px;font-size:14px}
+.demo-links a{color:var(--board-muted);text-decoration:none;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 14px}
+.demo-links a:hover{color:var(--board-fg);border-color:var(--led)}
+footer{padding:36px 0 calc(36px + env(safe-area-inset-bottom));color:var(--muted);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
 
-footer{padding-block:28px;border-top:1px solid var(--line);font-size:.88rem;color:var(--muted)}
-footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
-
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
+@media (max-width:600px){section{padding:72px 0}body{font-size:16px}.card,.moment,.plan{padding:22px}}
 </style>
 
-<div class="page" dir="rtl" lang="ar">
-
-<header class="top">
+<header class="top" id="top">
   <div class="wrap">
-    <a class="logo" href="#top" aria-label="دوري"><span class="logo-mark num">٢٤</span>دوري</a>
-    <nav class="links" aria-label="أقسام الصفحة">
-      <a href="#modes">أوضاع العمل</a>
-      <a href="#calc">الحاسبة</a>
-      <a href="#features">الميزات</a>
+    <a class="logo" href="#hero" aria-label="دوري"><i aria-hidden="true">07</i>دوري</a>
+    <nav class="nav" aria-label="أقسام الصفحة">
+      <a href="#moments">الحكاية</a>
+      <a href="#how">كيف يشتغل</a>
+      <a href="#waiting">وأنت تنتظر</a>
+      <a href="#owner">لصاحب المحل</a>
       <a href="#pricing">الأسعار</a>
+      <a href="#faq">أسئلة</a>
     </nav>
-    <a class="btn btn-amber" href="#contact">جرّب أسبوعين مجاناً</a>
+    <button class="theme" type="button" id="themeBtn" aria-label="تبديل الوضع الداكن">☾</button>
+    <a class="btn btn-main" href="https://mohammadalabdan.github.io/Claude-code/start" target="_blank" rel="noopener">جرّب مجاناً</a>
   </div>
 </header>
 
-<main id="top">
-
-<section class="hero">
+<main>
+<!-- ============ HERO ============ -->
+<section class="hero" id="hero">
   <div class="wrap">
-    <div class="hero-copy">
-      <span class="eyebrow">طابور رقمي للمحلات الصغيرة في السعودية</span>
-      <h1>الزبون يعرف <em>رقمه</em>، وصاحب المحل يعرف <em>أرقامه</em>.</h1>
-      <p class="lede">الانتظار نفسه لا يزعج الزبون. الذي يزعجه أنه لا يعرف كم بقي. مع دوري يأخذ الزبون دوره من جواله ويتنبّه قبل أن يحين، ويصلك أنت ملخص كل مساء بأهم أرقام اليوم.</p>
-      <div class="hero-ctas">
-        <a class="btn btn-amber" href="#contact">ابدأ التجربة المجانية</a>
-        <a class="btn btn-ghost" href="#calc">احسب زبائنك الضائعين</a>
+    <div>
+      <span class="hand">لكل واحد وقف عند باب محل وسأل: «باقي كثير؟»</span>
+      <h1>الانتظار نفسه ما يزعج.<br>اللي يزعج إنك <em>ما تدري</em> كم باقي.</h1>
+      <p class="lede">«دوري» يعطي زبونك رقمه على جواله بمسحة باركود، ويخليه يعيش وقته: يقعد في سيارته، يشرب قهوته، يمشي مشوار قريب… وأول ما يقرب دوره يجيه تنبيه. وأنت؟ تشتغل بهدوء، وتعرف كل مساء كم زبون كسبت.</p>
+      <div class="ctas">
+        <a class="btn btn-main" href="https://mohammadalabdan.github.io/Claude-code/s/aseel2026" target="_blank" rel="noopener">عش التجربة كزبون ←</a>
+        <a class="btn btn-ghost" href="#how">شوف كيف يشتغل</a>
       </div>
-      <ul class="chips">
-        <li>بلا أجهزة</li><li>بلا تطبيق</li><li>بلا رسائل SMS مدفوعة</li><li>بلا تعديل على الكاشير</li>
+      <ul class="trust">
+        <li>بلا أجهزة</li><li>بلا تطبيق يتحمّل</li><li>بلا رسائل مدفوعة</li><li>جاهز في ١٠ دقائق</li>
       </ul>
     </div>
 
-    <div class="demo" aria-label="تجربة حية لتذكرة دوري">
-      <div class="phone" id="phone">
-        <div class="phone-bar"><span>جوال أبو فهد</span><span class="num">٧:٠٢ م</span></div>
-        <div class="ticket" id="ticket">
-          <div class="shop">حلاق الأصيل</div>
-          <div class="label">رقمك</div>
-          <div class="big num">٢٤</div>
-          <div class="perf"></div>
-          <div class="status" id="status" aria-live="polite">أمامك ٣<small>حوالي ٤٥ دقيقة</small></div>
+    <div class="stage" aria-label="عرض حي لتذكرة الزبون">
+      <div class="board" aria-live="polite"><small>الدور الحالي</small><b id="nowNum">A-04</b></div>
+      <div class="phone">
+        <div class="screen" id="screen">
+          <div class="notch" aria-hidden="true"></div>
+          <div class="shop-row"><span class="av" aria-hidden="true">💈</span><div><b>صالون الأصيل</b><br>حلاقة · الفرع الرئيسي</div></div>
+          <div class="tkt wait-only">
+            <small>رقمك</small>
+            <div class="big">A-07</div>
+            <div class="ahead" id="ahead">قدّامك ٣ أشخاص</div>
+            <div class="eta" id="eta">تقريباً ١٢ دقيقة · نبلّغك قبلها</div>
+            <hr>
+            <div class="dots" id="dots" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span><span class="me"></span></div>
+          </div>
+          <div class="feel wait-only"><span class="ic" aria-hidden="true">☕</span><div><b>روح خذ قهوتك، دورك محفوظ</b><span>إذا تأخرت شوي، اضغط «تأخرت» ونأجّلك مكانين</span></div></div>
+          <div class="feel wait-only"><span class="ic" aria-hidden="true">🎁</span><div><b>عندك مفاجأة مختومة</b><span>اكشفها وأنت تنتظر</span></div></div>
+          <div class="turn" role="status">
+            <span aria-hidden="true" style="font-size:40px">🎉</span>
+            <h3>حان دورك!</h3>
+            <div class="big">A-07</div>
+            <p>تفضّل… الكرسي ٢ ينتظرك</p>
+          </div>
         </div>
       </div>
-      <div class="staff">
-        <div><div class="who">شاشة الموظف · يُخدم الآن</div><div class="serving num" id="serving">٢١</div></div>
-        <button class="btn btn-amber" id="callNext" type="button">نادِ التالي</button>
+      <div class="callnext">
+        <span class="note">جرّبها أنت كموظف ↓</span>
+        <button class="btn btn-main" type="button" id="callBtn">نادِ التالي</button>
       </div>
-      <p class="demo-note">اضغط «نادِ التالي» كما يفعل الموظف، وشاهد ما يحدث في جوال الزبون.</p>
     </div>
   </div>
 </section>
 
-<section id="why" style="padding-top:0">
+<!-- ============ MOMENTS ============ -->
+<section id="moments" style="padding-top:40px">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">الفكرة</span>
-      <h2>من الوقوف عند الباب إلى رقم على الجوال</h2>
-      <p class="lede">دوري يحوّل بيانات الانتظار إلى أرقام وعروض ترجّع الزبون للمحل.</p>
+    <div class="sec-head reveal">
+      <span class="eyebrow">لحظات نعرفها كلنا</span>
+      <h2>وراء كل طابور… ناس عندهم يوم كامل ينتظرهم</h2>
+      <p>«دوري» ما انولد من فكرة تقنية. انولد من مواقف صغيرة نشوفها كل يوم عند الحلاق والمغسلة والمقهى.</p>
     </div>
-    <div class="compare">
-      <div class="row head"><span>المشكلة اليوم</span><span></span><span>ما يفعله دوري</span></div>
-      <div class="row"><span class="old">زبائن على كنب الحلاق، ومن يستعجل يذهب لغيره</span><span class="arrow">←</span><span class="new">ينضم من بيته ويصل قبل دوره بدقائق</span></div>
-      <div class="row"><span class="old">نداء الأرقام بالصوت في المقهى، والبيجر الذي يضيع</span><span class="arrow">←</span><span class="new">جوال الزبون يرن عند جهوز طلبه</span></div>
-      <div class="row"><span class="old">انتظار تحت الشمس في المغسلة</span><span class="arrow">←</span><span class="new">يسلّم السيارة ويبتعد، ويتنبّه عند جاهزيتها</span></div>
-      <div class="row"><span class="old">صاحب المحل لا يعرف أوقات ذروته ولا من خسر من زبائن</span><span class="arrow">←</span><span class="new">ملخص كل مساء، وتقرير ذروة، وحاسبة للزبائن الضائعين</span></div>
-    </div>
-  </div>
-</section>
-
-<section id="modes" style="padding-top:0">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">ثلاثة أوضاع عمل</span>
-      <h2>اختر الوضع الذي يناسب نشاطك</h2>
-      <p class="lede">تختار وضعاً واحداً عند التركيب، ويمكن للفرع الواحد تشغيل أكثر من وضع لخدمات مختلفة.</p>
-    </div>
-    <div class="modes">
-      <article class="mode">
-        <h3>ادفع وانتظر</h3>
-        <span class="for">المقاهي والمطاعم السريعة</span>
-        <dl>
-          <div><dt>يدخل الطابور</dt><dd>يمسح ملصق QR ثابتاً ويكتب رقم الطلب المطبوع على فاتورته</dd></div>
-          <div><dt>يحمل معه</dt><dd>الفاتورة العادية فقط</dd></div>
-          <div><dt>يعرف أن دوره حان</dt><dd>المطبخ يكتب الرقم ويضغط «جاهز» فيرن جواله</dd></div>
-          <div><dt>يدفع</dt><dd>قبل الانتظار</dd></div>
-        </dl>
+    <div class="moments">
+      <article class="moment reveal">
+        <div class="who"><span class="av" aria-hidden="true">👨‍👧</span><div><b>أبو سارة</b><span>أب مع بنته عند الحلاق</span></div></div>
+        <blockquote><span class="before">بنته ملّت بعد عشر دقايق، وهو واقف ما يدري يطلع ولا يخسر دوره.</span><br>الحين يمسح الباركود، ويطلعون للبقالة اللي جنبهم، ويرجعون مع التنبيه.</blockquote>
+        <p class="after">«أول مرة أحس إن الانتظار ما أخذ من وقتي شي.»</p>
       </article>
-      <article class="mode">
-        <h3>احجز دورك من برّا</h3>
-        <span class="for">الحلاقون والصالونات والعيادات والمختبرات</span>
-        <dl>
-          <div><dt>يدخل الطابور</dt><dd>رابط المحل في إنستقرام أو الخرائط، أو ملصق على الباب</dd></div>
-          <div><dt>يحمل معه</dt><dd>رقماً على جواله</dd></div>
-          <div><dt>يعرف أن دوره حان</dt><dd>«ارجع الآن» قبل دوره بدورين، ثم صوت واهتزاز</dd></div>
-          <div><dt>يدفع</dt><dd>بعد الخدمة</dd></div>
-        </dl>
+      <article class="moment reveal">
+        <div class="who"><span class="av" aria-hidden="true">☕</span><div><b>فهد</b><span>صاحب مقهى صغير</span></div></div>
+        <blockquote><span class="before">كل يوم وقت الذروة يشوف زبون يطل من الباب، يشوف الزحمة، ويمشي بصمت.</span><br>الحين الزبون ياخذ رقمه من برّا، ويضيف «كوكيز» لطلبه وهو ينتظر.</blockquote>
+        <p class="after">«الزبون اللي كان يمشي… صار يرجع ومعه طلب زيادة.»</p>
       </article>
-      <article class="mode">
-        <h3>سلّم وارجع</h3>
-        <span class="for">مغاسل السيارات وصيانة الجوالات</span>
-        <dl>
-          <div><dt>يدخل الطابور</dt><dd>الموظف يسجّله برقم اللوحة أو وصف الجهاز، ثم يمسح الزبون الرمز من شاشة الموظف</dd></div>
-          <div><dt>يحمل معه</dt><dd>صفحة تتبّع على جواله</dd></div>
-          <div><dt>يعرف أن دوره حان</dt><dd>مراحل تتغيّر: استلمنا، ثم قيد العمل، ثم جاهزة، ويرن جواله عند «جاهزة»</dd></div>
-          <div><dt>يدفع</dt><dd>عند الاستلام</dd></div>
-        </dl>
+      <article class="moment reveal">
+        <div class="who"><span class="av" aria-hidden="true">🧽</span><div><b>رحيم</b><span>موظف في مغسلة سيارات</span></div></div>
+        <blockquote><span class="before">كان يصرخ بالأرقام بعربي مكسّر، والزبائن يتلخبطون ويزعلون.</span><br>الحين شاشته بلغته الأردية، يضغط زر واحد، والزبون يوصله الإشعار بالعربي.</blockquote>
+        <p class="after">«صار شغلي أهدأ، والزبون يبتسم لي بدل ما يعصّب.»</p>
       </article>
     </div>
-    <p class="note"><b>عند الكاشير:</b> لا يعطي صاحب المحل الزبون ورقة جديدة. رقم الطلب مطبوع أصلاً على الفاتورة، وهو نفسه رقم الدور. ولا يوضع باركود على الفاتورة لأنها تحمل باركود الفاتورة الإلكترونية، والملصق الثابت يكفي.</p>
+    <p class="disclaim reveal">* مواقف تخيّلية توضّح الفكرة، مبنية على ما يعيشه أصحاب المحلات الصغيرة يومياً.</p>
   </div>
 </section>
 
-<section class="band" id="journey">
+<!-- ============ THEN / NOW ============ -->
+<section class="band">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">رحلة واحدة من البداية للنهاية</span>
-      <h2>مساء خميس في «حلاق الأصيل»</h2>
-      <p class="lede">أبو فهد يحجز بوضع «احجز دورك من برّا». الموظف يضغط زراً واحداً في الرحلة كلها، والباقي يحدث وحده.</p>
+    <div class="sec-head reveal">
+      <span class="eyebrow">الفرق اللي يحسّه الكل</span>
+      <h2>من «كم باقي؟» إلى «أبلغك قبلها»</h2>
     </div>
-    <ol class="journey">
-      <li><time class="num">٧:٠٠ م</time><div><span class="actor">الزبون</span>يفتح رابط «فضيت؟» من بيته فيرى ٣ بالانتظار</div></li>
-      <li><time class="num">٧:٠٢ م</time><div><span class="actor">الزبون</span>ينضم ويأخذ الرقم ٢٤: «أمامك ٣، حوالي ٤٥ دقيقة»، ويفعّل التنبيه</div></li>
-      <li><time class="num">٧:٠٢ م</time><div><span class="actor">الموظف</span>يظهر الرقم ٢٤ في قائمته دون أي إدخال</div></li>
-      <li><time class="num">٧:٣٠ م</time><div><span class="actor">الموظف</span>يضغط «نادِ التالي» للرقم ٢٢</div></li>
-      <li><time class="num">٧:٣٠ م</time><div><span class="actor">الزبون</span>يصله تنبيه «ارجع الآن، باقي قبلك دوران» فيخرج من بيته</div></li>
-      <li><time class="num">٧:٤٥ م</time><div><span class="actor">الموظف ثم الزبون</span>ينادي ٢٤ بضغطة، فيرن جوال أبو فهد ويجلس على الكرسي</div></li>
-      <li><time class="num">٨:١٠ م</time><div><span class="actor">الزبون</span>يدفع، ثم يقيّم بلمسة: راضٍ، فيُدعى لتقييم المحل في خرائط جوجل</div></li>
-      <li><time class="num">٨:١٠ م</time><div><span class="actor">النظام</span>تُحسب زيارته في «مرّيت علينا»: الثالثة من ست زيارات</div></li>
-      <li><time class="num">١٠:٠٠ م</time><div><span class="actor">صاحب المحل</span>يصله «ملخص المساء»: ٣٨ زبوناً، متوسط الانتظار ١٢ دقيقة، ٩٥٪ راضون، واقتراح: «الأحد ٣–٥ العصر هادئ»</div></li>
-      <li><time class="num">١٠:٠١ م</time><div><span class="actor">صاحب المحل</span>يفعّل «كوبون الهدوء» بلمسة</div></li>
-      <li><time class="num">الأحد ٣:٣٠ م</time><div><span class="actor">الزبون</span>يرى العرض في صفحة المحل ويرجع في الوقت الهادئ، وتبدأ الحلقة من جديد</div></li>
-    </ol>
-    <p class="loop-line">هذه الحلقة هي ما يميّز دوري: بيانات الانتظار تكشف الساعة الهادئة، والعرض يملؤها، والاسترداد عند الكاشير يثبت النتيجة بالأرقام.</p>
-  </div>
-</section>
-
-<section id="calc">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">حاسبة الزبائن الضائعين</span>
-      <h2>كم يخسر محلك من الزبائن الذين لا ينتظرون؟</h2>
-      <p class="lede">من يخرج من الطابور قبل خدمته × متوسط الفاتورة. هذه الحاسبة نفسها موجودة داخل دوري، تحسب خسارتك الفعلية من بيانات طابورك.</p>
-    </div>
-    <div class="calc">
-      <div>
-        <div class="field">
-          <label for="lost">زبائن يغادرون قبل دورهم في الأسبوع</label>
-          <div class="inline"><input type="range" id="lost" min="1" max="60" value="12"><output for="lost" id="lostOut" class="num">١٢</output></div>
-          <span class="hint">مثال: ملّوا من الانتظار أو رأوا المحل مزدحماً فذهبوا لغيره</span>
-        </div>
-        <div class="field">
-          <label for="bill">متوسط الفاتورة (ر.س)</label>
-          <div class="inline"><input type="range" id="bill" min="10" max="300" step="5" value="50"><output for="bill" id="billOut" class="num">٥٠</output></div>
-        </div>
-        <div class="field">
-          <label for="plan">الباقة للمقارنة</label>
-          <select id="plan" style="font:inherit;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink)">
-            <option value="199">الأساسية · 199 ر.س شهرياً</option>
-            <option value="399">النمو · 399 ر.س شهرياً</option>
-            <option value="699">المتكاملة · 699 ر.س شهرياً</option>
-          </select>
-        </div>
+    <div class="vs reveal">
+      <div class="then">
+        <h3>قبل «دوري»</h3>
+        <ul>
+          <li><i>✕</i>الزبون واقف عند الباب، عيونه على الكرسي، وقلبه على مواعيده</li>
+          <li><i>✕</i>«مين قبلك؟» نقاش وزعل وإحراج للموظف</li>
+          <li><i>✕</i>زبون يشوف الزحمة ويمشي… وأنت ما تدري إنه جا أصلاً</li>
+          <li><i>✕</i>آخر اليوم: تعبان، وما تعرف وش صار ولا وين خسرت</li>
+        </ul>
       </div>
-      <div class="result" aria-live="polite">
-        <span class="k">خسارتك التقديرية في الأسبوع</span>
-        <span class="v num" id="weekly">٦٠٠ ر.س</span>
-        <span class="sub" id="monthly">حوالي ٢٬٦٠٠ ر.س في الشهر</span>
-        <span class="vs" id="vs">يكفي أن يرجع ٤ زبائن فقط في الشهر لتغطية اشتراك الباقة الأساسية.</span>
+      <div class="now">
+        <h3>مع «دوري»</h3>
+        <ul>
+          <li><i>✓</i>الزبون يعيش وقته، والجوال يبلّغه قبل دوره بدقائق</li>
+          <li><i>✓</i>الترتيب واضح للكل، والعدل ما يحتاج نقاش</li>
+          <li><i>✓</i>اللي ما يقدر ينتظر يحجز دوره من برّا ويرجع</li>
+          <li><i>✓</i>كل مساء ملخص بسيط: كم زبون، كم انتظروا، ووقت ذروتك</li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
-<section id="features" style="padding-top:0">
+<!-- ============ HOW ============ -->
+<section id="how">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">أربع وحدات · ١٧ ميزة · ٩ إضافات جديدة</span>
-      <h2>كل وحدة تأخذ من بيانات الطابور، فلا تُدخل المعلومة مرتين</h2>
+    <div class="sec-head reveal">
+      <span class="eyebrow">كيف يشتغل</span>
+      <h2>ثلاث لحظات… وما فيه شي يتعلّمه الزبون</h2>
+      <p>ملصق باركود عند الباب، وجوال أو تابلت عند الموظف. هذا كل شي.</p>
     </div>
-    <div class="filters" role="group" aria-label="تصفية حسب الباقة">
-      <button type="button" data-f="all" aria-pressed="true">الكل</button>
-      <button type="button" data-f="1" aria-pressed="false">الأساسية</button>
-      <button type="button" data-f="2" aria-pressed="false">النمو</button>
-      <button type="button" data-f="3" aria-pressed="false">المتكاملة</button>
+    <div class="steps">
+      <div class="step reveal"><span class="n">01</span><h3>يمسح الباركود</h3><p>من كاميرا جواله، بلا تحميل ولا تسجيل. يختار الخدمة ويطلع له رقمه في ثانية.</p></div>
+      <div class="step reveal"><span class="n">02</span><h3>يعيش وقته</h3><p>يشوف كم قدّامه وكم تقريباً باقي، ويكتشف عروض المحل وتحدّياته وهو ينتظر.</p></div>
+      <div class="step reveal"><span class="n">03</span><h3>يجيه «حان دورك»</h3><p>تنبيه على جواله قبل دوره، وإذا تأخر شوي يقدر يأجّل نفسه بلمسة بدل ما يضيع دوره.</p></div>
     </div>
-    <div class="modules" id="modules"></div>
-  </div>
-</section>
-
-<section class="band" id="principles">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">مبادئ ثابتة</span>
-      <h2>ما نعد به ولا نتنازل عنه</h2>
-    </div>
-    <ul class="principles">
-      <li><h3>منتج مستقل</h3><p>«دوري» علامة قائمة بذاتها، غير مرتبطة بأي منصة أو دليل آخر.</p></li>
-      <li><h3>بلا رسائل مدفوعة</h3><p>لا واتساب ولا SMS. كل التنبيهات إشعارات متصفح مجانية، فتبقى تكلفة التشغيل ثابتة مهما كثر الزبائن.</p></li>
-      <li><h3>بلا أجهزة ولا تطبيق</h3><p>الزبون يستخدم متصفح جواله، والموظف أي جوال أو جهاز لوحي.</p></li>
-      <li><h3>بلا تعديل على الكاشير</h3><p>يعمل بجانب نظام المحل دون ربط.</p></li>
-      <li><h3>أقل بيانات ممكنة</h3><p>الطابور لا يحتاج أي بيانات شخصية، ورقم الجوال للولاء فقط وبموافقة صريحة، وفق نظام حماية البيانات الشخصية.</p></li>
-      <li><h3>المالك هو من ينشر</h3><p>العروض والأخبار ينشرها صاحب المحل بقوالب جاهزة، ودوري مزوّد تقني لا جهة إعلان.</p></li>
-    </ul>
-  </div>
-</section>
-
-<section id="cases">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">الحالات الخاصة</span>
-      <h2>كل حالة لها حل داخل النظام، دون رسائل مدفوعة</h2>
-    </div>
-    <div class="cases">
-      <details><summary>زبون كبير في السن أو بلا جوال ذكي</summary><p>الموظف يضغط «أضف زبون» ويعطيه رقمه شفهياً أو على بطاقة ورقية، ويناديه بصوته.</p></details>
-      <details><summary>زبون حجز من بيته ولم يحضر</summary><p>«تأجيل» يرجعه دورين، وإذا تكرر يُلغى رقمه تلقائياً.</p></details>
-      <details><summary>الحجوزات من الخارج كثيرة</summary><p>حد أقصى يحدده المالك، مثلاً ٥ أدوار، والباقي لمن هو داخل المحل.</p></details>
-      <details><summary>الزبون لم يفعّل التنبيه</summary><p>تظهر علامة جرس مشطوب بجانب رقمه في شاشة الموظف، فيناديه بصوته.</p></details>
-      <details><summary>الآيفون</summary><p>التنبيه يحتاج إضافة الصفحة للشاشة الرئيسية، والصفحة تشرح ذلك بخطوتين عند التسجيل.</p></details>
-      <details><summary>انقطاع الإنترنت في المحل</summary><p>شاشة الموظف تحفظ آخر حالة وترسل النداءات بعد عودة الاتصال.</p></details>
-      <details><summary>استغلال الكوبونات بتصويرها</summary><p>رمز الاسترداد عند الكاشير يتغيّر كل دقيقة.</p></details>
+    <div class="modes reveal" aria-label="أوضاع العمل">
+      <span>طابور مباشر<small>حلاق، مغسلة، عيادة</small></span>
+      <span>طلب وتجهيز<small>مقهى، مطعم، مخبز</small></span>
+      <span>استلام وتسليم<small>خياط، مغسلة ملابس، صيانة</small></span>
     </div>
   </div>
 </section>
 
+<!-- ============ WHILE YOU WAIT ============ -->
+<section id="waiting" style="background:var(--sheet);border-block:1px solid var(--line)">
+  <div class="wrap waiting">
+    <div class="reveal">
+      <span class="eyebrow">وأنت تنتظر</span>
+      <h2 style="font-size:clamp(30px,4.6vw,46px);margin-top:10px">دقايق الانتظار صارت أحلى جزء في الزيارة</h2>
+      <p style="color:var(--muted);margin-top:14px;font-size:18px">بدل ما يقلّب الزبون جواله بملل، يلقى في تذكرته أربع مفاجآت بالكثير من محلك. ولا وحدة مزعجة، كلها هدايا.</p>
+      <ul class="points">
+        <li><i aria-hidden="true">🎁</i><div><b>مفاجأة مختومة</b><span>أول هدية تجي مغلّفة… والفضول يخلّيه يفتحها.</span></div></li>
+        <li><i aria-hidden="true">🏁</i><div><b>تحدّياتي</b><span>«ثلاث زيارات والرابعة علينا». كل زيارة نقطة على الطريق، والأخيرة هدية.</span></div></li>
+        <li><i aria-hidden="true">✋</i><div><b>«أبيها»</b><span>يضيف خدمة لزيارته بلمسة، والموظف يشوفها قبل ما يوصل دوره.</span></div></li>
+      </ul>
+    </div>
+    <div class="gifts reveal" aria-label="مثال لقائمة الهدايا">
+      <article class="gift sealed" id="sealed">
+        <div class="stub"><small>المكافأة</small><b>حلاقة مجاناً</b></div>
+        <div class="body">
+          <h3>ثلاث حلاقات… والرابعة علينا</h3>
+          <p class="hook">باقي لك زيارة وحدة بس! 🔥</p>
+          <div class="path"><span class="on">✓</span><span class="on">✓</span><span>٣</span><span>🎁</span></div>
+        </div>
+        <button class="seal" type="button" id="sealBtn"><span aria-hidden="true">🎁</span>اكشف مفاجأتك</button>
+      </article>
+      <article class="gift rare">
+        <div class="stub"><small>المكافأة</small><b>٣٠٪</b></div>
+        <div class="body">
+          <h3>تحدّي العصر الهادئ</h3>
+          <p class="hook">تعال وقت الهدوء… ونكافئك على ذوقك</p>
+          <div class="chips"><span class="hot">🔥 باقي ٦ أماكن</span><span>ينتهي بعد ٥ أيام</span><span>١٤ انضموا</span></div>
+        </div>
+      </article>
+      <article class="gift">
+        <div class="stub"><small>خصم</small><b>١٥٪</b></div>
+        <div class="body">
+          <h3>عرض الساعة: تنظيف البشرة</h3>
+          <p class="hook">جاي جاي… خلّها زيارة كاملة</p>
+          <div class="chips"><span class="hot">⏳ ينتهي بعد ٤٠ دقيقة</span></div>
+        </div>
+      </article>
+      <div class="want">
+        <div class="grow"><b>تحديد اللحية</b><small>٢٥ ريال · ١٠ دقائق</small></div>
+        <button class="btn btn-ghost" type="button" id="wantBtn" aria-pressed="false">✋ أبيها</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OWNER ============ -->
+<section id="owner">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">لصاحب المحل</span>
+      <h2>أنت تعرف محلك بقلبك… «دوري» يعطيك أرقامه</h2>
+      <p>مو لوحة معقّدة ولا تقارير ما تُقرأ. جملة واضحة كل مساء، وأرقام تفهمها من أول نظرة.</p>
+    </div>
+    <div class="owner">
+      <div class="card calc reveal">
+        <h3>كم زبون يمشي من عندك بصمت؟</h3>
+        <p>حرّك الأرقام حسب محلك، وشوف الرقم اللي محد يقوله لك.</p>
+        <label for="walk">زبائن يطلّون ويمشون بسبب الزحمة (يومياً)</label>
+        <div class="row"><input id="walk" type="range" min="1" max="20" value="5"><output id="walkOut" for="walk">٥</output></div>
+        <label for="avg">متوسط فاتورة الزبون (ريال)</label>
+        <div class="row"><input id="avg" type="range" min="15" max="200" step="5" value="45"><output id="avgOut" for="avg">٤٥</output></div>
+        <div class="loss" aria-live="polite">
+          <small>تخسرها شهرياً تقريباً</small>
+          <b id="lossOut">6,750</b>
+          <p id="lossNote">ريال… لو رجع ربعهم بس، يغطّي اشتراكك أكثر من مرة.</p>
+        </div>
+      </div>
+      <div class="card reveal">
+        <h3>ملخص المساء</h3>
+        <p>يوصلك آخر اليوم، تقراه في دقيقة وأنت ترجع البيت.</p>
+        <div class="summary">
+          <div class="hd"><span>صالون الأصيل · الثلاثاء</span><span>٩:٣٠ م</span></div>
+          <div class="kp">
+            <div><b class="num">٦٤</b><span>زبون اليوم</span></div>
+            <div><b class="num">١١ د</b><span>متوسط الانتظار</span></div>
+            <div><b class="num">٤.٨</b><span>رضا الزبائن</span></div>
+          </div>
+          <div class="bars" aria-label="الزبائن حسب الساعة، الذروة بين ٨ و٩ مساءً">
+            <i style="height:20%"></i><i style="height:28%"></i><i style="height:22%"></i><i style="height:35%"></i><i style="height:48%"></i><i style="height:60%"></i><i style="height:74%"></i><i class="pk" style="height:100%"></i><i style="height:82%"></i><i style="height:44%"></i>
+          </div>
+          <p class="tip">«الذروة بين ٨ و٩. جرّب تحدّي العصر الهادئ عشان توزّع الزحمة.»</p>
+        </div>
+      </div>
+    </div>
+    <div class="wins">
+      <div class="win reveal"><i aria-hidden="true">💓</i><b>نبضي</b><span>كم في الطابور الحين، ومين متأخر، بنظرة وحدة.</span></div>
+      <div class="win reveal"><i aria-hidden="true">🔁</i><b>الغايبون</b><span>زبون ما شفته من شهر؟ نذكّرك فيه قبل ما تفقده.</span></div>
+      <div class="win reveal"><i aria-hidden="true">⭐</i><b>تقييم بالأسباب</b><span>تعرف ليش رضي الزبون أو زعل، مو بس نجوم.</span></div>
+      <div class="win reveal"><i aria-hidden="true">✨</i><b>تحدّيات ذكية</b><span>نقترح لك التحدّي المناسب لأهدأ أوقاتك.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAFF ============ -->
+<section class="band" id="staff">
+  <div class="wrap staff">
+    <div class="reveal">
+      <span class="eyebrow">لموظفك</span>
+      <h2 style="font-size:clamp(30px,4.6vw,46px);margin-top:10px">زر واحد كبير… وبلغته هو</h2>
+      <p class="muted" style="margin-top:14px;font-size:18px">موظفك ما يحتاج تدريب ولا يحتاج يتكلم عربي فصيح. الشاشة تكلّمه بلغته، والزبون يوصله كل شي بلغته. خمس لغات اليوم: العربية، الإنجليزية، الأردية، البنغالية، والفلبينية.</p>
+      <div class="langs" role="group" aria-label="اختر لغة الموظف">
+        <button type="button" data-l="ar" aria-pressed="true">العربية</button>
+        <button type="button" data-l="ur" aria-pressed="false">اردو</button>
+        <button type="button" data-l="bn" aria-pressed="false">বাংলা</button>
+        <button type="button" data-l="fil" aria-pressed="false">Filipino</button>
+        <button type="button" data-l="en" aria-pressed="false">English</button>
+      </div>
+    </div>
+    <div class="tablet reveal" id="tablet">
+      <div class="tnow"><span id="tLbl">الدور الحالي</span><b id="tNum">A-12</b></div>
+      <button class="callbig" type="button" id="tCall">نادِ التالي</button>
+      <div class="row2"><span id="tSkip">ما حضر</span><span id="tWait">ينتظرون: ٤</span></div>
+      <div class="want-badge" id="tWant">✋ A-14 يبي: تحديد اللحية</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROMISES ============ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">وعودنا لك</span>
+      <h2>بسيط عن قصد</h2>
+      <p>صمّمنا «دوري» لمحل فيه صاحب واحد مشغول وموظف أو اثنين. كل تعقيد شلناه، شلناه عشانك.</p>
+    </div>
+    <div class="promises">
+      <div class="promise reveal"><b>بلا أجهزة</b><span>جوالك أو أي تابلت عندك يكفي. ما نبيعك شاشات ولا طابعات.</span></div>
+      <div class="promise reveal"><b>بلا تطبيق</b><span>الزبون يفتحه من الكاميرا. ما فيه «حمّل التطبيق أول».</span></div>
+      <div class="promise reveal"><b>بلا تكاليف مخفية</b><span>ما نستخدم رسائل SMS مدفوعة. اشتراك ثابت تعرفه من أول يوم.</span></div>
+      <div class="promise reveal"><b>خصوصية الزبون</b><span>ما نطلب رقم جواله إلا إذا هو حب، وبموافقته الصريحة.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
 <section id="pricing" style="padding-top:0">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">الباقات والأسعار</span>
-      <h2>اشتراك شهري لكل فرع، وكل باقة تشمل التي قبلها</h2>
+    <div class="sec-head reveal">
+      <span class="eyebrow">الباقات</span>
+      <h2>ابدأ صغير… وكبّر لما تشوف الفرق</h2>
+      <p>اشتراك شهري لكل فرع، وكل باقة فيها اللي قبلها. أسبوعين تجربة مجانية.</p>
     </div>
     <div class="plans">
-      <article class="plan">
+      <article class="plan reveal">
         <h3>الأساسية</h3>
-        <div class="price"><b class="num">199</b><span>ر.س شهرياً</span></div>
-        <ul>
-          <li>الطابور بالأوضاع الثلاثة</li><li>فضيت؟ وارجع الآن</li><li>بطاقتي</li><li>ملخص المساء</li>
-          <li>تأخرت شوي وتذكرة العائلة</li><li>أولوية بلمسة</li><li>حاسبة الزبائن الضائعين</li><li>شاشة الموظف بلغته</li>
-        </ul>
-        <a class="btn btn-ghost" href="#contact" data-plan="الأساسية">اختر الأساسية</a>
+        <p class="for">لمحل يبي ينهي فوضى الطابور</p>
+        <div class="price"><b>199</b><span>ريال / شهرياً</span></div>
+        <ul><li>الطابور بأوضاعه الثلاثة</li><li>تنبيه «حان دورك» و«تأخرت شوي»</li><li>شاشة الموظف بخمس لغات</li><li>ملخص المساء</li><li>حاسبة الزبائن الضائعين</li></ul>
+        <a class="btn btn-ghost" href="#contact">ابدأ بالأساسية</a>
       </article>
-      <article class="plan featured">
+      <article class="plan feat reveal">
         <span class="tag">الأنسب لأغلب المحلات</span>
         <h3>النمو</h3>
-        <div class="price"><b class="num">399</b><span>ر.س شهرياً</span></div>
-        <p class="inherit">كل ما في الأساسية، ويضيف:</p>
-        <ul>
-          <li>قائمتي وصوّر قائمتك</li><li>العروض حسب الوقت</li><li>مرّيت علينا (نقاط الولاء)</li>
-          <li>التقييم بالأسباب</li><li>حلاقي المفضّل</li><li>أفضل وقت تجي</li><li>إنذار الزحمة</li>
-        </ul>
-        <a class="btn btn-amber" href="#contact" data-plan="النمو">اختر النمو</a>
+        <p class="for">لمحل يبي يكسب من وقت الانتظار</p>
+        <div class="price"><b>399</b><span>ريال / شهرياً</span></div>
+        <p class="inh">كل ما في الأساسية، ويضيف:</p>
+        <ul><li>«وأنت تنتظر» والمفاجأة المختومة</li><li>تحدّياتي (زيارات ومكافآت)</li><li>«أبيها» لإضافة خدمات</li><li>العروض حسب الوقت</li><li>التقييم بالأسباب ونقاط الولاء</li></ul>
+        <a class="btn btn-main" href="#contact">ابدأ بالنمو</a>
       </article>
-      <article class="plan">
+      <article class="plan reveal">
         <h3>المتكاملة</h3>
-        <div class="price"><b class="num">699</b><span>ر.س شهرياً</span></div>
-        <p class="inherit">كل ما في النمو، ويضيف:</p>
-        <ul>
-          <li>صفحتي الكاملة</li><li>وش الجديد؟</li><li>مساعد الأسئلة</li><li>كوبون الهدوء</li><li>تقرير الذروة</li><li>الغايبون</li>
-        </ul>
-        <a class="btn btn-ghost" href="#contact" data-plan="المتكاملة">اختر المتكاملة</a>
+        <p class="for">لمحل يبي مساعد ذكي يفكّر معه</p>
+        <div class="price"><b>699</b><span>ريال / شهرياً</span></div>
+        <p class="inh">كل ما في النمو، ويضيف:</p>
+        <ul><li>تحدّيات ذكية مقترحة لأوقات الهدوء</li><li>مساعد يجاوب أسئلة الزبائن</li><li>تقرير الذروة والغايبون</li><li>صفحة محلك الكاملة</li></ul>
+        <a class="btn btn-ghost" href="#contact">ابدأ بالمتكاملة</a>
       </article>
     </div>
-    <div class="season">
-      <div><b>وضع المواسم</b> · الطابور لأيام الذروة فقط، لرمضان والأعياد</div>
-      <span style="color:var(--muted)">السعر حسب مدة الموسم</span>
-    </div>
-    <div class="terms">
-      <div><b>التركيب</b>مرة واحدة بين 299 و499 ر.س، يشمل الملصقات والضبط وتدريب الموظفين. يُعفى منه من يركّب بنفسه.</div>
-      <div><b>التجربة</b>أسبوعان مجاناً لأول المحلات.</div>
-      <div><b>الإلغاء</b>متى ما شاء المشترك، ويُعرض خصم على الدفع السنوي.</div>
-      <div><b>بلا تكلفة متغيرة</b>لا رسائل مدفوعة. ميزتا الذكاء الاصطناعي في الباقتين الأعلى.</div>
+    <div class="terms reveal">
+      <div><b>وضع المواسم</b>لرمضان والأعياد وأيام الذروة فقط، تدفع للفترة اللي تحتاجها.</div>
+      <div><b>التركيب</b>مرة وحدة بين 299 و499 ريال تشمل الملصقات والتدريب، أو ركّبه بنفسك مجاناً.</div>
+      <div><b>التجربة</b>أسبوعين مجاناً، بلا بطاقة.</div>
+      <div><b>الإلغاء</b>متى ما حبيت، بدون أسئلة.</div>
     </div>
   </div>
 </section>
 
-<section class="band contact" id="contact">
+<!-- ============ FAQ ============ -->
+<section id="faq" style="padding-top:0">
   <div class="wrap">
-    <div>
-      <span class="eyebrow">ركّب بنفسك في ١٠ دقائق</span>
-      <h2 style="margin-top:10px">ابدأ تجربتك المجانية لأسبوعين</h2>
-      <p class="lede" style="margin-top:12px">اترك بيانات محلك ونتواصل معك لتجهيز الطابور، أو ركّب بنفسك بتهيئة ذاتية تنتهي بملصق QR جاهز للطباعة باسم المحل.</p>
-      <ol class="steps">
-        <li><span class="n num">١</span><span>اختر وضع العمل المناسب لنشاطك</span></li>
-        <li><span class="n num">٢</span><span>اطبع ملصق QR باسم محلك وعلّقه على الباب أو الكاشير</span></li>
-        <li><span class="n num">٣</span><span>افتح شاشة الموظف على أي جوال، وابدأ النداء</span></li>
-      </ol>
+    <div class="sec-head reveal"><span class="eyebrow">أسئلة تجينا كثير</span><h2>قبل ما تقرر</h2></div>
+    <div class="faq reveal">
+      <details><summary>زبائني كبار في السن وما يعرفون للباركود، وش الحل؟</summary><p>الموظف يقدر يضيفه للطابور من شاشته بلمسة، ويعطيه رقمه شفهياً أو مكتوب. والشاشة في المحل تعرض الرقم الحالي بخط كبير.</p></details>
+      <details><summary>هل لازم أغيّر نظام الكاشير أو الفواتير؟</summary><p>لا. «دوري» يشتغل جنب نظامك الحالي بدون ما يلمسه. الكاشير يبقى مثل ما هو.</p></details>
+      <details><summary>وش يصير إذا الزبون ما وصله الإشعار؟</summary><p>التذكرة على جواله تتحدث لحظياً وتعرض «حان دورك» بشكل واضح، والموظف يشوف مين وصله التنبيه ومين لا، ويقدر يأجّله بدل ما يلغيه.</p></details>
+      <details><summary>كم ياخذ وقت التركيب؟</summary><p>حوالي عشر دقائق: تكتب اسم محلك وخدماتك، وتطبع ملصق الباركود، وتفتح شاشة الموظف على أي جوال.</p></details>
+      <details><summary>هل التحدّيات والهدايا تكلّفني خسارة؟</summary><p>أنت تحدد المكافأة وعدد الأماكن ووقتها. والفكرة إنها تجيب زبون في وقت هدوئك أو ترجّع زبون غايب، يعني تكسبك وقت كان ضايع.</p></details>
     </div>
-    <form class="lead" id="leadForm" name="dawri-trial" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-      <input type="hidden" name="form-name" value="dawri-trial">
-      <p hidden><label>لا تملأ هذا الحقل <input name="bot-field"></label></p>
-      <label for="f-shop">اسم المحل<input id="f-shop" name="shop" required placeholder="مثال: حلاق الأصيل"></label>
-      <div class="two">
-        <label for="f-type">نوع النشاط
-          <select id="f-type" name="type">
-            <option>حلاق أو صالون</option><option>مقهى أو مطعم سريع</option><option>مغسلة سيارات</option>
-            <option>صيانة جوالات</option><option>عيادة أو مختبر</option><option>غير ذلك</option>
-          </select>
-        </label>
-        <label for="f-city">المدينة<input id="f-city" name="city" placeholder="الرياض"></label>
-      </div>
-      <div class="two">
-        <label for="f-phone">رقم الجوال<input id="f-phone" name="phone" type="tel" inputmode="tel" required placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></label>
-        <label for="f-plan">الباقة المبدئية
-          <select id="f-plan" name="plan"><option>الأساسية</option><option selected>النمو</option><option>المتكاملة</option><option>وضع المواسم</option></select>
-        </label>
-      </div>
-      <button class="btn btn-amber" type="submit">اطلب التجربة المجانية</button>
-      <p class="form-msg" id="formMsg" hidden></p>
-    </form>
   </div>
 </section>
 
+<!-- ============ FINAL ============ -->
+<section class="band final" id="contact">
+  <div class="wrap reveal">
+    <span class="hand">زبونك يستاهل يحس إن وقته محترم</span>
+    <h2>خلّ الانتظار عندك<br>بداية حلوة للزيارة</h2>
+    <p>جرّب «دوري» بنفسك الحين: افتح المحل التجريبي كزبون في جوالك، وشاشة الموظف في جهاز ثاني، وشوف كيف يوصلك «حان دورك».</p>
+    <div class="ctas">
+      <a class="btn btn-main" href="https://mohammadalabdan.github.io/Claude-code/start" target="_blank" rel="noopener">سجّل محلك مجاناً</a>
+      <a class="btn btn-ghost" href="https://mohammadalabdan.github.io/Claude-code/s/aseel2026" target="_blank" rel="noopener">جرّب كزبون</a>
+    </div>
+    <div class="demo-links">
+      <a href="https://mohammadalabdan.github.io/Claude-code/s/rukn2026" target="_blank" rel="noopener">☕ مقهى الركن</a>
+      <a href="https://mohammadalabdan.github.io/Claude-code/s/aseel2026" target="_blank" rel="noopener">💈 صالون الأصيل</a>
+      <a href="https://mohammadalabdan.github.io/Claude-code/s/lamaa2026" target="_blank" rel="noopener">🚗 مغسلة اللمعة</a>
+    </div>
+  </div>
+</section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span><b>دوري</b> · نظام انتظار رقمي للمحلات الصغيرة في السعودية</span>
-    <span>الأسعار مقترحة وتُراجع بعد التجربة.</span>
+    <a class="logo" href="#hero" style="font-size:22px"><i aria-hidden="true" style="width:30px;height:30px;font-size:13px">07</i>دوري</a>
+    <span>طابور رقمي بطابع إنساني · صُنع للمحلات الصغيرة في السعودية</span>
   </div>
 </footer>
-</div>
 
 <script>
 (function(){
-  var ar = function(n){ return Number(n).toLocaleString('ar-SA'); };
+  var ar = function(n){ return String(n).replace(/\d/g, function(d){ return "٠١٢٣٤٥٦٧٨٩"[d]; }); };
+  var root = document.documentElement;
 
-  /* ---------- live ticket demo ---------- */
-  var MY = 24, serving = 21;
-  var phone = document.getElementById('phone'), ticket = document.getElementById('ticket'),
-      status = document.getElementById('status'), servingEl = document.getElementById('serving'),
-      btn = document.getElementById('callNext');
-  function render(){
-    var ahead = MY - serving;
-    servingEl.textContent = ar(serving);
-    ticket.classList.remove('alert','now');
-    if (ahead > 2){
-      status.innerHTML = 'أمامك ' + ar(ahead) + '<small>حوالي ' + ar(ahead*15) + ' دقيقة</small>';
-    } else if (ahead > 0){
-      ticket.classList.add('alert');
-      status.innerHTML = 'ارجع الآن<small>باقي قبلك ' + (ahead === 2 ? 'دوران' : 'دور واحد') + '</small>';
-    } else if (ahead === 0){
-      ticket.classList.add('now');
-      status.innerHTML = 'دورك الآن، تفضّل<small>رقمك ٢٤ يُنادى</small>';
-      phone.classList.remove('buzz'); void phone.offsetWidth; phone.classList.add('buzz');
-      btn.textContent = 'أعد التجربة';
-    }
-  }
-  btn.addEventListener('click', function(){
-    if (MY - serving <= 0){ serving = 21; btn.textContent = 'نادِ التالي'; }
-    else { serving++; }
-    render();
+  /* theme toggle (remembered per viewer when storage works) */
+  try { var saved = localStorage.getItem("dawri.site.theme"); if (saved) root.setAttribute("data-theme", saved); } catch(e){}
+  document.getElementById("themeBtn").addEventListener("click", function(){
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("dawri.site.theme", next); } catch(e){}
   });
 
-  /* ---------- lost-customers calculator ---------- */
-  var lost = document.getElementById('lost'), bill = document.getElementById('bill'), plan = document.getElementById('plan');
-  var planName = {199:'الأساسية',399:'النمو',699:'المتكاملة'};
-  function calc(){
-    var l = +lost.value, b = +bill.value, p = +plan.value;
-    var w = l*b, m = Math.round(w*52/12/50)*50;
-    document.getElementById('lostOut').textContent = ar(l);
-    document.getElementById('billOut').textContent = ar(b);
-    document.getElementById('weekly').textContent = ar(w) + ' ر.س';
-    document.getElementById('monthly').textContent = 'حوالي ' + ar(m) + ' ر.س في الشهر';
-    var need = Math.ceil(p / b);
-    document.getElementById('vs').textContent = 'يكفي أن يرجع ' + ar(need) + ' ' + (need > 10 || need < 3 ? 'زبوناً' : 'زبائن') +
-      ' فقط في الشهر لتغطية اشتراك الباقة ' + planName[p] + '.';
-  }
-  [lost,bill,plan].forEach(function(el){ el.addEventListener('input', calc); });
-  calc();
+  /* sticky bar border */
+  var top = document.getElementById("top");
+  addEventListener("scroll", function(){ top.classList.toggle("scrolled", scrollY > 8); }, { passive:true });
 
-  /* ---------- features ---------- */
-  var T = {0:'كل الباقات',1:'الأساسية',2:'النمو',3:'المتكاملة'};
-  var MODULES = [
-    {name:'دوري', sub:'الطابور', items:[
-      ['الطابور الرقمي','رقم من الجوال، ووقت تقديري يتحدّث، ونداء بضغطة، بالأوضاع الثلاثة',1],
-      ['فضيت؟','رابط عام يعرض حالة الزحمة الآن',1],
-      ['ارجع الآن','تنبيه مبكر قبل الدور بدورين',1],
-      ['تأخرت شوي','زر يؤخّر الزبون نفسه دوراً أو دورين بدل أن يضيع رقمه، للزحمة المرورية والمشوار المفاجئ',1,1],
-      ['تذكرة العائلة','تذكرة واحدة لأكثر من شخص، والوقت التقديري يحسبهم جميعاً',1,1],
-      ['أولوية بلمسة','الموظف يقدّم كبير السن أو الحامل أو ذوي الإعاقة مع سجل شفاف',1,1],
-      ['حلاقي المفضّل','يختار الزبون مقدّم خدمة بعينه ويرى وقتاً خاصاً به',2,1],
-      ['أفضل وقت تجي','رسم بسيط في صفحة «فضيت؟» بأهدأ ساعات الأسبوع',2,1],
-      ['وضع المواسم','تشغيل مؤقت لرمضان والأعياد وأيام الذروة (اشتراك موسمي)',0]
-    ]},
-    {name:'صفحتي', sub:'واجهة المحل', items:[
-      ['بطاقتي','نسخة مختصرة للتواصل والموقع',1],
-      ['قائمتي','الخدمات والأسعار، تُعدّل في ثوانٍ بلا طباعة',2],
-      ['صوّر قائمتك','صورة المنيو الورقي تتحوّل بالذكاء الاصطناعي إلى قائمة يراجعها المالك',2],
-      ['الصفحة الكاملة','نبذة وصور وأوقات وموقع وزر اتصال وزر «احجز دورك»',3],
-      ['وش الجديد؟','سجل مؤرّخ لمستجدات المحل',3],
-      ['مساعد الأسئلة','يجيب من بيانات الصفحة فقط، وما لا يعرفه يحيله لزر الاتصال',3]
-    ]},
-    {name:'عرضي', sub:'العروض والولاء', items:[
-      ['العروض حسب الوقت','عرض للصباح وآخر للمساء، يتبدّل ويتوقف وحده',2],
-      ['مرّيت علينا','نقاط ولاء تُحسب مع كل زيارة، والاسترداد برمز يتغيّر كل دقيقة',2],
-      ['كوبون الهدوء','خصم للساعات الهادئة يقترحه «نبضي» ويوافق عليه المالك',3]
-    ]},
-    {name:'نبضي', sub:'الأرقام والتقارير', items:[
-      ['ملخص المساء','سطران كل مساء بأهم أرقام اليوم',1],
-      ['حاسبة الزبائن الضائعين','من خرج قبل خدمته × متوسط الفاتورة: «خسرت هذا الأسبوع ١٢ زبوناً ≈ ٦٠٠ ريال»',1,1],
-      ['شاشة الموظف بلغته','بالعربية أو الإنجليزية أو الأردية أو البنغالية أو الفلبينية، والزبون يرى العربية',1,1],
-      ['التقييم بالأسباب','الراضي يُوجَّه لجوجل، والشكوى تصل المالك سراً مع سببها',2],
-      ['إنذار الزحمة','إشعار للمالك عندما يتجاوز الطابور حداً يحدده، وإيقاف الحجز من الخارج تلقائياً قبل الإغلاق',2,1],
-      ['تقرير الذروة','أزحم الأوقات وأهدأها وأداء كل موظف، مع توصيات',3],
-      ['الغايبون','من انقطع عن الزيارة ٣٠ يوماً ممن وافق على التواصل',3],
-      ['ركّب بنفسك في ١٠ دقائق','تهيئة ذاتية تنتهي بملصق QR جاهز للطباعة باسم المحل',0,1]
-    ]}
-  ];
-  var wrap = document.getElementById('modules');
-  function esc(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-  wrap.innerHTML = MODULES.map(function(m){
-    return '<article class="module"><header><h3>'+esc(m.name)+'</h3><span>'+esc(m.sub)+'</span></header>' +
-      m.items.map(function(f){
-        return '<div class="feat'+(f[3]?' new':'')+'" data-t="'+f[2]+'"><b>'+esc(f[0])+'</b><span class="tier" data-t="'+f[2]+'">'+T[f[2]]+'</span><p>'+esc(f[1])+'</p></div>';
-      }).join('') + '</article>';
-  }).join('');
-  var fbtns = document.querySelectorAll('.filters button');
-  fbtns.forEach(function(b){
-    b.addEventListener('click', function(){
-      fbtns.forEach(function(x){ x.setAttribute('aria-pressed', x===b ? 'true':'false'); });
-      var f = b.dataset.f;
-      wrap.querySelectorAll('.feat').forEach(function(el){
-        var t = +el.dataset.t;
-        /* each tier includes the ones before it */
-        el.hidden = !(f==='all' || t===0 || t <= +f);
-      });
+  /* hero: call next until it's your turn */
+  var now = 4, mine = 7, screen = document.getElementById("screen");
+  var nowNum = document.getElementById("nowNum"), ahead = document.getElementById("ahead"), eta = document.getElementById("eta");
+  var dots = document.querySelectorAll("#dots span"), callBtn = document.getElementById("callBtn");
+  function paint(){
+    nowNum.textContent = "A-" + String(now).padStart(2, "0");
+    var left = mine - now - 1;
+    dots.forEach(function(d, i){ d.classList.toggle("on", i <= now - 4); });
+    if (now >= mine) { screen.classList.add("done"); callBtn.textContent = "ابدأ من جديد"; if (navigator.vibrate) navigator.vibrate([80,40,80]); return; }
+    screen.classList.remove("done"); callBtn.textContent = "نادِ التالي";
+    ahead.textContent = left === 0 ? "أنت التالي! جهّز نفسك" : left === 1 ? "قدّامك شخص واحد" : left === 2 ? "قدّامك شخصين" : "قدّامك " + ar(left) + " أشخاص";
+    eta.textContent = left === 0 ? "وصلك التنبيه الحين 🔔" : "تقريباً " + ar(left * 4) + " دقيقة · نبلّغك قبلها";
+  }
+  callBtn.addEventListener("click", function(){ now = now >= mine ? 4 : now + 1; paint(); });
+  paint();
+
+  /* sealed gift */
+  document.getElementById("sealBtn").addEventListener("click", function(){ var g = document.getElementById("sealed"); g.classList.remove("sealed"); g.classList.add("open"); });
+
+  /* «أبيها» */
+  var want = document.getElementById("wantBtn");
+  want.addEventListener("click", function(){
+    var on = want.getAttribute("aria-pressed") !== "true";
+    want.setAttribute("aria-pressed", String(on));
+    want.textContent = on ? "✓ تمت الإضافة" : "✋ أبيها";
+  });
+
+  /* lost customers calculator */
+  var walk = document.getElementById("walk"), avg = document.getElementById("avg");
+  function calc(){
+    document.getElementById("walkOut").textContent = ar(walk.value);
+    document.getElementById("avgOut").textContent = ar(avg.value);
+    var loss = walk.value * avg.value * 30;
+    document.getElementById("lossOut").textContent = loss.toLocaleString("en-US");
+    var back = Math.round(loss / 4);
+    document.getElementById("lossNote").textContent = back >= 399
+      ? "ريال… لو رجع ربعهم بس (" + ar(back.toLocaleString("en-US")) + " ريال)، يغطّي اشتراكك أكثر من مرة."
+      : "ريال… وكل زبون يرجع يعني علاقة تكبر مع محلك.";
+  }
+  walk.addEventListener("input", calc); avg.addEventListener("input", calc); calc();
+
+  /* staff screen languages */
+  var L = {
+    ar:  { dir:"rtl", lbl:"الدور الحالي", call:"نادِ التالي", skip:"ما حضر", wait:"ينتظرون: ٤", want:"✋ A-14 يبي: تحديد اللحية" },
+    ur:  { dir:"rtl", lbl:"موجودہ نمبر", call:"اگلے کو بلائیں", skip:"نہیں آیا", wait:"انتظار میں: 4", want:"✋ A-14 چاہتا ہے: داڑھی سیٹ" },
+    bn:  { dir:"ltr", lbl:"বর্তমান নম্বর", call:"পরবর্তীকে ডাকুন", skip:"আসেনি", wait:"অপেক্ষায়: 4", want:"✋ A-14 চায়: দাড়ি ছাঁটা" },
+    fil: { dir:"ltr", lbl:"Kasalukuyang numero", call:"Tawagin ang susunod", skip:"Hindi dumating", wait:"Naghihintay: 4", want:"✋ Gusto ng A-14: beard trim" },
+    en:  { dir:"ltr", lbl:"Now serving", call:"Call next", skip:"No-show", wait:"Waiting: 4", want:"✋ A-14 wants: beard trim" }
+  };
+  var tablet = document.getElementById("tablet"), tNum = document.getElementById("tNum"), tn = 12;
+  document.querySelectorAll(".langs button").forEach(function(b){
+    b.addEventListener("click", function(){
+      document.querySelectorAll(".langs button").forEach(function(x){ x.setAttribute("aria-pressed", String(x === b)); });
+      var s = L[b.dataset.l];
+      tablet.dir = s.dir; tablet.lang = b.dataset.l;
+      document.getElementById("tLbl").textContent = s.lbl;
+      document.getElementById("tCall").textContent = s.call;
+      document.getElementById("tSkip").textContent = s.skip;
+      document.getElementById("tWait").textContent = s.wait;
+      document.getElementById("tWant").textContent = s.want;
     });
   });
+  document.getElementById("tCall").addEventListener("click", function(){ tn = tn >= 20 ? 12 : tn + 1; tNum.textContent = "A-" + tn; });
 
-  /* ---------- plan buttons prefill the form ---------- */
-  document.querySelectorAll('[data-plan]').forEach(function(a){
-    a.addEventListener('click', function(){ document.getElementById('f-plan').value = a.dataset.plan; });
-  });
-
-  /* ---------- trial form: Netlify Forms when hosted, local preview otherwise ---------- */
-  var form = document.getElementById('leadForm'), msg = document.getElementById('formMsg');
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var shop = form.shop.value.trim();
-    var done = function(text){ msg.textContent = text; msg.hidden = false; };
-    if (/netlify\.app$/.test(location.hostname) || form.dataset.live === '1'){
-      fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-        body: new URLSearchParams(new FormData(form)).toString()})
-        .then(function(r){ if(!r.ok) throw 0; form.reset(); done('وصلنا طلب «'+shop+'». نتواصل معك خلال يوم عمل لتجهيز طابورك.'); })
-        .catch(function(){ done('تعذّر إرسال الطلب. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.'); });
-    } else {
-      done('هذه نسخة معاينة، لم يُرسل الطلب. على الموقع المنشور يصل طلب «'+shop+'» مباشرة إلى فريق دوري.');
-    }
-  });
+  /* gentle reveal on scroll */
+  var els = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function(es){ es.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }); }, { rootMargin:"0px 0px -8% 0px" });
+    els.forEach(function(el){ io.observe(el); });
+  } else els.forEach(function(el){ el.classList.add("in"); });
 })();
 </script>
