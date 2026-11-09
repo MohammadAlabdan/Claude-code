@@ -7,6 +7,7 @@ import { toast } from "../ui/toast.js";
 import { Heatmap } from "../ui/charts.js";
 import { QuestCard } from "../ui/quest.js";
 import { setTheme } from "../app.js";
+import { subscribePush, pushSupported, needsInstallForPush, localNotify } from "../ui/push.js";
 
 const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 const fmtHours = (ivs) => ivs.map(([o, c]) => (o === c ? t("shop.all_day") : `${o}–${c}`)).join("، ");
@@ -22,6 +23,23 @@ export function bestTime(bt) {
   }));
   return best;
 }
+
+/** Today's calmest 2-hour window still ahead (from the arrivals heatmap), or null. */
+export function quietToday(bt) {
+  if (!bt) return null;
+  const r = new Date(Date.now() + 3 * 3600000), d = r.getUTCDay(), now = r.getUTCHours();
+  const row = bt.arrivals[d], open = bt.open[d];
+  let best = null, peak = 0;
+  row.forEach((v, hr) => { if (open[hr]) peak = Math.max(peak, v); });
+  for (let hr = Math.max(now + 1, 7); hr < 23; hr++) { // daytime hours people actually go out
+    if (!open[hr] || !open[hr + 1]) continue;
+    const avg = (row[hr] + row[hr + 1]) / 2;
+    if (!best || avg < best.avg) best = { hr, avg };
+  }
+  return best && peak > 0 && best.avg < peak * 0.6 ? best : null;
+}
+
+const watchKey = (pid) => `dawri.quiet.${pid}`;
 
 /** 🌙 / ☀️ button: switches between dark and light for this device (remembered). */
 export function themeToggle() {
@@ -60,6 +78,7 @@ export async function render(ctx) {
   const root = h("div.stack", { style: { gap: "16px" } });
   const load = async () => {
     data = await api.publicBranch(publicId);
+    checkWatch();
     paint();
   };
   try { await load(); } catch (e) {
@@ -137,17 +156,9 @@ export async function render(ctx) {
     const est = Math.max(0, ...data.services.filter((s) => s.mode === "remote").map((s) => s.estimate_min ?? 0));
 
     fill(root, 
-      h("section.card", { "data-testid": "shop-header" },
-        h("div.shop-head",
-          h("div.avatar", photo ? h("img", { src: api.photoUrl(photo), alt: "" }) : b.business_name.slice(0, 1)),
-          h("div.stack", { style: { gap: "2px", minWidth: 0 } },
-            h("h2", b.name),
-            h("div.row.small", b.open ? h("span.badge", t("shop.open")) : h("span.badge.danger", t("shop.closed")),
-              hoursToday ? h("span.muted", num(hoursToday)) : null))),
-        f.includes("fadeet") ? h("div.row.between", h("div.row", h("span.muted", t("shop.fadeet")), BusyPill(b.busy_level)),
-          h("span.small", { "data-testid": "fadeet-line" }, t("shop.waiting_line", { n: num(b.waiting), m: num(est || 5) }))) : null),
+      pulse(b, f, photo, hoursToday, est),
 
-      card(t("shop.services"), "list-check", h("div.list", data.services.map((s) => h("div.list-item", { "data-service": s.id },
+      card(t("shop.services"), "list-check", h("div.list#services", data.services.map((s) => h("div.list-item", { "data-service": s.id },
         h("div.grow", h("div.title", s.name),
           h("div.muted.small", s.mode === "remote" ? t("shop.service_wait", { n: num(s.waiting), m: num(s.estimate_min) })
             : s.mode === "receipt" ? t("mode.receipt") : t("mode.dropoff"))),
@@ -194,6 +205,103 @@ export async function render(ctx) {
 
       f.includes("qa_assistant") ? qaCard() : null,
       h("p.center.muted.small", t("shop.powered")));
+  }
+
+  /** «نبض المحل»: the live crowd, said the way a friend would say it, with what to do about it. */
+  function pulse(b, f, photo, hoursToday, est) {
+    const remote = data.services.filter((s) => s.mode === "remote");
+    const level = !b.open ? "closed" : b.busy_level;
+    const watch = store.get(watchKey(publicId));
+    const quiet = data.best_time ? quietToday(data.best_time) : null;
+    const share = async () => {
+      const url = location.href.split("?")[0];
+      const text = t("pulse.share_text", { shop: b.business_name });
+      try { if (navigator.share) return await navigator.share({ title: b.business_name, text, url }); } catch { return; }
+      try { await navigator.clipboard.writeText(url); toast(t("pulse.copied")); } catch { toast(url); }
+    };
+    const primary = remote.length && b.open
+      ? h("button.btn.btn-primary.btn-xl", { type: "button", "data-testid": "pulse-join",
+          onclick: () => (remote.length === 1 ? join(remote[0]) : document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "center" })) },
+          icon("ticket"), t("pulse.join"))
+      : null;
+    const canWatch = b.open && remote.length && f.includes("fadeet") && b.busy_level !== "free";
+    return h(`section.pulse.lv-${level}`, { "data-testid": "shop-header", "aria-live": "polite" },
+      h("div.p-top",
+        h("div.avatar", photo ? h("img", { src: api.photoUrl(photo), alt: "" }) : b.business_name.slice(0, 1)),
+        h("div.stack", { style: { gap: "0", minWidth: 0, flex: 1 } },
+          h("h2", b.name),
+          h("div.row.small", b.open ? h("span.badge", t("shop.open")) : h("span.badge.danger", t("shop.closed")),
+            hoursToday ? h("span.muted", num(hoursToday)) : null)),
+        h("button.icon-btn.p-share", { type: "button", "aria-label": t("pulse.share"), title: t("pulse.share"), "data-testid": "pulse-share", onclick: share }, icon("share"))),
+      h("div.p-now",
+        h("span.p-dot", { "aria-hidden": "true" }),
+        h("div.grow",
+          h("b.p-title", t(`pulse.${level}.title`)),
+          h("p.p-line", level === "closed"
+            ? (b.next_open_at ? t("pulse.closed.line_at", { time: time(b.next_open_at) }) : t("pulse.closed.line"))
+            : t(`pulse.${level}.line`, { n: num(b.waiting), m: num(est || 5) }))),
+        b.open && remote.length ? h("div.p-count", { "data-testid": "fadeet-line" }, h("b.num", num(b.waiting)), h("span", t("pulse.waiting"))) : null),
+      quiet && b.open ? h("p.p-hint", icon("leaf"), t("pulse.quiet_today", { hour: hourLabel(quiet.hr), to: hourLabel(quiet.hr + 2) })) : null,
+      watch ? h("div.p-watch", { "data-testid": "quiet-watching" }, icon("bell-ringing"),
+        h("span.grow", watch.threshold === 0 ? t("pulse.watching_zero") : t("pulse.watching", { n: num(watch.threshold) })),
+        h("button.btn.btn-ghost.btn-sm", { type: "button", onclick: () => unwatch(true) }, t("action.cancel"))) : null,
+      h("div.p-actions", primary,
+        canWatch && !watch ? h("button.btn", { type: "button", "data-testid": "quiet-watch", onclick: quietSheet }, icon("bell"), t("pulse.watch")) : null));
+  }
+
+  async function quietSheet() {
+    let threshold = 2;
+    const opts = [0, 1, 2, 3];
+    const chips = h("div.chips", { role: "group", "aria-label": t("pulse.watch_q") }, opts.map((n) =>
+      h("button.chip", { type: "button", "aria-pressed": String(n === threshold), "data-n": n,
+        onclick: () => { threshold = n; chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(+c.dataset.n === n))); } },
+        n === 0 ? t("pulse.opt_zero") : t("pulse.opt_n", { n: num(n) }))));
+    const err = h("p.err", { hidden: true });
+    const blocked = !pushSupported() ? t("pulse.no_push") : needsInstallForPush() ? t("pulse.ios_hint") : null;
+    await openSheet({ title: t("pulse.watch_title"), body: [
+      h("p", t("pulse.watch_lead")),
+      h("div.field", h("span", t("pulse.watch_q")), chips),
+      h("p.muted.small", icon("shield-check"), " ", t("pulse.watch_privacy")),
+      blocked ? h("div.banner.warn", icon("info-circle"), h("span", blocked)) : null, err,
+    ], actions: [
+      { id: "quiet-confirm", label: t("pulse.watch_cta"), primary: true, onClick: async (close) => {
+        if (blocked) { err.hidden = false; err.textContent = blocked; return; }
+        try {
+          const sub = await subscribePush();
+          const r = await api.customer("quiet_watch", { public_id: publicId, subscription: sub, threshold, lang: lang() });
+          close();
+          if (r.already_quiet) { toast(t("pulse.already_quiet")); return; }
+          store.set(watchKey(publicId), { threshold, until: Date.now() + 4 * 3600000, endpoint: sub.endpoint, keys: sub.keys });
+          vibrate(30);
+          toast(t("pulse.watch_on"));
+          paint();
+        } catch (e) {
+          err.hidden = false;
+          err.textContent = e.message === "denied" ? t("pulse.denied") : e.message === "unsupported" ? t("pulse.no_push") : errorText(e);
+        }
+      } },
+      { label: t("action.cancel"), ghost: true }] });
+  }
+
+  async function unwatch(tellServer) {
+    const w = store.get(watchKey(publicId));
+    store.del(watchKey(publicId));
+    if (tellServer && w?.endpoint) api.customer("quiet_unwatch", { subscription: { endpoint: w.endpoint, keys: w.keys } }).catch(() => {});
+    paint();
+  }
+
+  /** The watch fires on the server (push); on this page it also shows right away, and in demo mode locally. */
+  function checkWatch() {
+    const w = store.get(watchKey(publicId));
+    if (!w) return;
+    if (Date.now() > w.until) { store.del(watchKey(publicId)); return; }
+    const b = data.branch;
+    if (!b.open || b.waiting > w.threshold) return;
+    store.del(watchKey(publicId));
+    const body = b.waiting === 0 ? t("pulse.calm_zero") : t("pulse.calm_n", { n: num(b.waiting) });
+    vibrate([200, 100, 200]);
+    if (api.demo || document.visibilityState !== "visible") localNotify(b.business_name, body, `./s/${publicId}`);
+    toast(body);
   }
 
   function qaCard() {

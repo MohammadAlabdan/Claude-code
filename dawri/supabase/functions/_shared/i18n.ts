@@ -18,6 +18,15 @@ export function customerPush(kind: string, lang: Lang, t: { number?: number; sta
   return { title: shop, body: lang === "ar" ? ar : en };
 }
 
+/** «نبّهني لما تهدأ»: the queue dropped to what the visitor asked for. */
+export function quietPush(lang: Lang, shop: string, count: number) {
+  const n = lang === "ar" ? toArabicDigits(count) : String(count);
+  const body = lang === "ar"
+    ? (count === 0 ? "هدأت الزحمة 🌿 ما فيه أحد ينتظر الحين، تعال على راحتك" : `هدأت الزحمة 🌿 الحين ${n} بس ينتظرون، تعال خذ دورك`)
+    : (count === 0 ? "It's calm now 🌿 nobody is waiting, come on over" : `It's calmer now 🌿 only ${n} waiting, come take your turn`);
+  return { title: shop, body };
+}
+
 export function ownerBusyAlert(count: number) {
   return { title: "إنذار الزحمة", body: `الطابور وصل ${toArabicDigits(count)}، فيه زبائن ممكن يطلعون` };
 }

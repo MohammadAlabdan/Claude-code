@@ -28,6 +28,19 @@ serve(async (req, body) => {
       return json(await settle(await rpc("c_subscribe_push", { p_token: token(), p_endpoint: s.endpoint, p_p256dh: s.p256dh, p_auth: s.auth })));
     }
 
+    case "quiet_watch": {
+      const s = subscription(body);
+      return json(await settle(await rpc("c_quiet_watch", {
+        p_public_id: str(body, "public_id", 16), p_endpoint: s.endpoint, p_p256dh: s.p256dh, p_auth: s.auth,
+        p_threshold: int(body, "threshold", 0, 10, 2), p_lang: lang(body),
+      })));
+    }
+
+    case "quiet_unwatch": {
+      const s = subscription(body);
+      return json(await settle(await rpc("c_quiet_unwatch", { p_endpoint: s.endpoint })));
+    }
+
     case "snooze":
       return json(await settle(await rpc("c_snooze", { p_token: token(), p_steps: int(body, "steps", 1, 2) })));
 

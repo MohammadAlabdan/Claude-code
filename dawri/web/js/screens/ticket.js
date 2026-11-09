@@ -66,7 +66,7 @@ export async function render(ctx) {
       return true;
     };
     if (tk.mode === "remote" && tk.called && (!was || !was.called)) {
-      if (alertOnce(`called-${tk.called_at}`, t("ticket.your_turn"))) showOverlay(t("ticket.your_turn"), tk.number);
+      if (alertOnce(`called-${tk.called_at}`, t("ticket.your_turn"))) showOverlay(t("ticket.your_turn"), tk.number, earlyMinutes());
     } else if (tk.ready && (!was || !was.ready)) {
       const msg = tk.mode === "dropoff" ? t("ticket.ready_pickup") : t("ticket.order_ready");
       if (alertOnce(`ready-${tk.id}`, msg)) showOverlay(msg, tk.mode === "receipt" ? tk.receipt_code : tk.number);
@@ -76,14 +76,29 @@ export async function render(ctx) {
     }
   }
 
-  function showOverlay(message, number) {
+  function showOverlay(message, number, early = 0) {
     document.querySelector(".called")?.remove();
     const el = h("div.called", { role: "alertdialog", "aria-live": "assertive", "aria-label": message, "data-testid": "called-overlay" },
       h("div.c-inner", h("div.c-num.num", num(number)), h("div.c-msg", message),
+        early ? h("div.c-early", { "data-testid": "called-early" }, t("ticket.early", { m: num(early) })) : null,
         h("button.btn.btn-xl", { type: "button", style: { background: "var(--on-accent)", color: "var(--accent)", borderColor: "transparent", minWidth: "60%" },
           onclick: () => el.remove() }, t("action.ok"))));
     document.body.append(el);
     ctx.onCleanup(() => el.remove());
+  }
+
+  // Promise a little more than the raw estimate (never less than it), and remember the promised time,
+  // so a turn that comes early can say so: an early surprise feels better than a late apology.
+  function promiseMinutes() {
+    const m = Math.max(1, Math.ceil((tk.estimate_min ?? 0) * 1.15));
+    const key = `dawri.promise.${token}`, at = Date.now() + m * 60000, saved = store.get(key);
+    if (!saved || at > saved) store.set(key, at);
+    return m;
+  }
+  function earlyMinutes() {
+    const at = store.get(`dawri.promise.${token}`);
+    const m = at ? Math.floor((at - Date.now()) / 60000) : 0;
+    return m >= 2 ? m : 0;
   }
 
   function statusLine() {
@@ -114,7 +129,7 @@ export async function render(ctx) {
         label: tk.mode === "receipt" ? t("ticket.order_number") : tk.mode === "dropoff" ? t("ticket.your_number") : t("ticket.your_number"),
         number: tk.mode === "receipt" ? tk.receipt_code : tk.number,
         status: statusLine(),
-        estimate: waiting ? t("ticket.estimate", { m: num(tk.estimate_min) }) : null,
+        estimate: waiting ? t("ticket.estimate", { m: num(promiseMinutes()) }) : null,
         alert: waiting && tk.return_now,
       }),
 

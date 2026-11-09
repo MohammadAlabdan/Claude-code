@@ -19,10 +19,10 @@ export async function subscribePush() {
   if (!pushSupported()) throw new Error("unsupported");
   const perm = await Notification.requestPermission();
   if (perm !== "granted") throw new Error("denied");
-  const reg = await navigator.serviceWorker.ready;
   if (cfg().DEMO_MODE || !cfg().VAPID_PUBLIC_KEY || cfg().VAPID_PUBLIC_KEY.startsWith("YOUR")) {
     return { endpoint: "https://demo.invalid/push/" + Math.random().toString(36).slice(2), keys: { p256dh: "demo-key-000000000000000000", auth: "demo-auth-0" } };
   }
+  const reg = await navigator.serviceWorker.ready;
   const existing = await reg.pushManager.getSubscription();
   const sub = existing ?? await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(cfg().VAPID_PUBLIC_KEY) });
   return sub.toJSON();

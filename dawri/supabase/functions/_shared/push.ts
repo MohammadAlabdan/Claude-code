@@ -1,6 +1,6 @@
 import webpush from "web-push";
 import { adminClient } from "./db.ts";
-import { customerPush, ownerBusyAlert } from "./i18n.ts";
+import { customerPush, ownerBusyAlert, quietPush } from "./i18n.ts";
 
 let configured: boolean | null = null;
 
@@ -32,7 +32,7 @@ async function sendAll(subs: Sub[], payload: Record<string, unknown>) {
       else console.warn("push failed", status ?? e);
     }
   }));
-  if (gone.length) await adminClient().from("push_subscriptions").delete().in("id", gone);
+  if (gone.filter(Boolean).length) await adminClient().from("push_subscriptions").delete().in("id", gone.filter(Boolean));
 }
 
 export interface Notify {
@@ -41,6 +41,13 @@ export interface Notify {
   kind: string;
   stage?: string;
   count?: number;
+  // kind "quiet": the watch row is already deleted, so it carries its own subscription
+  endpoint?: string;
+  p256dh?: string;
+  auth?: string;
+  lang?: "ar" | "en";
+  shop?: string;
+  public_id?: string;
 }
 
 /** Delivers the "notify" list returned by a SQL action. */
@@ -63,6 +70,9 @@ export async function deliver(notify: Notify[] | undefined) {
         { ...msg, kind: n.kind, tag: `ticket-${n.ticket_id}`, url: `/s/${t.branches?.public_id ?? ""}`, vibrate: n.kind === "called" || n.kind === "ready" || n.stage === "ready" });
     }));
   }
+  await Promise.all(notify.filter((n) => n.kind === "quiet" && n.endpoint).map((n) =>
+    sendAll([{ id: "", endpoint: n.endpoint!, p256dh: n.p256dh!, auth: n.auth! }],
+      { ...quietPush(n.lang ?? "ar", n.shop ?? "دوري", n.count ?? 0), kind: "quiet", tag: `quiet-${n.public_id}`, url: `/s/${n.public_id ?? ""}`, vibrate: true })));
   for (const n of notify.filter((x) => x.owner_branch_id)) {
     const { data: owner } = await db.from("branches").select("businesses(owner_user_id)").eq("id", n.owner_branch_id!).single();
     const ownerId = (owner as { businesses?: { owner_user_id?: string } } | null)?.businesses?.owner_user_id;

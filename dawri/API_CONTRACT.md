@@ -163,6 +163,8 @@ Busy level: manual level if staff/owner set one in the last 30 minutes, else `fr
 | `claim_dropoff` | `{claim_token}` | `{ticket_token, ticket}`; the claim link works once |
 | `quest_start` | `{token, quest_id}` | `{ok, quests: [Quest]}` — needs a phone on the ticket (`phone_required`); `quest_full`, `quest_ended`, `quest_not_eligible` |
 | `redeem_quest` | `{token, quest_id, code}` | `{ok, redeemed: "quest", title, quests}` (rotating staff code) |
+| `quiet_watch` | `{public_id, subscription, threshold: 0..10 (default 2), lang?}` | `{ok, already_quiet, waiting, threshold?, expires_at?}` — «نبّهني لما تهدأ» (feature `fadeet`). No ticket, no phone: one push when the branch's waiting count drops to `threshold`, then the watch is deleted; expires after 4 h. Errors: `closed`, `rate_limited` (300 per branch) |
+| `quiet_unwatch` | `{subscription}` | `{ok, removed}` |
 | `interest` | `{token, item_id, on?: bool}` | `{ok, interests: [menu item ids]}` — «أبيها» (feature `upsell`, max 5) |
 
 Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). Join rate limit: 3 per device (IP+UA) per branch per hour; 30 actions per ticket per hour. Join refusals: `closed`, `closing_soon`, `remote_limit`, `rate_limited`.

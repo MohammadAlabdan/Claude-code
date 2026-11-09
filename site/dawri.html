@@ -292,6 +292,27 @@ section{padding:96px 0}
 footer{padding:36px 0 calc(36px + env(safe-area-inset-bottom));color:var(--muted);font-size:14px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center}
 
+
+/* ---------- before you leave home (live pulse) ---------- */
+.pulse-sec{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.pmock{background:var(--sheet);border:1px solid var(--line);border-top:4px solid #B7791F;border-radius:22px;padding:18px;box-shadow:var(--shadow);display:grid;gap:12px;max-width:420px;margin-inline:auto;width:100%}
+.pmock .ptop{display:flex;align-items:center;gap:10px}
+.pmock .av{width:46px;height:46px;border-radius:14px;background:#F7E1F0;display:grid;place-items:center;font-size:22px}
+.pmock .nm b{display:block;font-size:16px}.pmock .nm span{font-size:12.5px;color:var(--muted)}
+.pmock .now{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,#B7791F 10%,var(--sheet));border-radius:16px;padding:12px}
+.pmock .dot{width:12px;height:12px;border-radius:50%;background:#E0A030;flex:none;box-shadow:0 0 0 6px color-mix(in srgb,#E0A030 25%,transparent)}
+.pmock .now b{display:block;font-family:var(--f-display);font-weight:400;font-size:21px}
+.pmock .now small{color:var(--muted);font-size:13px;line-height:1.6;display:block}
+.pmock .cnt{text-align:center;margin-inline-start:auto}.pmock .cnt b{font:900 34px/1 var(--f-led);color:#B7791F;display:block}.pmock .cnt span{font-size:11px;color:var(--muted)}
+.pmock .hint{color:var(--accent);font-size:13.5px}
+.pmock .b1{min-height:46px;border-radius:14px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:700}
+.pmock .b2{min-height:44px;border-radius:14px;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:600;font-size:15px}
+.notif{display:flex;gap:10px;align-items:flex-start;background:var(--board);color:#E7EEEA;border-radius:16px;padding:12px 14px;max-width:420px;margin:14px auto 0;width:100%;box-shadow:var(--shadow);font-size:14px;animation:drop 3.5s ease-in-out infinite}
+.notif i{font-style:normal;width:30px;height:30px;border-radius:9px;background:#34D6A5;color:#06231B;display:grid;place-items:center;flex:none;font-weight:700}
+.notif b{display:block;font-size:13px;color:#93A59E}
+@keyframes drop{0%,12%{transform:translateY(-8px);opacity:0}20%,85%{transform:none;opacity:1}100%{opacity:0}}
+@media (max-width:900px){.pulse-sec{grid-template-columns:1fr}}
+
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s,transform .7s}
 .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
@@ -304,6 +325,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;
     <nav class="nav" aria-label="أقسام الصفحة">
       <a href="#moments">الحكاية</a>
       <a href="#how">كيف يشتغل</a>
+      <a href="#pulse">قبل ما تطلع</a>
       <a href="#waiting">وأنت تنتظر</a>
       <a href="#owner">لصاحب المحل</a>
       <a href="#pricing">الأسعار</a>
@@ -444,6 +466,34 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;
       <span>طابور مباشر<small>حلاق، مشغل نسائي، مغسلة، عيادة</small></span>
       <span>طلب وتجهيز<small>مقهى، مطعم، مخبز</small></span>
       <span>استلام وتسليم<small>خياط، مغسلة ملابس، صيانة</small></span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============ BEFORE YOU LEAVE HOME ============ -->
+<section id="pulse">
+  <div class="wrap pulse-sec">
+    <div class="reveal">
+      <span class="eyebrow">قبل ما تطلع من بيتك</span>
+      <h2 style="font-size:clamp(30px,4.6vw,46px);margin-top:10px">ما عاد فيه «أروح وأشوف حظي»</h2>
+      <p style="color:var(--muted);margin-top:14px;font-size:18px">لكل محل صفحة حيّة تقول الحقيقة بلطف: هادي الحين، فيه حركة خفيفة، أو زحمة. يشوفها زبونك من بيته قبل ما يلبس شماغه أو عباتها، ويقرر وهو مرتاح.</p>
+      <ul class="points">
+        <li><i aria-hidden="true">🔔</i><div><b>«نبّهني لما تهدأ»</b><span>المحل زحمة؟ لمسة وحدة، وأول ما يخف الطابور يوصله تنبيه. ما نطلب رقمه ولا اسمه، والتنبيه ينلغي من نفسه بعد ٤ ساعات.</span></div></li>
+        <li><i aria-hidden="true">🌿</i><div><b>«أهدأ وقت باقي اليوم»</b><span>نعرف من أيامك السابقة متى يهدأ محلك، ونقترحه على زبونك بدل ما يجي وقت الذروة ويمشي.</span></div></li>
+        <li><i aria-hidden="true">🔗</i><div><b>رابط واحد في كل مكان</b><span>ضعه في إنستقرام وسناب وقوقل ماب وواتساب. كل من يفتحه يشوف الزحمة الحين، ويقدر ياخذ دوره من مكانه.</span></div></li>
+        <li><i aria-hidden="true">🎉</i><div><b>«جاك الدور قبل المتوقع»</b><span>نعطي زبونك وقتاً واقعياً بهامش بسيط، وإذا جاه الدور أبكر نفرّحه بالخبر. مفاجأة حلوة أحسن من اعتذار متأخر.</span></div></li>
+      </ul>
+    </div>
+    <div class="reveal" aria-label="مثال لصفحة محل حيّة">
+      <div class="pmock">
+        <div class="ptop"><span class="av" aria-hidden="true">💅</span><div class="nm"><b>مشغل لمسة ورد</b><span>مفتوح الحين · حتى ١١ المساء</span></div></div>
+        <div class="now"><span class="dot" aria-hidden="true"></span><div><b>فيه حركة خفيفة</b><small>٤ قدّامك، حوالي ٣٥ دقيقة. خذي دورك من مكانك وتعالي على وقتك</small></div><div class="cnt"><b>4</b><span>ينتظرون</span></div></div>
+        <p class="hint">🌿 أهدأ وقت باقي اليوم: من ٤ إلى ٦ العصر</p>
+        <div class="b1">خذي دورك من مكانك</div>
+        <div class="b2">🔔 نبّهيني لما تهدأ</div>
+      </div>
+      <div class="notif" role="img" aria-label="مثال لتنبيه"><i>د</i><div><b>مشغل لمسة ورد · الحين</b>هدأت الزحمة 🌿 الحين ١ بس تنتظر، تعالي خذي دورك</div></div>
     </div>
   </div>
 </section>
@@ -597,7 +647,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;
         <h3>الأساسية</h3>
         <p class="for">لمحل يبي ينهي فوضى الطابور</p>
         <div class="price"><b>199</b><span>ريال / شهرياً</span></div>
-        <ul><li>الطابور بأوضاعه الثلاثة</li><li>تنبيه «حان دورك» و«تأخرت شوي»</li><li>شاشة الموظف بخمس لغات</li><li>ملخص المساء</li><li>حاسبة الزبائن الضائعين</li></ul>
+        <ul><li>صفحة محلك الحيّة و«نبّهني لما تهدأ»</li><li>الطابور بأوضاعه الثلاثة</li><li>تنبيه «حان دورك» و«تأخرت شوي»</li><li>شاشة الموظف بخمس لغات</li><li>ملخص المساء</li><li>حاسبة الزبائن الضائعين</li></ul>
         <a class="btn btn-ghost" href="#contact">ابدأ بالأساسية</a>
       </article>
       <article class="plan feat reveal">
@@ -635,6 +685,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;
       <details><summary>زبائني كبار في السن وما يعرفون للباركود، وش الحل؟</summary><p>الموظف يقدر يضيفه للطابور من شاشته بلمسة، ويعطيه رقمه شفهياً أو مكتوب. والشاشة في المحل تعرض الرقم الحالي بخط كبير.</p></details>
       <details><summary>هل لازم أغيّر نظام الكاشير أو الفواتير؟</summary><p>لا. «دوري» يشتغل جنب نظامك الحالي بدون ما يلمسه. الكاشير يبقى مثل ما هو.</p></details>
       <details><summary>وش يصير إذا الزبون ما وصله الإشعار؟</summary><p>التذكرة على جواله تتحدث لحظياً وتعرض «حان دورك» بشكل واضح، والموظف يشوف مين وصله التنبيه ومين لا، ويقدر يأجّله بدل ما يلغيه.</p></details>
+      <details><summary>وش يعني «نبّهني لما تهدأ»؟</summary><p>إذا شاف الزبون إن المحل زحمة، يضغط زر واحد ويكمّل يومه. أول ما يخف الطابور للعدد اللي اختاره، يوصله تنبيه على جواله. ما نطلب رقمه ولا اسمه، والتنبيه مرة وحدة وينلغي من نفسه بعد ٤ ساعات.</p></details>
       <details><summary>كم ياخذ وقت التركيب؟</summary><p>حوالي عشر دقائق: تكتب اسم محلك وخدماتك، وتطبع ملصق الباركود، وتفتح شاشة الموظف على أي جوال.</p></details>
       <details><summary>هل التحدّيات والهدايا تكلّفني خسارة؟</summary><p>أنت تحدد المكافأة وعدد الأماكن ووقتها. والفكرة إنها تجيب زبون في وقت هدوئك أو ترجّع زبون غايب، يعني تكسبك وقت كان ضايع.</p></details>
     </div>

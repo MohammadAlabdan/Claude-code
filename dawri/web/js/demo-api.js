@@ -450,6 +450,16 @@ const customer = {
     }
     return { ticket_token: t.token, ticket: ticketView(t) };
   },
+  // «نبّهني لما تهدأ»: the shop page itself watches the count in demo mode; this only validates like the server.
+  quiet_watch({ public_id, threshold = 2 }) {
+    const b = branchByPublic(public_id) ?? fail("branch_not_found");
+    need(b, "fadeet");
+    if (!Number.isInteger(threshold) || threshold < 0 || threshold > 10) fail("invalid_input", { field: "threshold" });
+    if (!openState(b).open) fail("closed");
+    const w = waitingCount(b.id);
+    return w <= threshold ? { ok: true, already_quiet: true, waiting: w } : { ok: true, already_quiet: false, waiting: w, threshold, expires_at: iso(Date.now() + 4 * 3600000) };
+  },
+  quiet_unwatch() { return { ok: true, removed: true }; },
   subscribe_push({ token: tok }) { const t = byToken(tok); t.push_enabled = true; commit(branch(t.branch_id).public_id); return { ok: true, push_enabled: true }; },
   snooze({ token: tok, steps }) {
     const t = byToken(tok), b = branch(t.branch_id);
