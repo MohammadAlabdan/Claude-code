@@ -22,6 +22,7 @@ export const MESSAGES: Record<string, [ar: string, en: string, status: number]> 
   invalid_state: ["ما يمكن تنفيذ هذا الآن", "This cannot be done right now", 409],
   closed: ["المحل مقفل الحين", "The shop is closed now", 409],
   closing_soon: ["الحجز من برّا يقفل قبل نهاية الدوام بنص ساعة", "Remote booking closes 30 minutes before closing", 409],
+  full_today: ["اكتملت مواعيد اليوم، ما نقدر نخدمك قبل نهاية الدوام. نشوفك بكرة إن شاء الله", "We're full for today and can't serve you before closing. See you tomorrow", 409],
   remote_limit: ["الحجوزات من برّا مكتملة الحين، تقدر تجي للمحل مباشرة", "Remote spots are full right now. You can come to the shop directly", 409],
   not_waiting: ["التذكرة ما عادت بالانتظار", "This ticket is no longer waiting", 409],
   not_done: ["التقييم بعد انتهاء الخدمة", "Feedback opens after the service is done", 409],

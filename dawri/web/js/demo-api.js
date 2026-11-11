@@ -430,6 +430,12 @@ const customer = {
     const st = openState(b);
     if (!st.open) fail("closed", { next_open_at: st.next_open_at, busy_level: busyLevel(b) });
     if (st.closes_at && Date.parse(st.closes_at) - Date.now() < settings(b).remote_close_minutes_before_closing * 60000) fail("closing_soon", { next_open_at: st.next_open_at, busy_level: busyLevel(b) });
+    { // capacity: same rule as the server (real closing only)
+      const svc = db.services.find((x) => x.id === service_id);
+      const ahead = db.tickets.filter((t) => t.service_id === service_id && t.status === "waiting").reduce((a, t) => a + t.party_size, 0);
+      const need = svc ? (ahead * serviceMinutes(svc.id) / providerCount(svc) + serviceMinutes(svc.id)) * 60000 : 0;
+      if (st.closes_at && (!st.next_open_at || Date.parse(st.next_open_at) > Date.parse(st.closes_at) + 60000) && Date.now() + need > Date.parse(st.closes_at)) fail("full_today", { next_open_at: st.next_open_at, busy_level: busyLevel(b) });
+    }
     if (db.tickets.filter((t) => t.branch_id === b.id && t.status === "waiting" && t.source === "remote").length >= settings(b).remote_join_limit) fail("remote_limit", { busy_level: busyLevel(b) });
     const t = newTicket(b, s, { provider_id: provider_id ?? null, party_size, token: token(), lang: lang === "en" ? "en" : "ar" });
     commit(b.public_id);
@@ -771,6 +777,18 @@ function ownerAction(user, action, body) {
       const col = COLLECTION[body.table] ?? fail("invalid_input", { field: "table" });
       return { rows: db[col].filter((r) => r.branch_id === b.id) };
     }
+    case "ticket_events": {
+      const b = ownedBranch(user, body.branch_id), ev = [];
+      for (const t of db.tickets.filter((x) => x.branch_id === b.id)) {
+        const dev = db.devices.find((d) => d.id === t.called_by)?.label ?? "الموظف";
+        ev.push({ created_at: t.joined_at ?? t.created_at, event: "created", actor: t.source === "remote" ? "customer" : "staff", number: t.number });
+        if (t.snooze_count) ev.push({ created_at: t.joined_at ?? t.created_at, event: "moved_back", actor: "customer", number: t.number });
+        if (t.called_at) ev.push({ created_at: t.called_at, event: "called", actor: dev, number: t.number });
+        if (t.done_at) ev.push({ created_at: t.done_at, event: "done", actor: dev, number: t.number });
+        if (t.status === "no_show" || t.status === "left") ev.push({ created_at: t.left_at ?? iso(), event: t.status, actor: t.status === "left" ? "customer" : dev, number: t.number });
+      }
+      return { events: ev.sort((x, y) => (x.created_at < y.created_at ? 1 : -1)).slice(0, body.limit ?? 100) };
+    }
     case "upsert": {
       const cols = TABLES[body.table] ?? fail("invalid_input", { field: "table" });
       const row = pick(body.row, cols);
@@ -917,6 +935,14 @@ export async function createApi() {
           { category: "مشروبات باردة", name: "آيس لاتيه", description: "حليب طازج", price_sar: 19, duration_min: null },
           { category: "مخبوزات", name: "كرواسون زعتر", description: null, price_sar: null, duration_min: null }] };
       }
+      if (action === "describe_items") {
+        const user = requireUser(), b = ownedBranch(user, body.branch_id);
+        need(b, "menu_photo_ai");
+        const items = Array.isArray(body.items) ? body.items.slice(0, 20) : [];
+        if (!items.length) fail("invalid_input", { field: "items" });
+        await new Promise((r) => setTimeout(r, 700));
+        return { descriptions: items.map((it, i) => demoFeel(it, i + Math.floor(Math.random() * 3))) };
+      }
       if (action === "qa") {
         const b = branchByPublic(body.public_id) ?? fail("branch_not_found");
         need(b, "qa_assistant");
@@ -978,3 +1004,21 @@ export async function createApi() {
   };
 }
 const authCbs = new Set();
+
+/** Demo stand-in for «اكتب لي بإحساس»: warm Saudi lines by kind of item, using only what the owner typed. */
+function demoFeel(it, seed) {
+  const n = String(it.name ?? ""), note = it.note ? ` ${it.note}.` : "";
+  const pick = (arr) => arr[seed % arr.length];
+  const kinds = [
+    [/قهوة|لاتيه|كورتادو|سبانش|موكا|اسبريسو|شاي/, ["أول رشفة تصحّي يومك، وتخليك تبتسم بدون سبب ☕", "دفا في الكوب يرجّع لك مزاجك من أول رشفة", "تستاهل لحظة هدوء… وهذي هي"]],
+    [/كيك|كوكيز|حلا|كرواسون|تمر/, ["قطعة صغيرة تخلّي القهوة تكمل", "طعم البيت، بس بدون ما توقف في المطبخ", "حلاوة خفيفة تخفف عنك زحمة اليوم"]],
+    [/ذقن|لحية|لحيه/, ["تطلع وأنت مرتب من أول نظرة في المراية", "لمسة مرتبة تخليك واثق في كل لقاء", "التفاصيل الصغيرة اللي ينتبه لها الكل"]],
+    [/حلاقة|قص|شعر/, ["تقوم من الكرسي وكأنك شخص جديد", "ترتاح على الكرسي، وتطلع وأنت راضي عن نفسك", "قصّة تشبهك، وتخليك تحب صورتك"]],
+    [/بشرة|تنظيف|ماسك|عناية/, ["بشرتك تتنفس، وأنت ترتاح دقايق ما تنحسب من يومك 🌿", "انتعاش تحسه قبل ما تشوفه", "هدية صغيرة لوجهك بعد أسبوع طويل"]],
+    [/مكياج|سشوار|استشوار|صبغ|أظافر|مناكير|حنا|حناء/, ["تطلعين وأنتِ واثقة، والصور تشهد 💅", "لمسة تخليك جاهزة لأي مناسبة", "وقت لك أنتِ، ونتيجة تفرّحك"]],
+    [/غسيل|تلميع|تنظيف داخلي|سيارة/, ["ترجع لسيارتك وكأنها طالعة من المعرض اليوم 🚗", "ريحة نظافة تستقبلك أول ما تفتح الباب", "سيارتك تلمع، وأنت مرتاح ما تعبت"]],
+    [/كوي|كي|ملابس|ثوب|ثياب/, ["ثوبك جاهز ومكوي، وأنت فاضي لأشياء أهم", "تلبس وتطلع، والمرتّب يبان من بعيد"]],
+  ];
+  const lines = kinds.find(([re]) => re.test(n))?.[1] ?? ["تجربة تخليك ترجع لنا بنفسك", "نهتم بالتفاصيل عشان تطلع راضي", "وقت مرتّب يفرق في يومك"];
+  return (pick(lines) + note).slice(0, 200);
+}

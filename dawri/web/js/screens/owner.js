@@ -329,6 +329,18 @@ export async function render(ctx) {
   }
 
   // ---------------- الإعدادات ----------------
+  async function auditLog() {
+    let events;
+    try { events = (await api.owner("ticket_events", { branch_id: br.id, limit: 150 })).events; } catch (e) { return toast(errorText(e), { error: true }); }
+    const AR = { created: "أخذ دور", called: "تم النداء", serving: "بدأت الخدمة", done: "خلص", no_show: "ما حضر", cancelled: "ألغي", left: "طلع من الطابور",
+      waiting: "رجع للانتظار", moved_back: "تأجّل", priority: "أولوية", provider: "تغيّر الموظف" };
+    const who = (a) => (a === "customer" ? "الزبون" : a === "system" ? "النظام" : a === "staff" ? "الموظف" : a);
+    const tm = (x) => new Date(x).toLocaleTimeString("ar-SA-u-nu-arab", { hour: "numeric", minute: "2-digit" });
+    await openSheet({ title: "سجل الطابور", body: [events.length ? h("div.list", { "data-testid": "audit-rows" }, events.map((e) => h("div.list-item",
+      h("span.badge", num(e.number)), h("div.grow", h("div", AR[e.event] ?? (e.event.startsWith("stage:") ? "تغيّرت المرحلة" : e.event)), h("div.muted.small", who(e.actor))),
+      h("span.muted.small.num", tm(e.created_at))))) : h("p.muted", "ما فيه حركة لليوم")], actions: [{ label: "تمام", primary: true }] });
+  }
+
   async function settings() {
     const parts = [planBadge()];
     if (branches.length > 1) {
@@ -339,6 +351,8 @@ export async function render(ctx) {
       card("التنبيهات", "bell", h("p.muted.small", "إنذار الزحمة وملخص المساء يوصلونك على هذا الجوال."), h("button.btn.btn-block", { type: "button", onclick: enableOwnerPush }, icon("bell"), "فعّل تنبيهاتي")),
       card("المظهر", "contrast", h("div.seg", { role: "group" }, [[null, "تلقائي"], ["light", "فاتح"], ["dark", "داكن"]].map(([v, label]) =>
         h("button", { type: "button", "aria-pressed": String(currentTheme() === v), "data-theme-choice": v ?? "auto", onclick: (e) => { setTheme(v); e.currentTarget.parentElement.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === e.currentTarget))); } }, label)))),
+      card("سجل الطابور", "history", h("p.muted.small", "كل نداء وتأجيل وغياب مسجّل: مين سوّاه ومتى. يفيدك إذا صار خلاف أو تلاعب."),
+        h("button.btn.btn-block", { type: "button", "data-testid": "audit-log", onclick: auditLog }, icon("list-search"), "افتح السجل")),
       card("ملصق QR للطباعة", "printer", h("p.muted.small", "ملصق باسم المحل ورمز يفتح صفحتك."), h("a.btn.btn-block", { href: "./owner/poster" }, "افتح الملصق")),
       planCard(),
       h("button.btn.btn-ghost.btn-block", { type: "button", onclick: async () => { await api.auth.signOut(); nav("./"); } }, icon("logout"), "تسجيل خروج"));
@@ -392,9 +406,9 @@ export async function render(ctx) {
       const on = h("input", { type: "checkbox", checked: !!iv, "aria-label": `${WEEKDAYS.ar[i]} مفتوح` });
       const o = h("input", { type: "time", value: iv?.[0] ?? "09:00", "aria-label": "يفتح" });
       const c = h("input", { type: "time", value: iv?.[1] ?? "23:00", "aria-label": "يقفل" });
-      return { k, on, o, c, el: h("div.row", { style: { flexWrap: "nowrap", gap: "6px" } }, h("label.check", { style: { minWidth: "6.5em" } }, on, h("span", WEEKDAYS.ar[i])), o, c) };
+      return { k, on, o, c, el: h("div.hours-row", h("label.check", on, h("span", WEEKDAYS.ar[i])), o, c) };
     });
-    rows.forEach((r) => [r.o, r.c].forEach((x) => Object.assign(x.style, { minHeight: "40px", padding: "6px", borderRadius: "10px", border: "1.5px solid var(--line)", background: "var(--paper)", minWidth: 0, flex: 1 })));
+    rows.forEach((r) => [r.o, r.c].forEach((x) => Object.assign(x.style, { minHeight: "40px", padding: "6px 4px", borderRadius: "10px", border: "1.5px solid var(--line)", background: "var(--paper)" })));
     return { el: h("div.stack", rows.map((r) => r.el)), value: () => Object.fromEntries(rows.map((r) => [r.k, r.on.checked ? [[r.o.value, r.c.value]] : []])) };
   }
 
@@ -404,20 +418,69 @@ export async function render(ctx) {
     const photoBtn = has("menu_photo_ai") ? h("label.btn.btn-block", { "data-testid": "menu-photo" }, icon("camera"), "صوّر قائمتك",
       h("input.sr", { type: "file", accept: "image/*", capture: "environment", onchange: (e) => menuFromPhoto(e.target.files[0]) })) : locked("menu_photo_ai");
     return card("قائمتي", "tools-kitchen-2",
-      rows.length ? h("div.list", rows.map((m) => h("div.list-item", h("div.grow", h("div", m.name), h("div.muted.small", [m.category, m.price_sar != null ? `${num(+m.price_sar)} ر.س` : null].filter(Boolean).join(" · "))),
+      rows.length ? h("div.list", rows.map((m) => h("div.list-item", h("div.grow", h("div", m.name), h("div.muted.small", [m.category, m.price_sar != null ? `${num(+m.price_sar)} ر.س` : null].filter(Boolean).join(" · ")),
+        m.description ? h("div.small.feel-line", m.description) : null),
         h("button.icon-btn", { type: "button", "aria-label": "تعديل", onclick: () => menuSheet(m) }, icon("pencil")),
         h("button.icon-btn", { type: "button", "aria-label": "حذف", onclick: async () => { await api.owner("delete", { table: "menu_items", id: m.id }); settings(); } }, icon("trash"))))) : h("p.muted", "القائمة فاضية"),
-      h("button.btn.btn-block", { type: "button", onclick: () => menuSheet() }, icon("plus"), "صنف جديد"), photoBtn);
+      h("button.btn.btn-block", { type: "button", onclick: () => menuSheet() }, icon("plus"), "صنف جديد"), photoBtn,
+      has("menu_photo_ai") && rows.some((m) => !m.description) ? h("button.btn.btn-block.btn-feel", { type: "button", "data-testid": "describe-all", onclick: () => describeAll(rows) },
+        icon("sparkles"), `اكتب أوصاف ${num(rows.filter((m) => !m.description).length)} أصناف بإحساس`) : null);
   }
+
+  // «اكتب لي بإحساس»: AI writes a warm line from what the owner typed; the owner can edit, rewrite, or keep their own.
+  const feelBtn = (getItem, onText) => {
+    if (!has("menu_photo_ai")) return null;
+    const btn = h("button.btn.btn-feel", { type: "button", "data-testid": "write-feel" }, icon("sparkles"), "اكتب لي بإحساس");
+    btn.addEventListener("click", async () => {
+      const it = getItem();
+      if (!it.name) return toast("اكتب اسم الخدمة أول", { error: true });
+      btn.disabled = true; btn.classList.add("busy");
+      try { onText((await api.ai("describe_items", { branch_id: br.id, items: [it] })).descriptions[0] ?? ""); btn.replaceChildren(icon("refresh"), "اكتب غيرها"); }
+      catch (e) { toast(errorText(e), { error: true }); }
+      finally { btn.disabled = false; btn.classList.remove("busy"); }
+    });
+    return btn;
+  };
 
   async function menuSheet(m = {}) {
     const name = h("input", { maxlength: 80, value: m.name ?? "" }), cat = h("input", { maxlength: 40, value: m.category ?? "" });
     const price = h("input", { type: "number", min: 0, step: "0.5", value: m.price_sar ?? "" }), err = h("p.err", { hidden: true });
-    await openSheet({ title: m.id ? "تعديل صنف" : "صنف جديد", body: [field("الاسم", name), field("القسم", cat), field("السعر (ر.س)", price), err], actions: [{ label: "احفظ", primary: true, onClick: async (close) => {
+    const dur = h("input", { type: "number", min: 1, max: 600, value: m.duration_min ?? "", placeholder: "اختياري" });
+    const desc = h("textarea", { id: "item-desc", maxlength: 200, rows: 2, placeholder: "سطر يحسّس الزبون بالتجربة… أو خلّه علينا" }, m.description ?? "");
+    const note = h("input", { id: "item-note", maxlength: 200, placeholder: "مثال: نستخدم مناشف ساخنة وزيت طبيعي" });
+    const item = () => ({ name: name.value.trim(), category: cat.value.trim() || null, price_sar: price.value === "" ? null : +price.value,
+      duration_min: dur.value === "" ? null : +dur.value, note: note.value.trim() || null });
+    const feel = feelBtn(item, (text) => { desc.value = text; desc.focus(); });
+    await openSheet({ title: m.id ? "تعديل صنف" : "صنف جديد", body: [field("الاسم", name), field("القسم", cat),
+      h("div.grid2", field("السعر (ر.س)", price), field("المدة (دقيقة)", dur)),
+      field("الوصف", desc),
+      feel ? h("div.feel-box", h("label.field", h("span", "وش يميّز هالخدمة عندك؟ (يساعدنا نكتب بصدق)"), note), feel,
+        h("p.muted.small", "نكتب من كلامك أنت بس، وما نضيف وعود أو مكونات ما ذكرتها.")) : null, err],
+      actions: [{ label: "احفظ", primary: true, onClick: async (close) => {
       if (!name.value.trim()) { err.hidden = false; err.textContent = "اكتب الاسم"; return; }
-      try { await api.owner("upsert", { table: "menu_items", row: { id: m.id, branch_id: br.id, name: name.value.trim(), category: cat.value.trim() || null, price_sar: price.value === "" ? null : +price.value } }); close(); settings(); }
+      try { await api.owner("upsert", { table: "menu_items", row: { id: m.id, branch_id: br.id, name: name.value.trim(), category: cat.value.trim() || null,
+        price_sar: price.value === "" ? null : +price.value, duration_min: dur.value === "" ? null : +dur.value, description: desc.value.trim() || null } }); close(); settings(); }
       catch (e) { err.hidden = false; err.textContent = errorText(e); }
     } }, { label: "إلغاء", ghost: true }] });
+  }
+
+  /** Writes warm lines for every item that has none, then lets the owner review before saving. */
+  async function describeAll(rows) {
+    const todo = rows.filter((m) => !m.description).slice(0, 20);
+    if (!todo.length) return toast("كل الأصناف عندها وصف ✓");
+    toast("نكتب لك بإحساس…", { ms: 5000 });
+    let out;
+    try { out = (await api.ai("describe_items", { branch_id: br.id, items: todo.map((m) => ({ name: m.name, category: m.category, price_sar: m.price_sar != null ? +m.price_sar : null, duration_min: m.duration_min })) })).descriptions; }
+    catch (e) { return toast(errorText(e), { error: true }); }
+    const fields = todo.map((m, i) => ({ m, ta: h("textarea", { maxlength: 200, rows: 2, "aria-label": m.name }, out[i] ?? "") }));
+    await openSheet({ title: `كتبنا ${num(todo.length)} أوصاف`, body: [h("p.muted.small", "عدّل أي سطر على ذوقك، أو امسحه إذا ما عجبك."),
+      h("div.stack", { "data-testid": "feel-rows" }, fields.map((f) => h("label.field", h("span", f.m.name), f.ta)))],
+      actions: [{ label: "احفظ الأوصاف", primary: true, onClick: async (close) => {
+        try {
+          for (const f of fields) if (f.ta.value.trim()) await api.owner("upsert", { table: "menu_items", row: { id: f.m.id, branch_id: br.id, name: f.m.name, description: f.ta.value.trim() } });
+          close(); toast("صارت قائمتك تحكي ✨"); settings();
+        } catch (e) { toast(errorText(e), { error: true }); }
+      } }, { label: "إلغاء", ghost: true }] });
   }
 
   async function menuFromPhoto(file) {

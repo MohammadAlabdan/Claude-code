@@ -1,5 +1,5 @@
 // AI features: menu from photo (owner), Q&A assistant (anonymous), summary text (owner).
-import { aiAvailable, answerQuestion, menuFromPhoto, summaryText } from "../_shared/ai.ts";
+import { aiAvailable, answerQuestion, describeItems, menuFromPhoto, summaryText } from "../_shared/ai.ts";
 import { requireUser } from "../_shared/auth.ts";
 import { adminClient, rpc, rpcOk } from "../_shared/db.ts";
 import { HttpError, json, serve, str, uuid } from "../_shared/http.ts";
@@ -33,6 +33,26 @@ serve(async (req, body) => {
       if (!media) throw new HttpError("invalid_input", { field: "image_base64" });
       const items = await menuFromPhoto(await businessOf(branchId), raw, media);
       return json({ items, note_ar: "راجع الأصناف والأسعار قبل الحفظ" });
+    }
+
+    case "describe_items": {
+      const user = await requireUser(req);
+      const branchId = uuid(body, "branch_id")!;
+      if (!(await rpc<boolean>("can_manage_branch", { p_user: user.id, p_branch: branchId }))) throw new HttpError("forbidden");
+      await requireFeature(branchId, "menu_photo_ai");
+      const raw = Array.isArray(body.items) ? body.items as Record<string, unknown>[] : [];
+      if (!raw.length || raw.length > 20) throw new HttpError("invalid_input", { field: "items" });
+      const items = raw.map((it) => {
+        const text = (k: string, max: number) => (typeof it[k] === "string" && (it[k] as string).trim() ? (it[k] as string).trim().slice(0, max) : null);
+        const n = (k: string, lo: number, hi: number) => (typeof it[k] === "number" && (it[k] as number) >= lo && (it[k] as number) <= hi ? it[k] as number : null);
+        const name = text("name", 80);
+        if (!name) throw new HttpError("invalid_input", { field: "name" });
+        return { name, category: text("category", 40), price_sar: n("price_sar", 0, 100000), duration_min: n("duration_min", 1, 600), note: text("note", 200) };
+      });
+      const { data: br } = await adminClient().from("branches").select("business_id, name, businesses(name, category)").eq("id", branchId).single();
+      if (!br) throw new HttpError("branch_not_found");
+      const bz = (br as { businesses?: { name?: string; category?: string } }).businesses;
+      return json({ descriptions: await describeItems(br.business_id, { name: bz?.name ?? br.name, category: bz?.category ?? null }, items) });
     }
 
     case "qa": {

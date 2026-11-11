@@ -1,0 +1,151 @@
+<title>جاهزية دوري</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+:root{--paper:#F3F5F1;--sheet:#FFF;--ink:#1B2725;--muted:#56655F;--line:#D3DBD5;--accent:#0B8F6E;--ok-bg:#D4F1E6;--new:#1D4ED8;--new-bg:#DCE7FD;--plan:#8A5A00;--plan-bg:#FBEFD9;--you:#B42318;--you-bg:#FBE4E1;--board:#151B1A;--led:#FFB21E;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#101614;--sheet:#172120;--ink:#E7EEEA;--muted:#9AABA4;--line:#2A3734;--accent:#34D6A5;--ok-bg:#163329;--new:#93B4FB;--new-bg:#1A2747;--plan:#F4C877;--plan-bg:#2B2414;--you:#F59E92;--you-bg:#3A1F1A;--board:#070A09;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#101614;--sheet:#172120;--ink:#E7EEEA;--muted:#9AABA4;--line:#2A3734;--accent:#34D6A5;--ok-bg:#163329;--new:#93B4FB;--new-bg:#1A2747;--plan:#F4C877;--plan-bg:#2B2414;--you:#F59E92;--you-bg:#3A1F1A;--board:#070A09;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.8 "IBM Plex Sans Arabic",Tahoma,sans-serif;direction:rtl}
+.wrap{max-width:1000px;margin:0 auto;padding:40px max(16px,env(safe-area-inset-right)) 64px max(16px,env(safe-area-inset-left))}
+h1,h2,h3{font-family:"Lalezar",sans-serif;font-weight:400;line-height:1.3;margin:0}
+h1{font-size:clamp(32px,5vw,46px)}
+h2{font-size:27px;margin:44px 0 12px}
+h3{font-size:19px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.lede{font-size:18px;color:var(--muted);margin-top:10px;max-width:780px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0}
+.t{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.t.ok{background:var(--ok-bg);color:var(--accent)}.t.new{background:var(--new-bg);color:var(--new)}.t.plan{background:var(--plan-bg);color:var(--plan)}.t.you{background:var(--you-bg);color:var(--you)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.stat{background:var(--board);color:#E7EEEA;border-radius:16px;padding:16px;text-align:center}
+.stat b{display:block;font:400 34px/1.2 "Lalezar";color:var(--led)}
+.stat span{font-size:13.5px;color:#A9BAB3}
+.rows{display:grid;gap:10px}
+.row{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:34px 1fr;gap:12px}
+.row .n{font:400 22px/1.2 "Lalezar";color:var(--muted);text-align:center}
+.row h3{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.row p b{color:var(--ink)}
+.play{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card ol,.card ul{margin:8px 0 0;padding-inline-start:20px;font-size:15px;color:var(--muted)}
+.card li{margin:4px 0}
+.callout{background:var(--board);color:#E7EEEA;border-radius:18px;padding:20px 22px;margin-top:22px}
+.callout b{color:var(--led)}
+.callout ol{margin:8px 0 0;padding-inline-start:22px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--sheet)}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+th{background:var(--paper);font-weight:600}
+tr:last-child td{border-bottom:0}
+@media (max-width:760px){.stats{grid-template-columns:1fr 1fr}.play{grid-template-columns:1fr}}
+</style>
+<div class="wrap">
+  <span class="muted">تقرير جاهزية · ١١ نوفمبر ٢٠٢٦</span>
+  <h1>«دوري» أمام ملاحظات المراجعة</h1>
+  <p class="lede">راجعت الملاحظات الأربع عشرة والاقتراحات الاثنين والعشرين على الكود نفسه، مو على الموقع فقط. كثير منها كان موجوداً لكنه غير ظاهر في الموقع، وبعضها نفّذته اليوم، والباقي له خطة واضحة أو يحتاج قرارك.</p>
+  <div class="legend"><span class="t ok">موجود</span><span class="t new">نُفّذ اليوم</span><span class="t plan">خطة</span><span class="t you">يحتاج قرارك</span></div>
+
+  <div class="stats">
+    <div class="stat"><b>540</b><span>عملية في الثانية تحت الضغط</span></div>
+    <div class="stat"><b>0</b><span>أخطاء وأرقام مكررة في اختبار الضغط</span></div>
+    <div class="stat"><b>95</b><span>اختبار لقاعدة البيانات نجحت</span></div>
+    <div class="stat"><b>18</b><span>اختبار لتجربة الاستخدام نجحت</span></div>
+  </div>
+
+  <div class="callout">
+    <b>أهم ما نُفّذ اليوم</b>
+    <ol>
+      <li><b>«اكتب لي بإحساس»:</b> صاحب المحل يكتب اسم الخدمة وملاحظة بسيطة، والذكاء الاصطناعي يكتب وصفاً عاطفياً باللهجة السعودية. يقدر يعدّله أو يطلب غيره، أو يكتب أوصاف كل الأصناف دفعة وحدة.</li>
+      <li><b>سجل الطابور:</b> كل نداء وتأجيل وغياب مسجّل، مع مين سوّاه ومتى. يفيد إذا صار خلاف أو تلاعب.</li>
+      <li><b>حساب أدق للانتظار:</b> يحسب الموظفين المتواجدين فعلاً الحين، مو كل الموظفين المسجّلين.</li>
+      <li><b>«اكتملت مواعيد اليوم»:</b> ما يقدر الزبون ياخذ دور ما راح يُخدم قبل الإغلاق، فما يجي على الفاضي.</li>
+      <li><b>سرعة أكبر بخمس مرات:</b> اكتشفها اختبار الضغط وأصلحناها (من ١١٢ إلى ٥٤٠ عملية في الثانية).</li>
+      <li><b>تنبيه انقطاع الإنترنت</b> في صفحات الزبون وصاحب المحل.</li>
+      <li><b>إصلاح خللين في الواجهة:</b> رسالة التنبيه المنبثقة كانت تمنع الضغط على الأزرار تحتها، وجدول الدوام كان يخرج عن عرض الجوالات الصغيرة.</li>
+    </ol>
+  </div>
+
+  <h2>أولاً: الملاحظات الأربع عشرة</h2>
+  <div class="rows">
+    <div class="row"><span class="n">١</span><div><h3>جاهزية النظام للضغط <span class="t new">نُفّذ اليوم</span></h3><p>أجرينا <b>اختبار ضغط فعلي</b>: ٥٠ محلاً و٢٠ مستخدماً في نفس اللحظة لمدة ٣٠ ثانية، وصل الطابور فيها إلى ٧٧ شخصاً في المحل الواحد. النتيجة: أكثر من ١٦ ألف عملية، <b>بدون أي خطأ أو رقم مكرر</b>. كشف الاختبار بطئاً في حساب وقت الانتظار، وأصلحناه فصار النظام أسرع ٥ مرات. وفيه اختبار خاص يتأكد أن ٤٠ شخصاً يأخذون رقماً في نفس اللحظة بدون أي تكرار.</p></div></div>
+    <div class="row"><span class="n">٢</span><div><h3>الاعتماد على إشعارات المتصفح فقط <span class="t plan">خطة</span> <span class="t you">قرار تكلفة</span></h3><p><b>الموجود الآن:</b> إشعار الجوال، وصوت واهتزاز، وتحديث مباشر للصفحة، والرقم الحالي يظهر في تذكرة كل زبون. <b>الحل المقترح:</b> واتساب ورسائل نصية كإضافة مدفوعة اختيارية، لأن كل رسالة لها تكلفة، والرسائل النصية في السعودية تحتاج تسجيل اسم المرسل. الترتيب: إشعار الجوال أولاً (مجاني)، فإن لم يصل خلال دقيقة نرسل واتساب أو رسالة نصية، وفقط لمن أعطى رقمه ووافق.</p></div></div>
+    <div class="row"><span class="n">٣</span><div><h3>تأخر العملاء وغيابهم وتجاوز أدوارهم <span class="t ok">موجود</span></h3><p><b>«تأخرت شوي»:</b> الزبون يؤجّل نفسه مكاناً أو مكانين، بحد أقصى يحدده المالك. <b>«ما حضر»</b> في المرة الأولى يؤخّره بعدد أماكن يحدده المالك، وفي الثانية يخرج من الطابور. <b>«ارجع الآن»:</b> تنبيه للزبون قبل دوره بدورين. والأولوية للمسن والحامل وذوي الإعاقة تسجّل مع اسم الجهاز الذي منحها. وكل هذا صار مسجّلاً اليوم في سجل الطابور.</p></div></div>
+    <div class="row"><span class="n">٤</span><div><h3>دقة وقت الانتظار <span class="t ok">موجود</span> <span class="t new">تحسّن اليوم</span></h3><p>كان النظام أصلاً يتعلّم المدة الفعلية لكل خدمة من آخر ٣٠ زبوناً (القيمة الوسطى، حتى لا تؤثر الحالات الشاذة)، ويحسب عدد الأشخاص في التذكرة العائلية. <b>اليوم</b> صار يحسب الموظفين المتواجدين فعلاً فقط. ويعرض للزبون وقتاً بهامش بسيط، فإذا جاه الدور أبكر يفرح بدل ما يزعل.</p></div></div>
+    <div class="row"><span class="n">٥</span><div><h3>التمايز عن المنافسين <span class="t ok">موجود</span></h3><p>«وأنت تنتظر» والمفاجأة المختومة، و«تحدّياتي»، و«أبيها»، و«نبّهني لما تهدأ»، وشاشة الموظف بخمس لغات، ووضع الاستلام والتسليم، والآن «اكتب لي بإحساس». ما وجدنا أياً منها عند لايني أو منيوهات أو دورك.</p></div></div>
+    <div class="row"><span class="n">٦</span><div><h3>الأسعار مرتفعة <span class="t you">يحتاج قرارك</span></h3><p>نقترح: باقة مجانية لطابور واحد، ثم ٩٩، ثم ١٩٩ للنمو (فيها كل الميزات الفريدة)، ثم ٣٤٩، مع ضمان العائد. التفاصيل في تقرير المنافسين. تعديل الأسعار في النظام ياخذ ساعة، بعد موافقتك.</p></div></div>
+    <div class="row"><span class="n">٧</span><div><h3>الحجوزات الوهمية والتلاعب <span class="t ok">موجود</span> <span class="t new">سجل التعديلات اليوم</span></h3><p><b>الموجود:</b> حد للحجز من خارج المحل يحدده المالك (افتراضياً ٥ في نفس الوقت)، وحد لعدد الأدوار من نفس الجهاز في الساعة، وحد لعدد العمليات على التذكرة الواحدة، وترتيب الحجوزات واحداً واحداً بحيث يستحيل تكرار الرقم، ورمز سري يتغيّر كل دقيقة لاستلام المكافآت، وإيقاف الحجز من الخارج قبل الإغلاق. <b>اليوم:</b> سجل كامل لكل تعديل ومن قام به.</p></div></div>
+    <div class="row"><span class="n">٨</span><div><h3>سهولة استخدام الموظف وقت الزحمة <span class="t ok">موجود</span></h3><p>زر واحد كبير «نادِ التالي» يُنهي الزبون السابق تلقائياً، ومصمّم ليُستخدم بيد واحدة، وبلغة الموظف. ومع ذلك، الحكم النهائي يكون في <b>التجربة الميدانية</b> (البند ١٣).</p></div></div>
+    <div class="row"><span class="n">٩</span><div><h3>التخصيص حسب النشاط <span class="t ok">موجود</span> <span class="t plan">توسعة</span></h3><p>ثلاثة أوضاع: طابور مباشر، وطلب وتجهيز، واستلام وتسليم، ويختار النظام الوضع المناسب من نوع النشاط عند التسجيل. <b>خطة:</b> قوالب جاهزة لكل نشاط (خدمات وأسعار ومدد مقترحة)، وخيار «إخفاء الأسماء» للمشاغل النسائية.</p></div></div>
+    <div class="row"><span class="n">١٠</span><div><h3>انقطاع الإنترنت أو توقف النظام <span class="t ok">موجود</span> <span class="t new">تحسّن اليوم</span></h3><p><b>جهاز الموظف:</b> يحفظ الضغطات أثناء الانقطاع ويرسلها تلقائياً عند عودة الاتصال. <b>اليوم:</b> صفحة الزبون تقول له بلطف إن دوره محفوظ. وتفاصيل التعامل مع توقف السيرفر في «دليل التشغيل» أدناه.</p></div></div>
+    <div class="row"><span class="n">١١</span><div><h3>إثبات العائد الفعلي <span class="t ok">جزئياً</span> <span class="t plan">خطة</span></h3><p>النظام يسجّل فعلاً طلبات «أبيها» والتحدّيات المكتملة والزبائن الراجعين. <b>الخطوة التالية:</b> بطاقة «دوري جاب لك هالشهر: X ريال» تعتمد على هذه الأرقام الحقيقية فقط، وليس على تقديرات.</p></div></div>
+    <div class="row"><span class="n">١٢</span><div><h3>حماية البيانات والموافقات <span class="t ok">موجود</span> <span class="t you">مراجعة نظامية</span></h3><p>لا نطلب رقم الجوال إلا اختيارياً، وبموافقة صريحة مسجّلة. و«نبّهني لما تهدأ» لا يحفظ اسماً ولا رقماً، ويُحذف بعد ٤ ساعات. ولكل مالك صلاحية على فرعه فقط، وهذا مضمون في قاعدة البيانات نفسها. <b>ننصح</b> بمراجعة متطلبات نظام حماية البيانات الشخصية في السعودية مع مختص قبل الإطلاق التجاري، وكتابة سياسة خصوصية رسمية.</p></div></div>
+    <div class="row"><span class="n">١٣</span><div><h3>لا توجد نتائج ميدانية <span class="t you">يحتاج تنفيذك</span></h3><p>هذا لا يُحل بالبرمجة. خطة تجربة لمدة أسبوعين مقترحة أدناه.</p></div></div>
+    <div class="row"><span class="n">١٤</span><div><h3>العلامة التجارية «دوري» <span class="t you">يحتاج تنفيذك</span></h3><p>يجب البحث في سجل الهيئة السعودية للملكية الفكرية قبل أي صرف على التسويق، بسبب وجود «دورك». إذا كان الاسم متاحاً سجّله فوراً. وإذا لم يكن متاحاً، أقترح عليك أسماء بديلة.</p></div></div>
+  </div>
+
+  <h2>ثانياً: الاقتراحات الاثنان والعشرون</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>#</th><th>الاقتراح</th><th>الحالة</th><th>التفاصيل</th></tr></thead>
+    <tbody>
+      <tr><td>١</td><td>طابور ذكي</td><td><span class="t ok">موجود</span> <span class="t new">تحسّن</span></td><td>يتعلّم المدة الفعلية لكل خدمة ولكل موظف، ويحسب المتواجدين فعلاً</td></tr>
+      <tr><td>٢</td><td>إدارة التأخير</td><td><span class="t ok">موجود</span></td><td>«تأخرت شوي» بحد أقصى، و«ارجع الآن»، والتأخير التلقائي عند الغياب</td></tr>
+      <tr><td>٣</td><td>إشعارات متعددة</td><td><span class="t plan">خطة</span></td><td>واتساب ورسائل نصية كإضافة مدفوعة (البند ٢)</td></tr>
+      <tr><td>٤</td><td>حماية الطابور وسجل التعديلات</td><td><span class="t ok">موجود</span> <span class="t new">نُفّذ</span></td><td>حدود الحجز وسجل كامل لكل تعديل</td></tr>
+      <tr><td>٥</td><td>تخصيص الأنشطة</td><td><span class="t ok">موجود</span> <span class="t plan">قوالب</span></td><td>ثلاثة أوضاع، والقوالب الجاهزة قادمة</td></tr>
+      <tr><td>٦</td><td>توزيع العملاء على الموظفين</td><td><span class="t ok">موجود</span></td><td>«حلاقي المفضّل»، أو أول موظف يتفرّغ</td></tr>
+      <tr><td>٧</td><td>الطاقة الاستيعابية</td><td><span class="t ok">موجود</span> <span class="t new">نُفّذ</span></td><td>حد للحجز من الخارج، وإنذار للمالك عند الزحمة، والآن «اكتملت مواعيد اليوم»</td></tr>
+      <tr><td>٨</td><td>ولاء مرن</td><td><span class="t ok">موجود</span></td><td>بطاقة زيارات بمكافأة يحددها المالك، وتحدّيات بأنواعها</td></tr>
+      <tr><td>٩</td><td>إضافات أثناء الانتظار</td><td><span class="t ok">موجود</span></td><td>زر «أبيها» يظهر للموظف قبل وصول الدور. تحديث السعر الإجمالي في التذكرة: خطة</td></tr>
+      <tr><td>١٠</td><td>لوحة تحكم مباشرة</td><td><span class="t ok">موجود</span></td><td>«نبضي»: الطابور، والمتأخرين، ومتوسط الانتظار</td></tr>
+      <tr><td>١١</td><td>تقارير ذكية</td><td><span class="t ok">موجود</span></td><td>ملخص المساء، وتقرير الذروة، والزبائن الضائعين بالريال، والغايبون</td></tr>
+      <tr><td>١٢</td><td>مساعد للمالك</td><td><span class="t ok">جزئياً</span></td><td>اقتراح تحدّيات لأوقات الهدوء، ونصيحة يومية. اقتراح توزيع الموظفين: خطة</td></tr>
+      <tr><td>١٣</td><td>نظام بديل عند الانقطاع</td><td><span class="t ok">موجود</span></td><td>حفظ ضغطات الموظف وإرسالها لاحقاً، وخطة ورقية للطوارئ (أدناه)</td></tr>
+      <tr><td>١٤</td><td>واجهة موظف سريعة</td><td><span class="t ok">موجود</span></td><td>زر واحد، وبيد واحدة، وبخمس لغات</td></tr>
+      <tr><td>١٥</td><td>بدون تطبيق</td><td><span class="t ok">موجود</span></td><td>QR ورابط مباشر، بلا تسجيل</td></tr>
+      <tr><td>١٦</td><td>واجهة داكنة افتراضية</td><td><span class="t you">بديل أفضل</span></td><td>نقترح أن يتبع الوضع إعداد الجوال تلقائياً مع زر تبديل (موجود)، لأن الوضع الفاتح أوضح في الشمس. تخصيص لون المحل: خطة</td></tr>
+      <tr><td>١٧</td><td>الفروع والصلاحيات</td><td><span class="t ok">جزئياً</span></td><td>فروع متعددة للمالك، وأجهزة موظفين لكل فرع. دور «المدير»: خطة</td></tr>
+      <tr><td>١٨</td><td>قياس العائد</td><td><span class="t plan">خطة</span></td><td>بطاقة العائد الحقيقي (البند ١١)</td></tr>
+      <tr><td>١٩</td><td>إدارة الخصوصية</td><td><span class="t ok">موجود</span></td><td>موافقة صريحة، والتنبيهات التشغيلية منفصلة عن التسويق</td></tr>
+      <tr><td>٢٠</td><td>باقات مرنة</td><td><span class="t you">قرارك</span></td><td>باقة مجانية وإضافات مدفوعة (البند ٦)</td></tr>
+      <tr><td>٢١</td><td>الربط مع الأنظمة الأخرى</td><td><span class="t plan">لاحقاً</span></td><td>فوديكس للمقاهي أولاً، بعد التجربة الميدانية</td></tr>
+      <tr><td>٢٢</td><td>تجربة ميدانية</td><td><span class="t you">تنفيذك</span></td><td>الخطة أدناه</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>دليل التشغيل: ماذا يحدث لو…</h2>
+  <div class="play">
+    <div class="card"><h3>انقطع الإنترنت عند الموظف</h3><ul><li>تظهر له رسالة «ما فيه اتصال، نحفظ الضغطات»</li><li>يكمل شغله عادي، والضغطات تُرسل أول ما يرجع الاتصال</li><li>إذا طال الانقطاع: ينادي بالأرقام من القائمة المطبوعة</li></ul></div>
+    <div class="card"><h3>انقطع الإنترنت عند الزبون</h3><ul><li>تقول له الصفحة: دورك محفوظ عندنا</li><li>تتحدّث تلقائياً لما يرجع الاتصال</li><li>آخر رقم وصله يبقى ظاهر في تذكرته</li></ul></div>
+    <div class="card"><h3>توقف السيرفر بالكامل</h3><ol><li>المحل يرجع لنظام الأرقام الورقية (دفتر طوارئ يُعطى مع الملصق)</li><li>تنبيه تلقائي لنا خلال دقائق (مراقبة تشغيل: خطة)</li><li>نسخ احتياطي يومي لقاعدة البيانات، يتم إعداده مع السيرفر</li><li>الطابور محفوظ في قاعدة البيانات، ويكمل من حيث توقف</li></ol></div>
+    <div class="card"><h3>زبون أخذ دوراً ولم يحضر</h3><ul><li>الموظف يضغط «ما حضر»، فيتأخر الزبون أماكن يحددها المالك</li><li>إذا تكرر غيابه يخرج من الطابور</li><li>كل ذلك مسجّل باسم الجهاز والوقت</li></ul></div>
+    <div class="card"><h3>شخص يحاول إغراق الطابور</h3><ul><li>حد للأدوار من نفس الجهاز في الساعة، وحد للحجز من الخارج</li><li>المالك يشوف في السجل كل الأدوار ومصدرها</li><li>الموظف يقدر يُخرج أي دور وهمي بزر «ما حضر»</li></ul></div>
+    <div class="card"><h3>خلاف «أنا قبله»</h3><ul><li>المالك يفتح «سجل الطابور» ويشوف من أخذ دوره أولاً ومتى</li><li>والأولوية مسجّلة مع سببها والجهاز الذي منحها</li></ul></div>
+  </div>
+
+  <h2>خطة التجربة الميدانية (أسبوعان)</h2>
+  <div class="card">
+    <ol>
+      <li><b>اختيار ٣ إلى ٥ محلات:</b> حلاق، ومشغل نسائي، ومغسلة، ومقهى صغير. يفضّل محلات عندها زحمة حقيقية في المساء.</li>
+      <li><b>اليوم الأول:</b> تركيب الملصق، وتدريب الموظف ١٠ دقائق، وتجربة دور واحد أمام المالك.</li>
+      <li><b>نقيس قبل وبعد:</b> متوسط الانتظار، وعدد من يمشون بدون خدمة، وطلبات «أبيها» بالريال، ونسبة الزبائن الراجعين، ورضا الزبائن.</li>
+      <li><b>زيارة في اليوم الثالث:</b> نسأل الموظف عن أي شيء أبطأه، ونعدّل فوراً.</li>
+      <li><b>نهاية الأسبوعين:</b> تقرير بالأرقام الحقيقية، يصير أول قصة نجاح نعرضها في الموقع بموافقة المالك.</li>
+    </ol>
+  </div>
+
+  <h2>ما أحتاجه منك</h2>
+  <div class="card">
+    <ol>
+      <li><b>الأسعار:</b> هل نعتمد الهيكل المقترح؟ (مجاني، ثم ٩٩، ثم ١٩٩، ثم ٣٤٩)</li>
+      <li><b>العلامة التجارية:</b> البحث عن «دوري» في سجل الهيئة السعودية للملكية الفكرية.</li>
+      <li><b>واتساب والرسائل النصية:</b> هل نضيفها كخدمة مدفوعة؟ وأي مزوّد تفضّل؟</li>
+      <li><b>التجربة الميدانية:</b> ترشيح محلات تعرف أصحابها.</li>
+      <li><b>السيرفر:</b> تشغيل أمر التثبيت على Hostinger لنبدأ التجربة على بيانات حقيقية.</li>
+    </ol>
+  </div>
+</div>

@@ -60,7 +60,16 @@ function makeShell(lang, demo) {
   const top = h("header.topbar", h("a.brand", { href: "./", "aria-label": "دوري" }, h("img", { src: "./assets/logo.svg", alt: "" })), titleEl, actions);
   const content = h("main.content", { id: "main", tabindex: "-1" });
   const tabbar = h("nav.tabbar", { hidden: true, "aria-label": "tabs" });
-  fill(appEl, demo ? h("div.demo-strip", { role: "note" }, "وضع تجريبي · بيانات للعرض فقط") : null, top, content, tabbar);
+  // Customer and owner pages: say plainly when the connection drops (the staff screen has its own queueing bar).
+  const offline = location.pathname.includes("/staff") ? null
+    : h("div.offline-bar.soft", { role: "status", hidden: navigator.onLine, "data-testid": "offline-strip" },
+      lang === "ar" ? "انقطع الإنترنت عندك… دورك محفوظ عندنا، والصفحة ترجع تتحدّث أول ما يرجع الاتصال" : "You're offline. Your turn is safe with us; this page updates again once you're back online");
+  if (offline && !window.__dawriOffline) {
+    window.__dawriOffline = true;
+    window.addEventListener("offline", () => document.querySelectorAll("[data-testid=offline-strip]").forEach((e) => (e.hidden = false)));
+    window.addEventListener("online", () => document.querySelectorAll("[data-testid=offline-strip]").forEach((e) => (e.hidden = true)));
+  }
+  fill(appEl, demo ? h("div.demo-strip", { role: "note" }, "وضع تجريبي · بيانات للعرض فقط") : null, offline, top, content, tabbar);
   appEl.classList.remove("has-tabs");
   document.documentElement.lang = lang;
   document.documentElement.dir = langDir(lang);

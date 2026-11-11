@@ -3,7 +3,7 @@ import { requireUser } from "../_shared/auth.ts";
 import { checkFeature, dbError, listRows, pick, spec } from "../_shared/catalog.ts";
 import { env, rpc, rpcOk, userClient } from "../_shared/db.ts";
 import { settle } from "../_shared/effects.ts";
-import { HttpError, json, serve, str, subscription, uuid } from "../_shared/http.ts";
+import { HttpError, int, json, serve, str, subscription, uuid } from "../_shared/http.ts";
 import { busiestSlot, questSuggestions, quietCouponDraft, quietWindows } from "../_shared/logic.ts";
 
 async function quiet(userId: string, branchId: string) {
@@ -71,6 +71,9 @@ serve(async (req, body) => {
       const locked = !(await rpc<boolean>("has_feature", { p_branch: b, p_feature: "quiet_coupon" }));
       return json({ suggestion: { ...quietCouponDraft(q.windows[0]), branch_id: b }, locked, required_plan: locked ? "full" : null });
     }
+
+    case "ticket_events":
+      return json({ events: await rpcOk("o_ticket_events", { p_user: user.id, p_branch: branch(), p_limit: int(body, "limit", 1, 500, 100) }) });
 
     case "quests":
       return json(await rpcOk("o_quests", { p_user: user.id, p_branch: branch() }));

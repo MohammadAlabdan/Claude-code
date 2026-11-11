@@ -14,7 +14,7 @@ Everything the frontend (Part 2) may call. All JSON, UTF-8. Times are ISO-8601 U
 Headers for Edge Functions: `apikey: <anon key>`, `Content-Type: application/json`, plus:
 - `customer`, `ai` (`qa`, `status`): nothing else.
 - `staff`: `x-device-token: <pairing token>`.
-- `owner`, `onboard`, `ai` (`menu_from_photo`, `summary_text`), `admin`: `Authorization: Bearer <user access token>`.
+- `owner`, `onboard`, `ai` (`menu_from_photo`, `describe_items`, `summary_text`), `admin`: `Authorization: Bearer <user access token>`.
 - `daily-summary`, `maintenance`: `Authorization: Bearer <service role key>` (cron only).
 
 Every function answers `OPTIONS` for CORS and only accepts `POST`.
@@ -41,6 +41,7 @@ Show `message_ar` (or `message_en`) to the user. Extra fields depend on the code
 | `branch_not_found`, `ticket_not_found`, `offer_not_found`, `not_found` | 404 | |
 | `closed` | 409 | `next_open_at`, `busy_level` |
 | `closing_soon` | 409 | `next_open_at`, `busy_level` |
+| `full_today` | 409 | `next_open_at`, `busy_level` — the queue ahead plus this service would end after closing (shops with a real closing time only) |
 | `remote_limit` | 409 | `busy_level` |
 | `invalid_state`, `not_waiting`, `not_done`, `snooze_limit`, `feedback_exists`, `no_reward`, `offer_inactive`, `already_redeemed`, `too_many_businesses` | 409 | |
 | `image_too_large` | 413 | |
@@ -167,7 +168,7 @@ Busy level: manual level if staff/owner set one in the last 30 minutes, else `fr
 | `quiet_unwatch` | `{subscription}` | `{ok, removed}` |
 | `interest` | `{token, item_id, on?: bool}` | `{ok, interests: [menu item ids]}` — «أبيها» (feature `upsell`, max 5) |
 
-Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). Join rate limit: 3 per device (IP+UA) per branch per hour; 30 actions per ticket per hour. Join refusals: `closed`, `closing_soon`, `remote_limit`, `rate_limited`.
+Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). Join rate limit: 3 per device (IP+UA) per branch per hour; 30 actions per ticket per hour. Join refusals: `closed`, `closing_soon`, `full_today`, `remote_limit`, `rate_limited`. Every change to a ticket is written to `ticket_events` (actor: `customer`, `device:<id>`, `staff`, `system`).
 
 ## 7. `staff` function (`x-device-token`)
 
@@ -227,6 +228,7 @@ Store `ticket_token` per branch in `localStorage` (`dawri.ticket.<public_id>`). 
 | `upsert` | `{table, row}` (`row.id` updates, else inserts; `business_pages` keys on `branch_id`; `branches` needs `row.id`) | `{ok, row}` |
 | `delete` | `{table, id}` | `{ok}` |
 | `menu_bulk` | `{branch_id, items: [menu rows], replace?: bool}` | `{ok, inserted}` |
+| `ticket_events` | `{branch_id, limit?: 1..500}` | `{events: [{created_at, event, actor, detail, number, day}]}` — queue log, newest first; actor is a device label, `customer`, `staff` or `system` |
 | `quests` | `{branch_id}` | `{quests: [quest row + open, participants, completed, redeemed, visits], interests_7d}` |
 | `suggest_quests` | `{branch_id}` | `{suggestions: [{kind, title, description, required_visits, reward_text, rarity, max_participants, weekdays, time_start, time_end, provider_id, duration_days, why, locked, required_plan}]}` → save with `upsert` on `quests` |
 
@@ -315,3 +317,7 @@ supabase.channel(`branch:${publicId}`).on("broadcast", { event: "queue_changed" 
 ```
 
 Open/focus `url`. The shop page returns to the active ticket stored in `localStorage`; owner pushes use `/owner`.
+
+### `ai` → `describe_items` (owner, feature `menu_photo_ai`)
+`{branch_id, items: [{name, category?, price_sar?, duration_min?, note?}] (1..20)}` → `{descriptions: [string]}` (same order).
+«اكتب لي بإحساس»: one warm Saudi-dialect line per item about how the customer will feel. Uses only the given facts and the owner's note; never invents ingredients, materials or promises. Counts toward the daily AI cap.
