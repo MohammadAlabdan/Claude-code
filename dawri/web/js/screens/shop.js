@@ -17,7 +17,7 @@ export function bestTime(bt) {
   if (!bt) return null;
   let best = null;
   bt.arrivals.forEach((row, d) => row.forEach((v, hr) => {
-    if (hr > 22 || !bt.open[d][hr] || !bt.open[d][hr + 1] || bt.arrivals.every((r) => r[hr] === 0)) return;
+    if (hr < 7 || hr > 22 || !bt.open[d][hr] || !bt.open[d][hr + 1] || bt.arrivals.every((r) => r[hr] === 0)) return;
     const avg = (v + row[hr + 1]) / 2;
     if (!best || avg < best.avg) best = { d, hr, avg };
   }));
