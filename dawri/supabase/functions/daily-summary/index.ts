@@ -8,7 +8,7 @@ import { pushOwner } from "../_shared/push.ts";
 
 interface Due { branch_id: string; business_id: string; owner_user_id: string | null; name: string }
 
-serve(async (req) => {
+export default serve(async (req) => {
   requireCron(req);
   const today = riyadhParts().date;
   const due = await rpc<Due[]>("summary_due", {});

@@ -3,7 +3,7 @@ import { requireUser } from "../_shared/auth.ts";
 import { rpcOk } from "../_shared/db.ts";
 import { HttpError, json, serve, uuid } from "../_shared/http.ts";
 
-serve(async (req, body) => {
+export default serve(async (req, body) => {
   const user = await requireUser(req);
   switch (body.action) {
     case "list":

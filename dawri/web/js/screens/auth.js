@@ -38,14 +38,14 @@ export function requireSession(ctx, { title = "دخول صاحب المحل", le
       h("label.field", h("span", "البريد الإلكتروني"), email),
       h("label.field", h("span", "كلمة المرور"), password),
       err, submit, toggle,
-      api.demo ? null : h("button.btn.btn-block", { type: "button", onclick: async () => {
+      api.demo || api.noMagicLink ? null : h("button.btn.btn-block", { type: "button", onclick: async () => {
         if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) { err.hidden = false; err.textContent = "اكتب بريدك أولاً"; return; }
         try { await api.auth.magicLink(email.value.trim(), redirect); toast("أرسلنا رابط الدخول على بريدك"); } catch (e2) { err.hidden = false; err.textContent = errorText(e2); }
       } }, icon("mail"), "أرسل لي رابط دخول"));
     fill(shell.content, 
       h("section.card.center", { style: { justifyItems: "center" } }, h("img.hero-logo", { src: "./assets/logo.svg", alt: "" }), h("h2", title), h("p.muted", lead)),
       h("section.card", form),
-      api.demo ? h("section.card", h("div.card-head", icon("flask"), h("h3", "حسابات تجريبية")), h("p.muted.small", "كلمة المرور لكل الحسابات: Dawri-Demo-2026"),
+      api.demo || api.demoAccounts ? h("section.card", h("div.card-head", icon("flask"), h("h3", "حسابات تجريبية")), h("p.muted.small", "كلمة المرور لكل الحسابات: Dawri-Demo-2026"),
         h("div.stack", [["barber@demo.dawri.app", "حلاق الأصيل · المتكاملة"], ["cafe@demo.dawri.app", "مقهى الركن · النمو"], ["wash@demo.dawri.app", "مغسلة اللمعة · الأساسية"], ["admin@demo.dawri.app", "مدير المنصة"]]
           .map(([em, label]) => h("button.btn.btn-block", { type: "button", "data-demo-login": em, onclick: async () => { resolve(await api.auth.signIn(em, "Dawri-Demo-2026")); } }, label)))) : null);
   });

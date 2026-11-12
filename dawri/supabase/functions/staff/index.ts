@@ -5,7 +5,7 @@ import { settle } from "../_shared/effects.ts";
 import { HttpError, int, json, serve, str, uuid } from "../_shared/http.ts";
 import { STAFF_LABELS } from "../_shared/i18n.ts";
 
-serve(async (req, body) => {
+export default serve(async (req, body) => {
   const d = await requireDevice(req);
   const dev = { p_device: d.device_id };
   const ticket = () => ({ ...dev, p_ticket: uuid(body, "ticket_id") });

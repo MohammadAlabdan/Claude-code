@@ -4,7 +4,7 @@ import { rpc } from "../_shared/db.ts";
 import { settle } from "../_shared/effects.ts";
 import { bool, HttpError, int, json, lang, serve, str, subscription, uuid } from "../_shared/http.ts";
 
-serve(async (req, body) => {
+export default serve(async (req, body) => {
   const token = () => str(body, "token", 100)!;
   switch (body.action) {
     case "ticket":

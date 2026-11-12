@@ -3,7 +3,7 @@ import { requireUser } from "../_shared/auth.ts";
 import { env, rpcOk } from "../_shared/db.ts";
 import { json, serve } from "../_shared/http.ts";
 
-serve(async (req, body) => {
+export default serve(async (req, body) => {
   const user = await requireUser(req);
   const r = await rpcOk<Record<string, unknown>>("onboard", { p_user: user.id, p: body });
   const site = env("SITE_URL", "");

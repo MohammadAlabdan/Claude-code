@@ -1,4 +1,4 @@
-import { env } from "./db.ts";
+import { env, isNetlify } from "./db.ts";
 
 /**
  * Realtime Broadcast on channel "branch:{public_id}" with no personal data.
@@ -6,7 +6,7 @@ import { env } from "./db.ts";
  */
 export async function broadcast(publicIds: string | string[] | null | undefined) {
   const ids = (Array.isArray(publicIds) ? publicIds : [publicIds]).filter((x): x is string => !!x);
-  if (!ids.length) return;
+  if (!ids.length || isNetlify()) return; // Netlify: pages poll instead of listening
   const at = new Date().toISOString();
   try {
     const res = await fetch(`${env("SUPABASE_URL")}/realtime/v1/api/broadcast`, {

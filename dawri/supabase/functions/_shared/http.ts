@@ -26,8 +26,8 @@ export class HttpError extends Error {
 export type Body = Record<string, unknown> & { action?: string };
 
 /** Standard POST handler: CORS, JSON parsing, error mapping. */
-export function serve(handler: (req: Request, body: Body) => Promise<Response>) {
-  Deno.serve(async (req) => {
+export function serve(handler: (req: Request, body: Body) => Promise<Response>): (req: Request) => Promise<Response> {
+  const h = async (req: Request): Promise<Response> => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
     if (req.method !== "POST") return fail("invalid_action");
     let body: Body = {};
@@ -48,7 +48,10 @@ export function serve(handler: (req: Request, body: Body) => Promise<Response>) 
       console.error(e);
       return fail("server_error");
     }
-  });
+  };
+  // Supabase Edge Runtime serves it; on Netlify the function entry exports it instead.
+  if (typeof Deno.serve === "function") Deno.serve(h);
+  return h;
 }
 
 // ---------- input validation ----------

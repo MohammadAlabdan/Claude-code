@@ -47,7 +47,7 @@ export async function optionalUser(req: Request) {
 export function requireCron(req: Request) {
   const token = bearer(req);
   const cronSecret = Deno.env.get("CRON_SECRET");
-  if (token && (token === env("SUPABASE_SERVICE_ROLE_KEY") || (cronSecret && token === cronSecret))) return;
+  if (token && ((cronSecret && token === cronSecret) || token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"))) return;
   throw new HttpError("unauthorized");
 }
 

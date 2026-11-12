@@ -6,7 +6,7 @@ const cfg = window.DAWRI_CONFIG ?? {};
 const appEl = document.getElementById("app");
 let apiPromise;
 export function getApi() {
-  apiPromise ??= (cfg.DEMO_MODE ? import("./demo-api.js") : import("./api.js")).then((m) => m.createApi(cfg));
+  apiPromise ??= (cfg.DEMO_MODE ? import("./demo-api.js") : cfg.BACKEND === "netlify" ? import("./api-netlify.js") : import("./api.js")).then((m) => m.createApi(cfg));
   return apiPromise;
 }
 

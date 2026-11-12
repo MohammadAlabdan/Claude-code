@@ -17,7 +17,7 @@ async function businessOf(branchId: string): Promise<string> {
   return data.business_id;
 }
 
-serve(async (req, body) => {
+export default serve(async (req, body) => {
   switch (body.action) {
     case "status":
       return json({ available: aiAvailable() });
