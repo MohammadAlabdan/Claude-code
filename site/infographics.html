@@ -1,0 +1,105 @@
+<title>دوري بخطوات بسيطة</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Aref+Ruqaa:wght@700&family=Doto:wght@900&display=swap">
+<style>
+/* Three 4:5 infographics (540×675 CSS px → 1080×1350 at 2x). Fixed palette inside the boards so exports look the same in any theme. */
+:root{--paper:#F3F5F1;--ink:#1B2725;--muted:#56655F;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#101614;--ink:#E7EEEA;--muted:#9AABA4;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#101614;--ink:#E7EEEA;--muted:#9AABA4;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;direction:rtl}
+.page{max-width:1760px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+.page>h1{font:400 clamp(28px,4vw,40px)/1.3 "Lalezar";margin:0}
+.page>p{color:var(--muted);margin:6px 0 24px}
+.grid{display:flex;flex-wrap:wrap;gap:24px;justify-content:center}
+.slot{width:min(540px,100%);aspect-ratio:4/5;position:relative}
+.slot>.ig{position:absolute;top:0;right:0;transform-origin:top right}
+
+/* ---------- the board ---------- */
+.ig{width:540px;height:675px;border-radius:28px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+  --bg:#F7F8F4;--card:#FFFFFF;--tx:#16211F;--mt:#5A6964;--ac:#0B8F6E;--ac2:#D4F1E6;--led:#FFB21E;--board:#121817;
+  background:var(--bg);color:var(--tx);box-shadow:0 30px 60px -36px rgba(10,30,25,.45)}
+.ig.staff{--bg:#0F1514;--card:#18211F;--tx:#E9F0EC;--mt:#9BB0A8;--ac:#34D6A5;--ac2:#163329}
+.ig.owner{--bg:#FBF6EC;--card:#FFFFFF;--tx:#241B0E;--mt:#77684E;--ac:#B7791F;--ac2:#F6E6C6}
+.ig .top{padding:24px 30px 0;display:flex;align-items:center;gap:12px}
+.ig .logo{width:40px;height:40px;border-radius:13px;background:var(--board);display:grid;place-items:center;font:900 19px "Doto",monospace;color:var(--led)}
+.ig .brand{font:400 24px "Lalezar";line-height:1}
+.ig .who{margin-inline-start:auto;font-weight:700;font-size:14px;background:var(--ac2);color:var(--ac);padding:6px 14px;border-radius:999px}
+.ig .head{padding:14px 30px 4px}
+.ig .hand{font:700 17px "Aref Ruqaa",serif;color:var(--ac);display:block}
+.ig h2{font:400 30px/1.12 "Lalezar";margin:2px 0 0}
+.ig .steps{list-style:none;margin:0;padding:10px 30px 0;display:grid;gap:6px;flex:1;align-content:start;position:relative}
+.ig .steps::before{content:"";position:absolute;right:65px;top:22px;bottom:30px;width:2px;background:repeating-linear-gradient(var(--ac) 0 6px,transparent 6px 12px);opacity:.45}
+.ig .st{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;background:var(--card);border-radius:16px;padding:8px 12px 8px 14px;position:relative;box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.ig .n{width:42px;height:42px;border-radius:13px;background:var(--ac);color:#fff;display:flex;align-items:center;justify-content:center;font:400 24px/1 "Lalezar",sans-serif;position:relative;z-index:1}
+.ig.staff .n{color:#06231B}
+.ig .st b{display:block;font-size:15px;line-height:1.3}
+.ig .st div span{display:block;font-size:12px;color:var(--mt);line-height:1.45;margin-top:1px}
+.ig .ic{font-size:22px;line-height:1}
+.ig .chip{display:inline-block;font-style:normal;font-weight:700;font-size:12px;padding:1px 8px;border-radius:7px;background:var(--ac2);color:var(--ac);margin:0 2px}
+.ig .foot{margin:10px 30px 22px;border-radius:16px;padding:11px 16px;display:flex;gap:12px;align-items:center;background:var(--board);color:#E7EEEA}
+.ig .foot .big{font:900 26px "Doto",monospace;color:var(--led);flex:none;direction:ltr}
+.ig .foot b{display:block;font-size:14px}
+.ig .foot span{font-size:12.5px;color:#A9BAB3}
+.ig.staff .foot{background:#1E2A27}
+.ig.staff .logo{background:#22302C;box-shadow:inset 0 0 0 1px rgba(255,178,30,.35)}
+.ig .url{position:absolute;left:32px;top:42px;font-size:11.5px;color:var(--mt);direction:ltr}
+.dl{display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.dl a{font:600 14px "IBM Plex Sans Arabic";color:var(--ink);text-decoration:none;border:1px solid color-mix(in srgb,var(--muted) 40%,transparent);border-radius:999px;padding:7px 16px}
+</style>
+<div class="page">
+  <h1>«دوري» بخطوات بسيطة</h1>
+  <p>ثلاث لوحات: للزبون، وللموظف، ولصاحب المحل. مقاس منشور (1080×1350)، تصلح للنشر وللطباعة بجانب الكاشير.</p>
+  <div class="grid">
+
+    <div class="slot"><section class="ig customer" id="ig-customer" aria-label="طريقة الزبون">
+      <div class="top"><span class="logo" aria-hidden="true">07</span><span class="brand">دوري</span><span class="who">للزبون</span></div>
+      <div class="head"><span class="hand">لا توقف عند الباب…</span><h2>خذ دورك من جوالك<br>وعِش وقتك</h2></div>
+      <ol class="steps">
+        <li class="st"><span class="n">1</span><div><b>امسح الباركود عند الباب</b><span>بكاميرا جوالك، بدون تطبيق ولا تسجيل</span></div><span class="ic" aria-hidden="true">📷</span></li>
+        <li class="st"><span class="n">2</span><div><b>اختر الخدمة واضغط <i class="chip">خذ رقمك</i></b><span>يطلع رقمك وكم قدّامك في ثانية</span></div><span class="ic" aria-hidden="true">🎟️</span></li>
+        <li class="st"><span class="n">3</span><div><b>روح وتعال على راحتك</b><span>قهوتك، سيارتك، مشوارك… ونبلّغك قبلها</span></div><span class="ic" aria-hidden="true">☕</span></li>
+        <li class="st"><span class="n">4</span><div><b>اكشف مفاجأتك وأنت تنتظر</b><span>هدايا وتحدّيات من المحل، و<i class="chip">أبيها</i> لأي خدمة إضافية</span></div><span class="ic" aria-hidden="true">🎁</span></li>
+        <li class="st"><span class="n">5</span><div><b>تأخرت شوي؟ اضغط <i class="chip">تأخرت</i></b><span>نأجّلك مكان أو مكانين بدل ما يروح دورك</span></div><span class="ic" aria-hidden="true">⏳</span></li>
+        <li class="st"><span class="n">6</span><div><b>«حان دورك» يوصلك على الجوال</b><span>تفضّل… وقيّم زيارتك بلمسة</span></div><span class="ic" aria-hidden="true">🔔</span></li>
+      </ol>
+      <div class="foot"><span class="big">A-07</span><div><b>فعّل التنبيه أول ما تاخذ رقمك</b><span>عشان يوصلك «ارجع الآن» قبل دورك بدورين</span></div></div>
+    </section></div>
+
+    <div class="slot"><section class="ig staff" id="ig-staff" aria-label="طريقة الموظف">
+      <div class="top"><span class="logo" aria-hidden="true">07</span><span class="brand">دوري</span><span class="who">للموظف</span></div>
+      <div class="head"><span class="hand">زر واحد… وبلغتك</span><h2>شغلك أهدأ<br>والزبون يعرف دوره</h2></div>
+      <ol class="steps">
+        <li class="st"><span class="n">1</span><div><b>افتح رابط الربط مرة وحدة</b><span>يرسله لك صاحب المحل، وينحفظ في جهازك</span></div><span class="ic" aria-hidden="true">🔗</span></li>
+        <li class="st"><span class="n">2</span><div><b>الشاشة تكلّمك بلغتك</b><span>عربي · English · اردو · বাংলা · Filipino</span></div><span class="ic" aria-hidden="true">🌐</span></li>
+        <li class="st"><span class="n">3</span><div><b>اضغط <i class="chip">نادِ التالي</i></b><span>يوصل الزبون «حان دورك»، واللي قبله يخلص تلقائياً</span></div><span class="ic" aria-hidden="true">👆</span></li>
+        <li class="st"><span class="n">4</span><div><b>زبون ما حضر؟ <i class="chip">ما حضر</i></b><span>أول مرة يتأخر شوي، والثانية يطلع من الطابور</span></div><span class="ic" aria-hidden="true">🚶</span></li>
+        <li class="st"><span class="n">5</span><div><b>زبون بدون جوال؟ <i class="chip">إضافة زبون</i></b><span>يطلع الرقم كبير على شاشتك، قوله له</span></div><span class="ic" aria-hidden="true">➕</span></li>
+        <li class="st"><span class="n">6</span><div><b>شارة <i class="chip">✋ يبي</i> بجانب الرقم</b><span>الزبون طلب خدمة إضافية، جهّزها قبل ما يجي</span></div><span class="ic" aria-hidden="true">✋</span></li>
+      </ol>
+      <div class="foot"><span class="big">↻</span><div><b>انقطع الإنترنت؟ كمّل شغلك عادي</b><span>نحفظ ضغطاتك ونرسلها أول ما يرجع الاتصال</span></div></div>
+    </section></div>
+
+    <div class="slot"><section class="ig owner" id="ig-owner" aria-label="طريقة صاحب المحل">
+      <div class="top"><span class="logo" aria-hidden="true">07</span><span class="brand">دوري</span><span class="who">لصاحب المحل</span></div>
+      <div class="head"><span class="hand">جاهز في ١٠ دقائق</span><h2>محلك منظّم<br>وأرقامك قدّامك كل مساء</h2></div>
+      <ol class="steps">
+        <li class="st"><span class="n">1</span><div><b>سجّل محلك وخدماتك</b><span>الاسم، والدوام، والخدمات… وخلاص</span></div><span class="ic" aria-hidden="true">📝</span></li>
+        <li class="st"><span class="n">2</span><div><b>اطبع ملصق الباركود وعلّقه</b><span>عند الباب أو الكاشير، باسم محلك جاهز</span></div><span class="ic" aria-hidden="true">🖨️</span></li>
+        <li class="st"><span class="n">3</span><div><b>اربط جوال الموظف</b><span>من <i class="chip">الإعدادات</i> أرسل له رابط الربط</span></div><span class="ic" aria-hidden="true">📱</span></li>
+        <li class="st"><span class="n">4</span><div><b>تابع <i class="chip">نبضي</i> مباشرة</b><span>كم في الطابور، ومين متأخر، وإنذار الزحمة</span></div><span class="ic" aria-hidden="true">💓</span></li>
+        <li class="st"><span class="n">5</span><div><b>أضف عروضك وتحدّياتك</b><span>و<i class="chip">اكتب لي بإحساس</i> يكتب وصف خدماتك</span></div><span class="ic" aria-hidden="true">✨</span></li>
+        <li class="st"><span class="n">6</span><div><b>اقرأ ملخص المساء</b><span>زبائن اليوم، والانتظار، ووقت ذروتك، و<i class="chip">سجل الطابور</i></span></div><span class="ic" aria-hidden="true">🌙</span></li>
+      </ol>
+      <div class="foot"><span class="big">10'</span><div><b>ابدأ: dawri-live.netlify.app/start</b><span>تجربة مجانية، وبدون أجهزة ولا رسائل مدفوعة</span></div></div>
+    </section></div>
+
+  </div>
+</div>
+<script>
+// Scale the fixed 540px boards to the slot width on narrow screens.
+function fit(){document.querySelectorAll(".slot").forEach(s=>{const ig=s.firstElementChild;ig.style.transform=`scale(${s.clientWidth/540})`;});}
+addEventListener("resize",fit);fit();
+</script>
