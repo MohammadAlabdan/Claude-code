@@ -66,6 +66,11 @@ insert into public.app_secrets(name, value) values
 on conflict (name) do nothing;
 `);
 if (seed) writeFileSync(join(mig, "20261112090000_demo_seed.sql"), readFileSync(join(root, "supabase/seed.sql"), "utf8"));
+// test site: the three demo shops stay open around the clock so they can be tried at any hour
+if (seed) writeFileSync(join(mig, "20261113000100_demo_open_all_day.sql"), `update public.branches
+   set hours = (select jsonb_object_agg(d, '[["00:00","00:00"]]'::jsonb) from unnest(array['sun','mon','tue','wed','thu','fri','sat']) d)
+ where public_id in ('rukn2026', 'aseel2026', 'lamaa2026');
+`);
 
 // 4. project files
 const deno = JSON.parse(readFileSync(join(root, "supabase/functions/deno.json"), "utf8")).imports;

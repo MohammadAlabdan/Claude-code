@@ -7,6 +7,7 @@ import { toast } from "../ui/toast.js";
 import { Heatmap } from "../ui/charts.js";
 import { QuestCard } from "../ui/quest.js";
 import { setTheme } from "../app.js";
+import { ApiError } from "../errors.js";
 import { subscribePush, pushSupported, needsInstallForPush, localNotify } from "../ui/push.js";
 
 const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
@@ -162,7 +163,8 @@ export async function render(ctx) {
         h("div.grow", h("div.title", s.name),
           h("div.muted.small", s.mode === "remote" ? t("shop.service_wait", { n: num(s.waiting), m: num(s.estimate_min) })
             : s.mode === "receipt" ? t("mode.receipt") : t("mode.dropoff"))),
-        s.mode === "remote" ? h("button.btn.btn-primary", { type: "button", "data-testid": "take-number", disabled: !b.open, onclick: () => join(s) }, t("shop.take_number"))
+        s.mode === "remote" ? h(`button.btn${b.open ? ".btn-primary" : ".btn-ghost"}`, { type: "button", "data-testid": "take-number", "aria-disabled": String(!b.open),
+            onclick: () => (b.open ? join(s) : refused(new ApiError("closed", { next_open_at: b.next_open_at, busy_level: b.busy_level }))) }, t("shop.take_number"))
           : s.mode === "receipt" ? h("button.btn.btn-primary", { type: "button", "data-testid": "track-order", onclick: () => receipt(s) }, t("shop.track_order"))
           : h("span.small.muted", { style: { maxWidth: "45%" } }, t("shop.dropoff_hint")))))),
 
