@@ -802,6 +802,9 @@ function ownerAction(user, action, body) {
       let existing = body.row?.id && list.find((r) => r.id === body.row.id);
       if (existing) Object.assign(existing, row);
       else { existing = { id: uid(), created_at: iso(), ...(body.table === "quests" ? { is_active: true, rarity: "common", weekdays: [0, 1, 2, 3, 4, 5, 6], starts_at: iso(), ends_at: iso(Date.now() + 7 * DAY_MS) } : {}), ...(body.table === "news_posts" ? { published_at: iso() } : {}), ...(body.table === "offers" ? { weekdays: [0, 1, 2, 3, 4, 5, 6], is_active: true, kind: "timed" } : {}), ...(body.table === "menu_items" ? { is_available: true, sort: list.length } : {}), ...(body.table === "services" || body.table === "providers" ? { is_active: true, sort: list.length } : {}), ...row }; list.push(existing); }
+      // same rule as the database triggers: a menu item and its linked queue service share name and duration
+      if (body.table === "menu_items" && existing.service_id) { const sv = db.services.find((x) => x.id === existing.service_id); if (sv) { sv.name = existing.name.slice(0, 60); if (existing.duration_min) sv.avg_minutes = existing.duration_min; } }
+      if (body.table === "services") for (const m of db.menu.filter((x) => x.service_id === existing.id)) { m.name = existing.name; if ("avg_minutes" in row) m.duration_min = existing.avg_minutes; }
       commit(b.public_id);
       return { ok: true, row: existing };
     }

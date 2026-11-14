@@ -32,3 +32,18 @@ test("owner sees who did what in the queue log", async ({ page, context }) => {
   await expect(page.getByTestId("audit-rows")).toContainText("تم النداء");
   await expect(page.getByTestId("audit-rows")).toContainText("كرسي ١");
 });
+
+test("renaming a menu item linked to a queue service shows on the shop page", async ({ page, context }) => {
+  await ownerLogin(page, "barber@demo.dawri.app");
+  await page.goto("/owner/settings");
+  const menu = page.locator(".card").filter({ has: page.locator(".card-head", { hasText: "قائمتي" }) });
+  await menu.locator(".list-item", { hasText: "حلاقة ذقن" }).getByRole("button", { name: "تعديل" }).click();
+  await expect(page.getByRole("dialog")).toContainText("مرتبط بخدمة في الطابور");
+  await page.getByRole("dialog").locator("input").first().fill("حلاقة دقن");
+  await page.getByRole("dialog").getByRole("button", { name: "احفظ", exact: true }).click();
+  const shop = await context.newPage();
+  await shop.goto("/s/aseel2026?stay");
+  await expect(shop.locator('[data-testid="take-number"]').first()).toBeVisible();
+  await expect(shop.locator("[data-service]", { hasText: "حلاقة دقن" })).toHaveCount(1);
+  await expect(shop.locator("[data-service]", { hasText: "حلاقة ذقن" })).toHaveCount(0);
+});

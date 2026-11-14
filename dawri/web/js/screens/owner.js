@@ -451,7 +451,8 @@ export async function render(ctx) {
     const item = () => ({ name: name.value.trim(), category: cat.value.trim() || null, price_sar: price.value === "" ? null : +price.value,
       duration_min: dur.value === "" ? null : +dur.value, note: note.value.trim() || null });
     const feel = feelBtn(item, (text) => { desc.value = text; desc.focus(); });
-    await openSheet({ title: m.id ? "تعديل صنف" : "صنف جديد", body: [field("الاسم", name), field("القسم", cat),
+    const linked = m.service_id ? h("div.banner", icon("link"), h("span", "هذا الصنف مرتبط بخدمة في الطابور: تغيير الاسم أو المدة يظهر للزبون في «الخدمات» وزر «خذ رقمك».")) : null;
+    await openSheet({ title: m.id ? "تعديل صنف" : "صنف جديد", body: [linked, field("الاسم", name), field("القسم", cat),
       h("div.grid2", field("السعر (ر.س)", price), field("المدة (دقيقة)", dur)),
       field("الوصف", desc),
       feel ? h("div.feel-box", h("label.field", h("span", "وش يميّز هالخدمة عندك؟ (يساعدنا نكتب بصدق)"), note), feel,
