@@ -6,10 +6,13 @@ import { openSheet } from "../ui/sheet.js";
 import { toast } from "../ui/toast.js";
 import { requireSession } from "./auth.js";
 import { BarChart } from "../ui/charts.js";
+import { subscriptionEnd, riyadhToday } from "../ui/subscription.js";
 
 const PLAN_AR = { basic: "الأساسية", growth: "النمو", full: "المتكاملة", seasonal: "المواسم" };
 const CAT_AR = { cafe: "مقاهي", restaurant: "مطاعم", bakery: "مخابز", barber: "حلاقين", salon: "مشاغل وصالونات", clinic: "عيادات", lab: "مختبرات",
   carwash: "مغاسل سيارات", phone_repair: "صيانة جوالات", other: "أخرى" };
+const STATUS_AR = { trial: "تجريبي مؤقت", active: "نشط", inactive: "غير نشط" };
+const UNIT_AR = { day: "يوم", month: "شهر", year: "سنة" };
 const REASON_AR = { long_wait: "طول الانتظار", quality: "جودة الخدمة", treatment: "التعامل", price: "السعر", other: "أخرى" };
 const TABS = [["overview", "نظرة عامة", "layout-dashboard"], ["shops", "المحلات", "building-store"], ["customers", "العملاء", "users"], ["tips", "نصائح وتقارير", "bulb"]];
 const sar = (n) => `${num(Math.round(n ?? 0).toLocaleString("en-US"))} ر.س`;
@@ -202,9 +205,7 @@ export async function render(ctx) {
   // ---------- shops ----------
   function riskOf(b) {
     if (ins.at_risk.some((r) => r.id === b.id)) return "risk";
-    if (b.trial_until && Date.parse(b.trial_until) > Date.now()) return "trial";
-    if (!b.is_active) return "off";
-    return b.effective_plan ? "paid" : "off";
+    return { trial: "trial", active: "paid", inactive: "off" }[b.status] ?? (b.is_active ? "paid" : "off");
   }
   function shops() {
     const FILTERS = [["all", "الكل"], ["paid", "مدفوع"], ["trial", "تجربة"], ["risk", "معرّض للانسحاب"], ["off", "موقوف"]];
@@ -215,7 +216,7 @@ export async function render(ctx) {
       h("td", h("div.title", b.name), h("div.muted.small", b.owner_email ?? "")),
       h("td", PLAN_AR[b.plan], riskOf(b) === "trial" ? h("div.badge.warn", "تجربة") : riskOf(b) === "risk" ? h("div.badge.danger", "انخفض الاستخدام") : null),
       h("td.num", b.plan_until ? date(b.plan_until) : b.trial_until ? date(b.trial_until) : "—"),
-      h("td", b.is_active ? h("span.badge", "نشط") : h("span.badge.danger", "موقوف")),
+      h("td", h(`span.badge${b.status === "inactive" ? ".danger" : b.status === "trial" ? ".warn" : ""}`, STATUS_AR[b.status] ?? (b.is_active ? "نشط" : "غير نشط"))),
       h("td.num", num(b.usage.tickets_30d)),
       h("td", h("button.btn.btn-sm", { type: "button", onclick: () => edit(b) }, "إدارة")))));
     paint();
@@ -231,32 +232,140 @@ export async function render(ctx) {
       lists.length ? h("div.adm-2", ...lists) : null,
       card(`المحلات (${num(rows.length)})`, "building-store",
         h("div.row", { style: { gap: "8px", flexWrap: "wrap" } },
+          h("button.btn.btn-primary", { type: "button", "data-testid": "add-client", onclick: create }, icon("user-plus"), "إضافة عميل"),
           h("label.field", { style: { flex: "1 1 220px", margin: 0 } }, h("span.sr", "بحث"), h("input", { type: "search", placeholder: "ابحث بالاسم أو البريد", value: query, "data-testid": "admin-search",
             oninput: (e) => { query = e.target.value; const pos = e.target.selectionStart; draw(); const inp = document.querySelector("[data-testid=admin-search]"); inp?.focus(); inp?.setSelectionRange(pos, pos); } })),
           h("button.btn.btn-sm", { type: "button", onclick: exportShops }, icon("table-export"), "Excel")),
         h("div.chips", FILTERS.map(([k2, l]) => h("button.chip", { type: "button", "aria-pressed": String(filter === k2), onclick: () => { filter = k2; draw(); } }, l))),
         h("div.table-wrap", h("table.simple", { "data-testid": "admin-table" },
-          h("thead", h("tr", ["المحل", "الباقة", "ينتهي", "الحالة", "تذاكر ٣٠ يوم", ""].map((x) => h("th", x)))), tableBody))),
+          h("thead", h("tr", ["المحل", "الباقة", "ينتهي", "نوع العميل", "تذاكر ٣٠ يوم", ""].map((x) => h("th", x)))), tableBody))),
     ];
   }
 
-  async function edit(b) {
-    const plan = h("select", Object.entries(PLAN_AR).map(([k2, v]) => h("option", { value: k2, selected: k2 === b.plan }, v)));
-    const until = h("input", { type: "date", value: b.plan_until?.slice(0, 10) ?? "" });
-    const trial = h("input", { type: "date", value: b.trial_until?.slice(0, 10) ?? "" });
-    const active = h("input", { type: "checkbox", checked: b.is_active });
-    await openSheet({ title: b.name, body: [
-      h("label.field", h("span", "الباقة"), plan), h("label.field", h("span", "الاشتراك حتى"), until), h("label.field", h("span", "التجربة حتى"), trial),
-      h("label.check", active, h("span", "الحساب نشط")),
-      h("div.list", b.branches.map((br) => h("div.list-item", h("span.grow", br.name), h("a.btn.btn-sm", { href: `./s/${br.public_id}`, target: "_blank", rel: "noopener" }, "الصفحة"),
-        h("button.btn.btn-sm", { type: "button", onclick: () => view(br) }, "الأرقام"))))],
-      actions: [{ label: "احفظ", primary: true, onClick: async (close) => {
+  /**
+   * Subscription block: client type (trial / active / inactive) + start date + duration.
+   * The end date is computed live as the admin types, with the same rule the server uses.
+   */
+  function subscriptionForm(b = {}) {
+    let status = b.status ?? "trial";
+    const startDefault = (b.plan_started_at ?? "").slice(0, 10) || riyadhToday();
+    const start = h("input", { type: "date", value: startDefault, "data-testid": "sub-start" });
+    const n = h("input", { type: "number", min: 1, max: 3650, value: status === "trial" ? 14 : 1, inputmode: "numeric", "data-testid": "sub-duration", style: { maxWidth: "7em" } });
+    const unit = h("select", { "data-testid": "sub-unit" }, Object.entries(UNIT_AR).map(([k2, v]) => h("option", { value: k2, selected: k2 === (status === "trial" ? "day" : "month") }, v)));
+    const endOut = h("output.sub-end", { "data-testid": "sub-end", "aria-live": "polite" });
+    const datesBox = h("div.stack", { style: { gap: "10px" } },
+      h("div.grid2", h("label.field", h("span", "تاريخ البداية"), start),
+        h("div.field", h("span", "المدة"), h("div.row", { style: { gap: "8px", flexWrap: "nowrap" } }, n, unit))), endOut);
+    const seg = h("div.seg.sub-type", { role: "group", "aria-label": "نوع العميل" }, Object.entries(STATUS_AR).map(([k2, v]) =>
+      h("button", { type: "button", "data-status": k2, "aria-pressed": String(k2 === status), onclick: () => {
+        status = k2;
+        seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.status === k2)));
+        if (k2 === "trial" && unit.value !== "day") { n.value = 14; unit.value = "day"; }
+        if (k2 === "active" && unit.value === "day" && +n.value === 14) { n.value = 1; unit.value = "month"; }
+        sync();
+      } }, v)));
+    function sync() {
+      datesBox.hidden = status === "inactive";
+      const dur = Math.floor(+n.value);
+      if (!start.value || !(dur >= 1)) { endOut.textContent = "اكتب تاريخ البداية والمدة"; return; }
+      const end = subscriptionEnd(new Date(start.value + "T00:00:00+03:00"), dur, unit.value);
+      const left = Math.ceil((end - Date.now()) / 86400000);
+      endOut.replaceChildren(icon("calendar-check"), ` ينتهي ${status === "trial" ? "التجريب" : "الاشتراك"}: `, h("b", end.toLocaleDateString("ar-SA-u-ca-gregory-nu-arab", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Riyadh" })),
+        h("span.muted", left > 0 ? ` (باقي ${num(left)} يوم)` : " (منتهي بهذا التاريخ)"));
+    }
+    [start, n, unit].forEach((x) => x.addEventListener("input", sync));
+    unit.addEventListener("change", sync);
+    sync();
+    return {
+      el: h("div.sub-box", h("div.field", h("span", "نوع العميل"), seg), datesBox),
+      value: () => status === "inactive" ? { status } : { status, start: start.value, duration: Math.floor(+n.value), unit: unit.value },
+      valid: () => status === "inactive" || (start.value && Math.floor(+n.value) >= 1),
+    };
+  }
+  const planSelect = (cur) => h("select", Object.entries(PLAN_AR).map(([k2, v]) => h("option", { value: k2, selected: k2 === cur }, v)));
+  const catSelect = (cur) => h("select", Object.entries(CAT_AR).map(([k2, v]) => h("option", { value: k2, selected: k2 === cur }, v)));
+  const fieldErr = (el, msg) => { el.hidden = false; el.textContent = msg; };
+
+  async function create() {
+    const name = h("input", { maxlength: 80, placeholder: "مثال: صالون الورد", "data-testid": "new-name" });
+    const cat = catSelect("barber"), plan = planSelect("growth");
+    const email = h("input", { type: "email", dir: "ltr", placeholder: "owner@example.com", "data-testid": "new-email" });
+    const pass = h("input", { type: "text", dir: "ltr", minlength: 8, placeholder: "٨ أحرف على الأقل", "data-testid": "new-pass", autocomplete: "off" });
+    const phone = h("input", { type: "tel", dir: "ltr", placeholder: "05xxxxxxxx" });
+    const note = h("textarea", { rows: 2, maxlength: 500, placeholder: "ملاحظة داخلية (اختياري): مثلاً دفع نقداً، أو عرض خاص" });
+    const sub = subscriptionForm({ status: "trial" });
+    const err = h("p.err", { hidden: true });
+    await openSheet({ title: "إضافة عميل", body: [
+      h("label.field", h("span", "اسم المحل"), name), h("div.grid2", h("label.field", h("span", "القطاع"), cat), h("label.field", h("span", "الباقة"), plan)),
+      h("label.field", h("span", "بريد صاحب المحل"), email),
+      h("label.field", h("span", "كلمة مرور مؤقتة"), pass, h("span.muted.small", "يدخل بها صاحب المحل أول مرة. إذا كان البريد مسجّلاً من قبل، اتركها فاضية.")),
+      h("label.field", h("span", "جوال المحل (اختياري)"), phone),
+      sub.el, h("label.field", h("span", "ملاحظة"), note), err],
+      actions: [{ id: "create-client", label: "أضف العميل", primary: true, onClick: async (close) => {
+        if (name.value.trim().length < 2) return fieldErr(err, "اكتب اسم المحل");
+        if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) return fieldErr(err, "اكتب بريداً صحيحاً لصاحب المحل");
+        if (!sub.valid()) return fieldErr(err, "اكتب تاريخ البداية والمدة");
         try {
-          await api.admin("update_business", { business_id: b.id, changes: { plan: plan.value, plan_until: until.value ? `${until.value}T23:59:59+03:00` : null, trial_until: trial.value ? `${trial.value}T23:59:59+03:00` : null, is_active: active.checked } });
+          const r = await api.admin("create_business", { business: { business_name: name.value.trim(), category: cat.value, plan: plan.value, owner_email: email.value.trim(),
+            owner_password: pass.value || undefined, phone: phone.value || undefined, admin_note: note.value || undefined, ...sub.value() } });
+          close();
+          toast(r.owner_created ? "أُضيف العميل، وأُنشئ حساب صاحب المحل" : "أُضيف المحل لحساب صاحبه الموجود");
+          await reload();
+        } catch (e) {
+          fieldErr(err, e.code === "invalid_input" && e.extra?.field === "owner_password" ? "البريد جديد: اكتب كلمة مرور مؤقتة من ٨ أحرف على الأقل" : errorText(e));
+        }
+      } }, { label: "إلغاء", ghost: true }] });
+  }
+
+  async function edit(b) {
+    const name = h("input", { maxlength: 80, value: b.name });
+    const cat = catSelect(b.category), plan = planSelect(b.plan);
+    const phone = h("input", { type: "tel", dir: "ltr", value: b.phone ?? "" });
+    const note = h("textarea", { rows: 2, maxlength: 500 }, b.admin_note ?? "");
+    const sub = subscriptionForm(b);
+    const keep = h("label.check.small", h("input", { type: "checkbox", checked: true }), h("span", "أبقِ تواريخ الاشتراك كما هي (عدّل البيانات فقط)"));
+    const keepBox = keep.querySelector("input");
+    const current = b.status === "trial" ? `تجريبي حتى ${date(b.trial_until)}` : b.status === "active" ? (b.plan_until ? `نشط حتى ${date(b.plan_until)}` : "نشط بدون تاريخ انتهاء") : "غير نشط";
+    const err = h("p.err", { hidden: true });
+    sub.el.hidden = true;
+    keepBox.addEventListener("change", () => (sub.el.hidden = keepBox.checked));
+    await openSheet({ title: b.name, body: [
+      h("div.banner", icon("id-badge-2"), h("span", `${b.owner_email ?? "بدون بريد"} · الحالة الآن: ${current}`)),
+      h("label.field", h("span", "اسم المحل"), name), h("div.grid2", h("label.field", h("span", "القطاع"), cat), h("label.field", h("span", "الباقة"), plan)),
+      h("label.field", h("span", "جوال المحل"), phone),
+      keep, sub.el, h("label.field", h("span", "ملاحظة داخلية"), note),
+      h("div.list", b.branches.map((br) => h("div.list-item", h("span.grow", br.name), h("a.btn.btn-sm", { href: `./s/${br.public_id}`, target: "_blank", rel: "noopener" }, "الصفحة"),
+        h("button.btn.btn-sm", { type: "button", onclick: () => view(br) }, "الأرقام")))),
+      err,
+      h("button.btn.btn-danger.btn-block", { type: "button", "data-testid": "delete-client", onclick: () => remove(b) }, icon("trash"), "حذف العميل")],
+      actions: [{ id: "save-client", label: "احفظ", primary: true, onClick: async (close) => {
+        if (name.value.trim().length < 2) return fieldErr(err, "اكتب اسم المحل");
+        if (!keepBox.checked && !sub.valid()) return fieldErr(err, "اكتب تاريخ البداية والمدة");
+        try {
+          await api.admin("update_business", { business_id: b.id, changes: { name: name.value.trim(), category: cat.value, plan: plan.value, phone: phone.value, admin_note: note.value, ...(keepBox.checked ? {} : sub.value()) } });
           close(); toast("تم الحفظ"); await reload();
-        } catch (e) { toast(errorText(e), { error: true }); }
+        } catch (e) { fieldErr(err, errorText(e)); }
       } }, { label: "إغلاق", ghost: true }] });
   }
+
+  async function remove(b) {
+    document.querySelector(".sheet-backdrop")?.click();
+    const typed = h("input", { placeholder: b.name, "data-testid": "confirm-name" });
+    const withOwner = h("input", { type: "checkbox" });
+    const err = h("p.err", { hidden: true });
+    await openSheet({ title: "حذف العميل نهائياً", body: [
+      h("div.banner.warn", icon("alert-triangle"), h("span", `سيُحذف «${b.name}» بكل فروعه وطابوره وسجلاته وإعداداته، ولا يمكن التراجع.`)),
+      h("label.field", h("span", "للتأكيد اكتب اسم المحل"), typed),
+      h("label.check", withOwner, h("span", `احذف حساب صاحب المحل أيضاً (${b.owner_email ?? "—"}) إذا ما عنده محلات أخرى`)), err],
+      actions: [{ id: "confirm-delete", label: "احذف نهائياً", danger: true, onClick: async (close) => {
+        if (typed.value.trim() !== b.name.trim()) return fieldErr(err, "الاسم غير مطابق");
+        try {
+          const r = await api.admin("delete_business", { business_id: b.id, delete_owner: withOwner.checked });
+          close(); toast(r.owner_deleted ? "حُذف العميل وحسابه" : "حُذف العميل"); await reload();
+        } catch (e) { fieldErr(err, errorText(e)); }
+      } }, { label: "تراجع", ghost: true }] });
+  }
+
   async function view(br) {
     const d = await api.admin("branch_dashboard", { branch_id: br.id, range: "7d" });
     openSheet({ title: `${br.name} · ٧ أيام`, body: [h("div.grid2",

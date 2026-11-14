@@ -517,3 +517,8 @@ table.simple th, table.simple td { text-align: start; padding: 8px 6px; border-t
 #app.wide .tabbar, #app.wide ~ .tabbar { max-width: 1180px; }
 .adm .card > .chart:not(.adm-trend) { max-height: 190px; width: 100%; }
 .adm-trend { max-height: 260px; }
+.sub-box { display: grid; gap: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+.sub-type { width: 100%; }
+.sub-type button { flex: 1; }
+.sub-end { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; background: var(--ticket); border-radius: 12px; padding: 10px 12px; font-size: .95rem; }
+.sub-end .ti { color: var(--accent); }

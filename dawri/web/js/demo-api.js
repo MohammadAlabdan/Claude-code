@@ -4,6 +4,7 @@
 // Timers advance the queue so every screen has something happening (turn off: localStorage dawri.demo.auto = false).
 import { ApiError } from "./errors.js";
 import { store } from "./ui/dom.js";
+import { subscriptionEnd } from "./ui/subscription.js";
 
 const KEY = "dawri.demo.v3";
 const PASSWORD = "Dawri-Demo-2026";
@@ -959,11 +960,35 @@ export async function createApi() {
       const user = requireUser();
       if (!db.admins.includes(user.id)) fail("forbidden");
       if (action === "list") return { businesses: db.businesses.map((z) => ({ id: z.id, name: z.name, slug: z.slug, category: z.category, plan: z.plan, effective_plan: effectivePlan(z), plan_until: z.plan_until,
-        trial_until: z.trial_until, is_active: z.is_active, is_demo: z.is_demo, created_at: z.created_at, owner_email: db.users.find((u) => u.id === z.owner)?.email ?? null,
+        trial_until: z.trial_until, plan_started_at: z.plan_started_at ?? null, status: demoStatus(z), admin_note: z.admin_note ?? null, phone: db.branches.find((b) => b.business_id === z.id)?.phone ?? null, is_active: z.is_active, is_demo: z.is_demo, created_at: z.created_at, owner_email: db.users.find((u) => u.id === z.owner)?.email ?? null,
         branches: db.branches.filter((b) => b.business_id === z.id).map((b) => ({ id: b.id, name: b.name, public_id: b.public_id })),
         usage: { tickets_30d: db.tickets.filter((t) => branch(t.branch_id)?.business_id === z.id).length + (db.history[db.branches.find((b) => b.business_id === z.id)?.id] ?? []).reduce((a, h) => a + h.arrivals.reduce((x, y) => x + y, 0), 0), ai_calls_30d: 0,
           devices: db.devices.filter((d) => branch(d.branch_id)?.business_id === z.id && !d.revoked_at).length } })) };
-      if (action === "update_business") { const z = db.businesses.find((x) => x.id === body.business_id) ?? fail("not_found"); Object.assign(z, pick(body.changes, ["plan", "plan_until", "trial_until", "is_active"])); commit("*"); return { ok: true }; }
+      if (action === "update_business") { const z = db.businesses.find((x) => x.id === body.business_id) ?? fail("not_found"); demoApplySub(z, body.changes ?? {}); commit("*"); return { ok: true, business: { status: demoStatus(z), plan_started_at: z.plan_started_at, plan_until: z.plan_until, trial_until: z.trial_until, is_active: z.is_active } }; }
+      if (action === "create_business") {
+        const p = body.business ?? {}, email = String(p.owner_email ?? "").trim().toLowerCase();
+        if (!/^\S+@\S+\.\S+$/.test(email)) fail("invalid_input", { field: "owner_email" });
+        if (!p.business_name || p.business_name.trim().length < 2) fail("invalid_input", { field: "business_name" });
+        let owner = db.users.find((u) => u.email === email), created = false;
+        if (!owner) { if (String(p.owner_password ?? "").length < 8) fail("invalid_input", { field: "owner_password" }); owner = { id: uid(), email, custom: true, password: p.owner_password }; db.users.push(owner); created = true; }
+        const bizId = uid(), brId = uid(), pid = Math.random().toString(36).slice(2, 10), cat = p.category ?? "other";
+        const z = { id: bizId, name: p.business_name.trim(), slug: `d-${pid}`, category: cat, plan: p.plan ?? "basic", plan_until: null, trial_until: null, owner: owner.id, is_active: true, is_demo: false, created_at: iso(), admin_note: p.admin_note ?? null };
+        db.businesses.push(z);
+        db.branches.push({ id: brId, business_id: bizId, name: p.business_name.trim(), public_id: pid, address: p.district ?? null, map_url: null, phone: p.phone ?? null, google_review_url: null, hours: ALL_DAY, settings: {}, secret: token() });
+        db.services.push({ id: uid(), branch_id: brId, name: "الخدمة الأساسية", mode: ["cafe", "restaurant", "bakery"].includes(cat) ? "receipt" : ["carwash", "phone_repair"].includes(cat) ? "dropoff" : "remote", avg_minutes: 15, is_active: true, sort: 0 });
+        db.pages[brId] = { bio: null, photos: [], highlights: [], is_published: true }; db.history[brId] = [];
+        demoApplySub(z, { status: p.status ?? "trial", start: p.start, duration: p.duration, unit: p.unit });
+        commit("*");
+        return { ok: true, business_id: bizId, public_id: pid, owner_created: created, owner_email: email };
+      }
+      if (action === "delete_business") {
+        const i = db.businesses.findIndex((x) => x.id === body.business_id); if (i < 0) fail("not_found");
+        const [z] = db.businesses.splice(i, 1), brIds = db.branches.filter((b) => b.business_id === z.id).map((b) => b.id);
+        db.branches = db.branches.filter((b) => !brIds.includes(b.id)); db.tickets = db.tickets.filter((t) => !brIds.includes(t.branch_id));
+        let ownerDeleted = false;
+        if (body.delete_owner && !db.businesses.some((x) => x.owner === z.owner) && !db.admins.includes(z.owner)) { db.users = db.users.filter((u) => u.id !== z.owner); ownerDeleted = true; }
+        commit("*"); return { ok: true, owner_deleted: ownerDeleted };
+      }
       if (action === "branch_dashboard") return dashboard(branch(body.branch_id) ?? fail("not_found"), body.range ?? "7d");
       if (action === "insights") return demoInsights(Math.min(180, Math.max(7, body.days ?? 30)), body.include_demo === true);
       fail("invalid_action");
@@ -1006,6 +1031,25 @@ export async function createApi() {
 }
 const authCbs = new Set();
 
+const demoStatus = (z) => (!z.is_active ? "inactive" : z.trial_until && Date.parse(z.trial_until) > Date.now() ? "trial" : !z.plan_until || Date.parse(z.plan_until) > Date.now() ? "active" : "inactive");
+/** Same rules as a_update_business: status + start + duration → dates; also name/category/plan/note/phone. */
+function demoApplySub(z, p) {
+  if (p.name) z.name = p.name.trim();
+  if (p.category) z.category = p.category;
+  if (p.plan) z.plan = p.plan;
+  if ("admin_note" in p) z.admin_note = p.admin_note || null;
+  if ("phone" in p) { const b = db.branches.find((x) => x.business_id === z.id); if (b) b.phone = p.phone || null; }
+  for (const k of ["plan_until", "trial_until", "is_active"]) if (k in p) z[k] = p[k];
+  if (!p.status) return;
+  if (!["trial", "active", "inactive"].includes(p.status)) fail("invalid_input", { field: "status" });
+  if (p.status === "inactive") { z.is_active = false; return; }
+  const n = Number(p.duration ?? (p.status === "trial" ? 14 : 1)), unit = p.unit ?? "month";
+  if (!(n >= 1)) fail("invalid_input", { field: "duration" });
+  const start = p.start ? new Date(p.start + "T00:00:00+03:00") : new Date();
+  const end = subscriptionEnd(start, n, unit);
+  z.is_active = true; z.plan_started_at = start.toISOString();
+  if (p.status === "trial") { z.trial_until = end.toISOString(); z.plan_until = null; } else { z.plan_until = end.toISOString(); z.trial_until = null; }
+}
 const PRICE = { basic: 199, growth: 399, full: 699, seasonal: 199 };
 /** Demo stand-in for a_insights: same shape, computed from the in-browser history. */
 function demoInsights(days, includeDemo) {
