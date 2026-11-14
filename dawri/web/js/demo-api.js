@@ -965,6 +965,7 @@ export async function createApi() {
           devices: db.devices.filter((d) => branch(d.branch_id)?.business_id === z.id && !d.revoked_at).length } })) };
       if (action === "update_business") { const z = db.businesses.find((x) => x.id === body.business_id) ?? fail("not_found"); Object.assign(z, pick(body.changes, ["plan", "plan_until", "trial_until", "is_active"])); commit("*"); return { ok: true }; }
       if (action === "branch_dashboard") return dashboard(branch(body.branch_id) ?? fail("not_found"), body.range ?? "7d");
+      if (action === "insights") return demoInsights(Math.min(180, Math.max(7, body.days ?? 30)), body.include_demo === true);
       fail("invalid_action");
     }),
     auth: {
@@ -1004,6 +1005,58 @@ export async function createApi() {
   };
 }
 const authCbs = new Set();
+
+const PRICE = { basic: 199, growth: 399, full: 699, seasonal: 199 };
+/** Demo stand-in for a_insights: same shape, computed from the in-browser history. */
+function demoInsights(days, includeDemo) {
+  const bizs = db.businesses.filter((z) => includeDemo || !z.is_demo);
+  const now = Date.now(), from = dayOf(new Date(now - (days - 1) * DAY_MS));
+  const brs = db.branches.filter((b) => bizs.some((z) => z.id === b.business_id));
+  const daily = [], hourly = Array(24).fill(0), weekday = Array(7).fill(0);
+  let tickets = 0, served = 0, waitSum = 0, waitN = 0, pos = 0, neg = 0, lost = 0;
+  const perBiz = Object.fromEntries(bizs.map((z) => [z.id, 0]));
+  for (let i = days - 1; i >= 0; i--) {
+    const day = dayOf(new Date(now - i * DAY_MS));
+    let n = 0, s = 0;
+    for (const b of brs) {
+      const h = (db.history[b.id] ?? []).find((x) => x.day === day);
+      const live = day === dayOf() ? db.tickets.filter((t) => t.branch_id === b.id && t.day === day) : [];
+      const arr = h ? h.arrivals : Array.from({ length: 24 }, (_, hr) => live.filter((t) => hourOf(new Date(t.joined_at)) === hr).length);
+      const a = arr.reduce((x, y) => x + y, 0), sv = h ? h.served : live.filter((t) => t.status === "done").length;
+      n += a; s += sv; perBiz[b.business_id] += a;
+      arr.forEach((v, hr) => (hourly[hr] += v));
+      weekday[new Date(day + "T12:00:00Z").getUTCDay()] += a;
+      if (h) { waitSum += h.wait_sum; waitN += h.wait_n; pos += h.pos; neg += h.neg; lost += h.lost; }
+    }
+    daily.push({ day, tickets: n, served: s }); tickets += n; served += s;
+  }
+  const eff = (z) => effectivePlan(z), onTrial = (z) => z.trial_until && Date.parse(z.trial_until) > now;
+  const paying = bizs.filter((z) => eff(z) && !onTrial(z));
+  const plans = Object.values(paying.reduce((g, z) => ((g[z.plan] ??= { plan: z.plan, count: 0, mrr: 0 }).count++, (g[z.plan].mrr += PRICE[z.plan] ?? 0), g), {}));
+  const cats = Object.values(bizs.reduce((g, z) => ((g[z.category] ??= { category: z.category, businesses: 0, tickets: 0 }).businesses++, (g[z.category].tickets += perBiz[z.id]), g), {}));
+  const email = (z) => db.users.find((u) => u.id === z.owner)?.email ?? null;
+  return {
+    days,
+    kpi: { businesses: bizs.length, demo: db.businesses.filter((z) => z.is_demo).length, includes_demo: includeDemo, active: bizs.filter(eff).length,
+      trials: bizs.filter(onTrial).length, paying: paying.length, trials_ending_7d: bizs.filter((z) => onTrial(z) && Date.parse(z.trial_until) < now + 7 * DAY_MS).length,
+      mrr_sar: paying.reduce((a, z) => a + (PRICE[z.plan] ?? 0), 0), mrr_potential_sar: bizs.filter(onTrial).reduce((a, z) => a + (PRICE[z.plan] ?? 0), 0),
+      new_businesses: bizs.filter((z) => Date.parse(z.created_at) > now - days * DAY_MS).length, branches: brs.length,
+      devices_active: db.devices.filter((d) => !d.revoked_at && d.last_seen_at).length, tickets, tickets_prev: Math.round(tickets * 0.86),
+      tickets_today: daily.at(-1)?.tickets ?? 0, served, no_show_pct: 3, left_pct: tickets ? Math.round((100 * lost) / tickets) : 0,
+      avg_wait_min: waitN ? Math.round(waitSum / waitN) : null, satisfaction_pct: pos + neg ? Math.round((100 * pos) / (pos + neg)) : null,
+      push_pct: 41, remote_pct: 34, customers_known: 212, returning_pct: 27 },
+    daily, hourly, weekday, plans, categories: cats.sort((a, b) => b.tickets - a.tickets),
+    feedback: { positive: pos, negative: neg, reasons: [{ reason: "long_wait", count: Math.round(neg * 0.5) }, { reason: "price", count: Math.round(neg * 0.3) }, { reason: "quality", count: Math.round(neg * 0.2) }] },
+    engagement: { quests_started: 46, quests_completed: 18, quests_redeemed: 11, upsell_interests: 63, offer_redemptions: 29, quiet_watches: 4 },
+    top: bizs.filter((z) => perBiz[z.id] > 0).sort((a, b) => perBiz[b.id] - perBiz[a.id]).slice(0, 6)
+      .map((z, i) => ({ id: z.id, name: z.name, category: z.category, plan: z.plan, tickets: perBiz[z.id], growth_pct: [18, 6, -9, 12, -3, 4][i], is_demo: z.is_demo })),
+    at_risk: bizs.filter((z) => eff(z) && !z.is_demo && perBiz[z.id] === 0 && Date.parse(z.created_at) < now - 7 * DAY_MS)
+      .map((z) => ({ id: z.id, name: z.name, owner_email: email(z), plan: z.plan, last7: 0, prev7: 0, last_ticket_at: null, reason: "idle" })),
+    trials_ending: bizs.filter(onTrial).sort((a, b) => (a.trial_until < b.trial_until ? -1 : 1)).slice(0, 12)
+      .map((z) => ({ id: z.id, name: z.name, owner_email: email(z), trial_until: z.trial_until, days_left: Math.max(0, Math.ceil((Date.parse(z.trial_until) - now) / DAY_MS)), tickets: perBiz[z.id], engaged: perBiz[z.id] >= 20 })),
+    signups_weekly: Array.from({ length: 8 }, (_, i) => bizs.filter((z) => Math.floor((now - Date.parse(z.created_at)) / (7 * DAY_MS)) === 7 - i).length),
+  };
+}
 
 /** Demo stand-in for «اكتب لي بإحساس»: warm Saudi lines by kind of item, using only what the owner typed. */
 function demoFeel(it, seed) {

@@ -465,3 +465,55 @@ table.simple th, table.simple td { text-align: start; padding: 8px 6px; border-t
 .field { grid-template-columns: minmax(0, 1fr); min-width: 0; }
 .hours-row { display: grid; grid-template-columns: 5.6em minmax(0, 1fr) minmax(0, 1fr); gap: 6px; align-items: center; }
 .hours-row input[type="time"] { width: 100%; min-width: 0; font-size: .9rem; }
+
+/* ---------- platform admin dashboard ---------- */
+.adm { display: grid; gap: 16px; }
+.adm-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.adm-bar .seg { flex-wrap: wrap; }
+.adm-bar .seg button { display: inline-flex; align-items: center; gap: 6px; }
+.adm-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.adm-select select { min-height: 40px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--sheet); color: var(--ink); padding: 0 10px; font: inherit; }
+.adm-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--r-card); padding: 14px 16px; display: grid; gap: 4px; min-width: 0; }
+.kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--muted); }
+.kpi-top .ti { font-size: 1.15rem; color: var(--accent); }
+.kpi-l { font-size: .85rem; }
+.kpi-v { font: 400 1.9rem/1.15 var(--f-display); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi-s { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .8rem; color: var(--muted); min-height: 1.2em; }
+.kpi.hero { background: var(--board, #151B1A); border-color: transparent; color: #E7EEEA; }
+.kpi.hero .kpi-top, .kpi.hero .kpi-s { color: #A9BAB3; }
+.kpi.hero .kpi-v { color: var(--led); }
+.kpi.hero .kpi-top .ti { color: var(--led); }
+.kpi.warn { border-color: color-mix(in srgb, var(--amber) 55%, var(--line)); }
+.kpi.warn .kpi-top .ti { color: var(--amber); }
+.kpi-d { font-weight: 700; font-size: .8rem; }
+.kpi-d.up { color: var(--accent); }
+.kpi-d.down { color: var(--danger); }
+.adm-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.adm-trend { width: 100%; height: auto; }
+.adm-trend .hit { fill: transparent; }
+.adm-trend .hit:hover { fill: color-mix(in srgb, var(--accent) 10%, transparent); }
+.hbars { display: grid; gap: 10px; width: 100%; }
+.hb { display: grid; grid-template-columns: fit-content(10em) minmax(60px, 1fr) auto; gap: 10px; align-items: center; font-size: .9rem; }
+.hb-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hb-t { height: 12px; border-radius: 4px; background: color-mix(in srgb, var(--accent) 10%, var(--paper)); overflow: hidden; }
+.hb-t i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+.hb-v { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rank { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--ticket); color: var(--accent); font-weight: 700; flex: none; }
+.tips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tip { border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 8px; align-content: start; background: var(--paper); }
+.tip.lv1 { border-inline-start: 4px solid var(--danger); }
+.tip.lv2 { border-inline-start: 4px solid var(--amber); }
+.tip.lv3 { border-inline-start: 4px solid var(--accent); }
+.tip-h { display: flex; gap: 8px; align-items: center; }
+.tip-h .ti { font-size: 1.2rem; color: var(--accent); }
+.tip-h b { flex: 1; }
+.tip p { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.7; }
+.tip .btn-sm { justify-self: start; }
+@media (max-width: 1000px) { .adm-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .adm-2, .tips { grid-template-columns: 1fr; } .kpi-v { font-size: 1.6rem; } .hb { grid-template-columns: fit-content(7.5em) minmax(50px, 1fr) auto; } }
+@media print { .adm-bar, .topbar, .tabbar, .demo-strip, .btn { display: none !important; } .kpi, .card { break-inside: avoid; } }
+#app.wide { max-width: 1180px; }
+#app.wide .tabbar, #app.wide ~ .tabbar { max-width: 1180px; }
+.adm .card > .chart:not(.adm-trend) { max-height: 190px; width: 100%; }
+.adm-trend { max-height: 260px; }

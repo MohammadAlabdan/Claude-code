@@ -6,7 +6,9 @@ test("«اكتب لي بإحساس»: one item from the edit sheet, then every i
   const menu = page.locator(".card", { hasText: "قائمتي" });
   // one item: the owner's note goes with it, the line lands in the description box
   await menu.locator(".list-item", { hasText: "تنظيف بشرة" }).getByRole("button", { name: "تعديل" }).click();
+  await page.locator("#item-desc").waitFor();
   await page.fill("#item-note", "نستخدم مناشف ساخنة");
+  await expect(page.locator("#item-note")).toHaveValue("نستخدم مناشف ساخنة");
   await page.getByTestId("write-feel").click();
   await expect(page.locator("#item-desc")).toHaveValue(/مناشف ساخنة/);
   await expect(page.getByTestId("write-feel")).toContainText("اكتب غيرها");

@@ -70,7 +70,7 @@ function makeShell(lang, demo) {
     window.addEventListener("online", () => document.querySelectorAll("[data-testid=offline-strip]").forEach((e) => (e.hidden = true)));
   }
   fill(appEl, demo ? h("div.demo-strip", { role: "note" }, "وضع تجريبي · بيانات للعرض فقط") : null, offline, top, content, tabbar);
-  appEl.classList.remove("has-tabs");
+  appEl.classList.remove("has-tabs", "wide");
   document.documentElement.lang = lang;
   document.documentElement.dir = langDir(lang);
   return {
