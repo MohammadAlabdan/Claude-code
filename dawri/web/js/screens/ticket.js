@@ -79,7 +79,7 @@ export async function render(ctx) {
   function showOverlay(message, number, early = 0) {
     document.querySelector(".called")?.remove();
     const el = h("div.called", { role: "alertdialog", "aria-live": "assertive", "aria-label": message, "data-testid": "called-overlay" },
-      h("div.c-inner", h("div.c-num.num", num(number)), h("div.c-msg", message),
+      h("div.c-inner", h("div.c-tag", { "data-testid": "called-tag" }, t("ticket.called_tag")), h("div.c-num.num", num(number)), h("div.c-msg", message),
         early ? h("div.c-early", { "data-testid": "called-early" }, t("ticket.early", { m: num(early) })) : null,
         h("button.btn.btn-xl", { type: "button", style: { background: "var(--on-accent)", color: "var(--accent)", borderColor: "transparent", minWidth: "60%" },
           onclick: () => el.remove() }, t("action.ok"))));
