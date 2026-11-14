@@ -116,6 +116,9 @@ export async function render(ctx) {
 
   function paint() {
     shell.setTitle(tk.branch.business_name);
+    // always-visible way back to the shop page (the ticket page is long)
+    shell.setActions(h("a.icon-btn", { href: `./s/${tk.branch.public_id}?stay`, "aria-label": t("ticket.shop_page"), title: t("ticket.shop_page"), "data-testid": "to-shop" }, icon("building-store")),
+      themeToggle(), langToggle(ctx.rerender));
     const waiting = tk.mode === "remote" && tk.status === "waiting";
     const active = ["waiting", "called", "serving"].includes(tk.status) || (tk.mode === "dropoff" && tk.status !== "done" && tk.status !== "cancelled");
     board.update(tk.mode === "remote" ? tk.now_serving : null);
