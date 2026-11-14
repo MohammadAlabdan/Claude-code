@@ -15,7 +15,7 @@ test("remote: join → called → done → feedback", async ({ page, context }) 
   await staff.getByRole("button", { name: "نادِ هذا الرقم" }).click();
 
   await expect(page.getByTestId("called-overlay")).toBeVisible({ timeout: 15000 });
-  await expect(page.getByTestId("called-overlay")).toContainText("حان دورك");
+  await expect(page.getByTestId("called-overlay")).toContainText("وصل دورك");
   await page.getByTestId("called-overlay").getByRole("button").click();
 
   await staff.getByTestId("done").click();

@@ -312,7 +312,7 @@ supabase.channel(`branch:${publicId}`).on("broadcast", { event: "queue_changed" 
 ## 13. Web Push payloads (service worker `push` event)
 
 ```json
-{ "title": "حلاق الأصيل · الملقا", "body": "حان دورك، تفضّل (رقم ٢٤)", "kind": "return_now|called|ready|stage|busy_alert|summary",
+{ "title": "حلاق الأصيل · الملقا", "body": "وصل دورك، تفضّل (رقم ٢٤)", "kind": "return_now|called|ready|stage|busy_alert|summary",
   "tag": "ticket-<id>", "url": "/s/<public_id>", "vibrate": true }
 ```
 
