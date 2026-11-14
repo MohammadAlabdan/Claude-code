@@ -25,7 +25,7 @@ export async function render(ctx) {
       h("button.btn.btn-primary", { type: "button", onclick: () => window.print() }, icon("printer"), "اطبع")),
     style,
     h("section.poster", { "data-testid": "poster" },
-      h("img", { src: "./assets/logo.svg", alt: "دوري", width: 72, height: 72 }),
+      h("img", { src: "./assets/logo.svg", alt: "جاي", width: 72, height: 72 }),
       h("div.p-name", br.business.name),
       h("div", { style: { fontSize: "1.1rem" } }, br.name),
       h("div.p-qr", QR(url, { label: url })),

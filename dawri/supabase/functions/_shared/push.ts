@@ -72,7 +72,7 @@ export async function deliver(notify: Notify[] | undefined) {
   }
   await Promise.all(notify.filter((n) => n.kind === "quiet" && n.endpoint).map((n) =>
     sendAll([{ id: "", endpoint: n.endpoint!, p256dh: n.p256dh!, auth: n.auth! }],
-      { ...quietPush(n.lang ?? "ar", n.shop ?? "دوري", n.count ?? 0), kind: "quiet", tag: `quiet-${n.public_id}`, url: `/s/${n.public_id ?? ""}`, vibrate: true })));
+      { ...quietPush(n.lang ?? "ar", n.shop ?? "جاي", n.count ?? 0), kind: "quiet", tag: `quiet-${n.public_id}`, url: `/s/${n.public_id ?? ""}`, vibrate: true })));
   for (const n of notify.filter((x) => x.owner_branch_id)) {
     const { data: owner } = await db.from("branches").select("businesses(owner_user_id)").eq("id", n.owner_branch_id!).single();
     const ownerId = (owner as { businesses?: { owner_user_id?: string } } | null)?.businesses?.owner_user_id;

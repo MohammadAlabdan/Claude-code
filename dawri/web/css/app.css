@@ -1,4 +1,4 @@
-/* Dawri app shell and components. Phone-first; on wide screens the app sits in a 480px column. */
+/* Jay app shell and components. Phone-first; on wide screens the app sits in a 480px column. */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
 body {

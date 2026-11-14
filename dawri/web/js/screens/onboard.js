@@ -20,7 +20,7 @@ const LANGS = [["ar", "العربية"], ["en", "English"], ["ur", "اردو"], 
 
 export async function render(ctx) {
   const { api, shell } = ctx;
-  await requireSession(ctx, { title: "ركّب دوري لمحلك", lead: "أنشئ حساباً بالبريد، وخلال ١٠ دقائق يكون عندك ملصق QR جاهز. تجربة مجانية ١٤ يوم.", signupFirst: true, redirect: "/start" });
+  await requireSession(ctx, { title: "ركّب جاي لمحلك", lead: "أنشئ حساباً بالبريد، وخلال ١٠ دقائق يكون عندك ملصق QR جاهز. تجربة مجانية ١٤ يوم.", signupFirst: true, redirect: "/start" });
   shell.setTitle("تهيئة المحل");
   const data = store.get("dawri.onboard.draft") ?? { category: null, business_name: "", district: "", services: [], open: "09:00", close: "23:00", days: [0, 1, 2, 3, 4, 6], staff_language: "ar" };
   const save = () => store.set("dawri.onboard.draft", data);
@@ -96,7 +96,7 @@ export async function render(ctx) {
     store.set("dawri.owner.branch", r.branch_id);
     toast("جاهز!");
     fill(shell.content, 
-      h("section.card.center", { style: { justifyItems: "center" }, "data-testid": "onboard-done" }, icon("circle-check"), h("h2", "محلك جاهز على دوري"),
+      h("section.card.center", { style: { justifyItems: "center" }, "data-testid": "onboard-done" }, icon("circle-check"), h("h2", "محلك جاهز على جاي"),
         h("p.badge.warn", `تجربة مجانية ${num(14)} يوم`), h("p.hand", "مبروك، أول زبون على الطريق")),
       h("section.card", h("div.card-head", icon("link"), h("h3", "رابط صفحة المحل")), h("p.small", { dir: "ltr", style: { wordBreak: "break-all" } }, r.shop_url),
         h("div.grid2", h("a.btn", { href: `./s/${r.public_id}` }, "افتح الصفحة"), h("a.btn", { href: "./owner/poster" }, icon("printer"), "ملصق QR"))),

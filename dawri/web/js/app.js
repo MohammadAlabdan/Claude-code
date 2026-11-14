@@ -57,7 +57,7 @@ export function nav(path, { replace = false } = {}) {
 function makeShell(lang, demo) {
   const titleEl = h("h1");
   const actions = h("div.actions");
-  const top = h("header.topbar", h("a.brand", { href: "./", "aria-label": "دوري" }, h("img", { src: "./assets/logo.svg", alt: "" })), titleEl, actions);
+  const top = h("header.topbar", h("a.brand", { href: "./", "aria-label": "جاي" }, h("img", { src: "./assets/logo.svg", alt: "" })), titleEl, actions);
   const content = h("main.content", { id: "main", tabindex: "-1" });
   const tabbar = h("nav.tabbar", { hidden: true, "aria-label": "tabs" });
   // Customer and owner pages: say plainly when the connection drops (the staff screen has its own queueing bar).
@@ -75,7 +75,7 @@ function makeShell(lang, demo) {
   document.documentElement.dir = langDir(lang);
   return {
     content, top, app: appEl,
-    setTitle(text) { titleEl.textContent = text ?? ""; document.title = text ? `${text} · دوري` : "دوري"; },
+    setTitle(text) { titleEl.textContent = text ?? ""; document.title = text ? `${text} · جاي` : "جاي"; },
     setActions(...nodes) { fill(actions, ...nodes.flat().filter(Boolean)); },
     hideTop() { top.hidden = true; },
     setTabs(tabs, current) {
@@ -105,7 +105,7 @@ async function render() {
   const shell = makeShell(lang, api.demo);
 
   if (name === "notfound") {
-    shell.setTitle("دوري");
+    shell.setTitle("جاي");
     shell.content.append(h("div.empty", icon("map-pin-off"), h("p", "الصفحة غير موجودة"), h("a.btn.btn-primary", { href: "./" }, "الرئيسية")));
     return;
   }

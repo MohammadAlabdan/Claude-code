@@ -54,7 +54,7 @@ export async function render(ctx) {
   if (!ov.businesses.length) {
     shell.setTitle("أهلاً");
     fill(shell.content, h("section.card.center", { style: { justifyItems: "center" } }, h("img.hero-logo", { src: "./assets/logo.svg", alt: "" }), h("h2", "ما عندك محل مسجّل"),
-      h("p.muted", "ركّب دوري لمحلك في ١٠ دقائق."), h("a.btn.btn-primary", { href: "./start" }, "ابدأ التهيئة")),
+      h("p.muted", "ركّب جاي لمحلك في ١٠ دقائق."), h("a.btn.btn-primary", { href: "./start" }, "ابدأ التهيئة")),
       ov.is_admin ? h("a.btn.btn-block", { href: "./admin" }, icon("shield"), "لوحة الإدارة") : null,
       h("button.btn.btn-ghost.btn-block", { type: "button", onclick: async () => { await api.auth.signOut(); ctx.rerender(); } }, "تسجيل خروج"));
     return;
@@ -192,7 +192,7 @@ export async function render(ctx) {
     if (!has("quests")) return locked("quests", "تحدّياتي: صمّم تحدّي لعملائك");
     const [{ quests, interests_7d }, sug] = await Promise.all([api.owner("quests", { branch_id: br.id }), api.owner("suggest_quests", { branch_id: br.id }).catch(() => ({ suggestions: [] }))]);
     return h("section.stack", { "data-testid": "owner-quests", style: { gap: "14px" } },
-      h("div.wait-head", h("h2", "تحدّياتي"), h("span.muted", "أنت اللي تصمم التحدّي، ودوري يحسب الزيارات تلقائياً")),
+      h("div.wait-head", h("h2", "تحدّياتي"), h("span.muted", "أنت اللي تصمم التحدّي، وجاي يحسب الزيارات تلقائياً")),
       h("div.banner.ok", icon("gift"), h("span", "زبونك يشوف وهو ينتظر أقوى ٤ مفاجآت منك: الجوائز الجاهزة أولاً، ثم النادرة، ثم العروض")),
       h("div.grid2", stat("مشتركين", num(quests.reduce((a, q) => a + q.participants, 0))), stat("طلبات «أبيها» ٧ أيام", num(interests_7d))),
       sug.suggestions.length ? card("اقتراحات من أرقامك", "bulb", h("div.list", sug.suggestions.map((x) => h("div.list-item",

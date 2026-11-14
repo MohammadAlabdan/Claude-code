@@ -1,6 +1,6 @@
-# تشغيل «دوري» على Netlify (قاعدة بيانات كاملة)
+# تشغيل «جاي» على Netlify (قاعدة بيانات كاملة)
 
-النسخة الحيّة: **https://dawri-live.netlify.app**
+النسخة الحيّة: **https://jay-live.netlify.app**
 
 ## ماذا يعمل على Netlify
 | الجزء | على Netlify |

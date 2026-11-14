@@ -20,7 +20,7 @@ const pct = (n) => (n == null ? "—" : `${num(n)}٪`);
 
 export async function render(ctx) {
   const { api, shell } = ctx;
-  await requireSession(ctx, { title: "لوحة الإدارة", lead: "للمسؤول عن منصة دوري فقط.", redirect: "/admin" });
+  await requireSession(ctx, { title: "لوحة الإدارة", lead: "للمسؤول عن منصة جاي فقط.", redirect: "/admin" });
   shell.setTitle("لوحة المنصة");
   // a dashboard needs room: widen the app frame on this screen only
   shell.app.classList.add("wide");

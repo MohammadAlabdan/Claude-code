@@ -1,4 +1,4 @@
-/* Dawri brand tokens. Light by default, dark by system or by the manual toggle (data-theme). */
+/* Jay brand tokens. Light by default, dark by system or by the manual toggle (data-theme). */
 :root {
   --paper: #F3F5F1; --sheet: #FFFFFF; --ink: #1B2725; --muted: #56655F; --line: #D3DBD5;
   --accent: #0B8F6E; --on-accent: #FFFFFF; --ticket: #D4F1E6; --board: #151B1A; --led: #FFB21E; --danger: #C2412D;

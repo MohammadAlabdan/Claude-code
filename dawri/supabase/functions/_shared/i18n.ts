@@ -5,7 +5,7 @@ type Lang = "ar" | "en";
 
 export function customerPush(kind: string, lang: Lang, t: { number?: number; stage?: string; receipt_code?: string; shop?: string }) {
   const n = lang === "ar" ? toArabicDigits(t.number ?? "") : String(t.number ?? "");
-  const shop = t.shop ?? (lang === "ar" ? "دوري" : "Dawri");
+  const shop = t.shop ?? (lang === "ar" ? "جاي" : "Jay");
   const texts: Record<string, [string, string]> = {
     return_now: ["ارجع الآن، باقي قبلك دوران", "Head back now, two turns before you"],
     called: [`حان دورك، تفضّل (رقم ${n})`, `It's your turn, number ${n}`],

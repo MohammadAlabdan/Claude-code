@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="دوري">
-  <title>دوري</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="جاي">
+  <title>جاي</title>
   <!-- ticket stub: rounded rectangle with a semicircle notch on each side -->
   <path fill="#0B8F6E" d="M24 22h80a14 14 0 0 1 14 14v18a10 10 0 0 0 0 20v18a14 14 0 0 1-14 14H24a14 14 0 0 1-14-14V74a10 10 0 0 0 0-20V36a14 14 0 0 1 14-14z"/>
   <!-- perforation near one end -->

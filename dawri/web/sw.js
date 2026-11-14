@@ -1,5 +1,5 @@
-// Dawri service worker: offline shell, Web Push, notification clicks.
-const VERSION = "dawri-v4";
+// Jay service worker: offline shell, Web Push, notification clicks.
+const VERSION = "dawri-v5";
 const SHELL = [
   "./", "./index.html", "./config.js", "./manifest.webmanifest", "./css/tokens.css", "./css/app.css", "./assets/logo.svg",
   "./js/app.js", "./js/i18n.js", "./js/errors.js", "./js/ui/dom.js", "./js/ui/sheet.js", "./js/ui/toast.js", "./js/ui/components.js",
@@ -34,9 +34,9 @@ self.addEventListener("fetch", (e) => {
 
 self.addEventListener("push", (e) => {
   let data = {};
-  try { data = e.data?.json() ?? {}; } catch { data = { title: "دوري", body: e.data?.text() }; }
+  try { data = e.data?.json() ?? {}; } catch { data = { title: "جاي", body: e.data?.text() }; }
   const urgent = data.vibrate || ["called", "ready"].includes(data.kind);
-  e.waitUntil(self.registration.showNotification(data.title || "دوري", {
+  e.waitUntil(self.registration.showNotification(data.title || "جاي", {
     body: data.body || "", icon: "./assets/icons/icon-192.png", badge: "./assets/icons/icon-192.png",
     tag: data.tag || data.kind || "dawri", renotify: true, requireInteraction: urgent,
     vibrate: urgent ? [300, 120, 300, 120, 300] : [120], data: { url: data.url || "./" }, dir: "rtl", lang: "ar",
