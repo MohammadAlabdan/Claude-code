@@ -22,8 +22,8 @@ const token = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) =
 const KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 // ---------- plans ----------
-const BASIC = ["queue", "fadeet", "return_now", "card", "evening_summary", "late_button", "family_ticket", "priority", "lost_customers", "staff_language"];
-const GROWTH = [...BASIC, "menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "preferred_provider", "best_time", "busy_alert", "quests", "upsell"];
+const BASIC = ["queue", "fadeet", "return_now", "card", "evening_summary", "late_button", "family_ticket", "priority", "lost_customers", "staff_language", "preferred_provider"];
+const GROWTH = [...BASIC, "menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "best_time", "busy_alert", "quests", "upsell"];
 const FULL = [...GROWTH, "full_page", "news", "qa_assistant", "quiet_coupon", "peak_report", "absent_customers", "smart_quests"];
 const PLANS = { basic: BASIC, seasonal: BASIC, growth: GROWTH, full: FULL };
 const minPlan = (f) => (BASIC.includes(f) ? "basic" : GROWTH.includes(f) ? "growth" : "full");
@@ -218,6 +218,26 @@ function serviceMinutes(serviceId, providerId) {
     .map((x) => (Date.parse(x.done_at) - Date.parse(x.served_at)) / 60000).filter((m) => m > 0).slice(-30).sort((a, b) => a - b);
   if (d.length >= 3) return Math.max(1, Math.min(600, d.length % 2 ? d[(d.length - 1) / 2] : (d[d.length / 2 - 1] + d[d.length / 2]) / 2));
   return db.services.find((s) => s.id === serviceId)?.avg_minutes ?? 15;
+}
+/** Same shape as public.branch_chairs: status, number being served, people ahead and the wait per chair. */
+function demoChairs(b) {
+  const prov = db.providers.filter((p) => p.branch_id === b.id && p.is_active);
+  const waiting = db.tickets.filter((t) => t.branch_id === b.id && t.status === "waiting" && t.mode === "remote");
+  const remote = db.services.filter((s) => s.branch_id === b.id && s.is_active && s.mode === "remote");
+  return prov.map((p) => {
+    const cur = db.tickets.filter((t) => t.provider_id === p.id && t.day === dayOf() && ["called", "serving"].includes(t.status)).sort((x, y) => (x.called_at < y.called_at ? 1 : -1))[0];
+    const devs = db.devices.filter((d) => d.provider_id === p.id && !d.revoked_at);
+    const seen = devs.some((d) => d.last_seen_at && Date.now() - Date.parse(d.last_seen_at) < 20 * 60000);
+    const own = waiting.filter((t) => t.provider_id === p.id).length;
+    const any = waiting.filter((t) => !t.provider_id && (!p.service_ids || p.service_ids.includes(t.service_id))).length;
+    const peers = Math.max(1, prov.filter((q) => !q.service_ids || !p.service_ids || q.service_ids.some((x) => p.service_ids.includes(x))).length);
+    const svcs = remote.filter((s) => !p.service_ids || p.service_ids.includes(s.id));
+    const minutes = svcs.length ? Math.round(svcs.reduce((a, s) => a + serviceMinutes(s.id, p.id), 0) / svcs.length) : 15;
+    const ahead = own + Math.ceil(any / peers);
+    return { id: p.id, name: p.display_name, status: cur ? "busy" : devs.length && !seen ? "away" : "free", serving_number: cur?.number ?? null,
+      serving_minutes: cur?.called_at ? Math.floor((Date.now() - Date.parse(cur.called_at)) / 60000) : null, waiting: own, ahead,
+      estimate_min: round5(ahead * minutes + (cur ? minutes / 2 : 0)), service_ids: p.service_ids };
+  }).sort((x, y) => (x.name < y.name ? -1 : 1));
 }
 const providerCount = (s) => Math.max(1, db.providers.filter((p) => p.branch_id === s.branch_id && p.is_active && (!p.service_ids || p.service_ids.includes(s.id))).length);
 const round5 = (m) => Math.max(5, Math.round(m / 5) * 5);
@@ -892,6 +912,7 @@ export async function createApi() {
         offers: activeOffers(b),
         best_time: f.includes("best_time") ? { arrivals: arrivalsMatrix(b), open: openMatrix(b) } : null,
         quests: questsView(b, null),
+        chairs: f.includes("preferred_provider") ? demoChairs(b) : [],
         news: f.includes("news") ? db.news.filter((n) => n.branch_id === b.id).sort((x, y) => (x.published_at < y.published_at ? 1 : -1)).slice(0, 10) : [],
         server_time: iso(),
       };

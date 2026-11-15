@@ -33,7 +33,7 @@ const FEATURE_AR = {
   quests: "تحدّياتي", upsell: "أبيها (طلب إضافة وقت الانتظار)", smart_quests: "التحديات الذكية",
 };
 const MIN_PLAN = (f) => (["queue", "fadeet", "return_now", "card", "evening_summary", "late_button", "family_ticket", "priority", "lost_customers", "staff_language"].includes(f) ? "basic"
-  : ["menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "preferred_provider", "best_time", "busy_alert", "quests", "upsell"].includes(f) ? "growth" : "full");
+  : ["menu", "menu_photo_ai", "timed_offers", "loyalty", "feedback", "best_time", "busy_alert", "quests", "upsell"].includes(f) ? "growth" : "full");
 
 const field = (label, input, hint) => h("label.field", h("span", label), input, hint ? h("span.muted.small", { style: { fontWeight: 400 } }, hint) : null);
 const locked = (feature, title = FEATURE_AR[feature]) => LockedCard(title, MIN_PLAN(feature));
@@ -533,7 +533,7 @@ export async function render(ctx) {
       h("button.btn.btn-block", { type: "button", onclick: () => svcSheet() }, icon("plus"), "خدمة جديدة"),
       h("div.divider"),
       h("h3", "مقدّمو الخدمة (الكراسي)"),
-      has("preferred_provider") ? null : h("p.muted.small", "اختيار الزبون لمقدّم بعينه متاح في باقة النمو؛ الكراسي تُستخدم لتوزيع الطابور في كل الباقات."),
+      h("p.muted.small", "يشوف الزبون كل كرسي: فاضي أو مشغول، وكم ينتظره، ويقدر يحجز عند كرسي معيّن. اكتب الاسم كما تحب يظهر (مثلاً: كرسي ١ · أبو سعد، أو المختصة نورة)."),
       provs.length ? h("div.list", provs.map((p) => h("div.list-item", h("span.grow", p.display_name),
         h("button.icon-btn", { type: "button", "aria-label": "حذف", onclick: async () => { await api.owner("delete", { table: "providers", id: p.id }); settings(); } }, icon("trash"))))) : null,
       h("div.row", { style: { flexWrap: "nowrap" } }, h("label.field", { style: { flex: 1 } }, h("span.sr", "اسم مقدّم الخدمة"), provName),

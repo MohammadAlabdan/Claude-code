@@ -92,16 +92,21 @@ export async function render(ctx) {
   const poll = setInterval(() => document.visibilityState === "visible" && load().catch(() => {}), 30000);
   ctx.onCleanup(() => { unsub(); clearInterval(poll); });
 
-  async function join(service) {
+  async function join(service, presetProvider = null) {
     const providers = data.providers.filter((p) => !p.service_ids || p.service_ids.includes(service.id));
-    let party = 1, provider = null;
+    let party = 1, provider = presetProvider;
+    const chairOf = (id) => (data.chairs ?? []).find((c) => c.id === id);
+    const chipLine = (c) => (c ? [c.status === "busy" ? t("chairs.busy_plain") : t(`chairs.${c.status}`),
+      c.ahead ? `${t("chairs.ahead", { n: num(c.ahead) })} · ${t("chairs.wait", { m: num(c.estimate_min) })}` : t("chairs.ahead_none")].join(" · ") : "");
+    const chips = h("div.chair-chips", { role: "group", "aria-label": t("join.provider") },
+      [{ id: null, name: t("join.any_provider") }, ...providers].map((p) => h("button.chip.chair-chip", { type: "button", "data-provider": p.id ?? "any", "aria-pressed": String((p.id ?? null) === provider),
+        onclick: () => { provider = p.id ?? null; chips.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String((x.dataset.provider === "any" ? null : x.dataset.provider) === provider))); } },
+        h("b", p.name), p.id ? h("small", chipLine(chairOf(p.id))) : h("small", t("chairs.any_sub")))));
     const partyOut = h("output.big-num", { style: { fontSize: "2rem", minWidth: "2ch", textAlign: "center" } }, num(1));
     const step = (d) => () => { party = Math.min(6, Math.max(1, party + d)); partyOut.textContent = num(party); };
     const body = [
       h("p.muted", t("join.service", { name: service.name })),
-      providers.length ? h("label.field", h("span", t("join.provider")),
-        h("select", { id: "join-provider", onchange: (e) => (provider = e.target.value || null) },
-          h("option", { value: "" }, t("join.any_provider")), providers.map((p) => h("option", { value: p.id }, p.name)))) : null,
+      providers.length ? h("div.field", h("span", t("join.provider")), chips) : null,
       data.features.includes("family_ticket") ? h("div.field", h("span", t("join.party")), h("p.muted.small", t("join.party_hint")),
         h("div.row", { style: { justifyContent: "center", gap: "18px" } },
           h("button.icon-btn", { type: "button", "aria-label": "−", onclick: step(-1), style: { border: "1.5px solid var(--line)" } }, icon("minus")),
@@ -158,6 +163,7 @@ export async function render(ctx) {
 
     fill(root, 
       pulse(b, f, photo, hoursToday, est),
+      chairsBoard(b),
 
       card(t("shop.services"), "list-check", h("div.list#services", data.services.map((s) => h("div.list-item", { "data-service": s.id },
         h("div.grow", h("div.title", s.name),
@@ -207,6 +213,44 @@ export async function render(ctx) {
 
       f.includes("qa_assistant") ? qaCard() : null,
       h("p.center.muted.small", t("shop.powered")));
+  }
+
+  /** «الكراسي الحين»: every chair / stylist live, the wait for each, and a button to book there. */
+  function chairsBoard(b) {
+    const chairs = data.chairs ?? [];
+    const remote = data.services.filter((s) => s.mode === "remote");
+    if (!chairs.length || !remote.length) return null;
+    const cat = data.branch.category === "salon" ? "salon" : data.branch.category === "barber" ? "barber" : "other";
+    const best = chairs.filter((c) => c.status !== "away").sort((x, y) => x.estimate_min - y.estimate_min)[0];
+    const servicesOf = (c) => remote.filter((s) => !c.service_ids || c.service_ids.includes(s.id));
+    const book = (c) => {
+      if (!b.open) return refused(new ApiError("closed", { next_open_at: b.next_open_at, busy_level: b.busy_level }));
+      const svcs = c ? servicesOf(c) : remote;
+      if (svcs.length === 1) return join(svcs[0], c?.id ?? null);
+      openSheet({ title: t("chairs.pick_service"), body: [h("div.list", svcs.map((s) => h("button.list-item.btn-plain", { type: "button", "data-pick-service": s.id,
+        onclick: () => { document.querySelector(".sheet-backdrop")?.click(); setTimeout(() => join(s, c?.id ?? null), 260); } },
+        h("div.grow", h("div.title", s.name), h("div.muted.small", t("shop.service_wait", { n: num(s.waiting), m: num(s.estimate_min) }))), icon("chevron-left"))))],
+        actions: [{ label: t("action.cancel"), ghost: true }] });
+    };
+    const card = (c) => {
+      const line = c.status === "busy" ? (c.serving_number ? t("chairs.busy", { n: num(c.serving_number) }) : t("chairs.busy_plain")) : t(`chairs.${c.status}`);
+      const svcs = servicesOf(c);
+      return h(`article.chair.st-${c.status}`, { "data-chair": c.id },
+        h("div.chair-top", h("span.chair-dot", { "aria-hidden": "true" }), h("b.chair-name", c.name)),
+        h("p.chair-status", line),
+        h("p.chair-wait", c.ahead ? `${t("chairs.ahead", { n: num(c.ahead) })} · ${t("chairs.wait", { m: num(c.estimate_min) })}` : t("chairs.ahead_none")),
+        c.service_ids ? h("p.chair-svcs", t("chairs.only_services", { list: svcs.map((s) => s.name).join("، ") })) : null,
+        h("button.btn.btn-sm", { type: "button", "data-testid": "book-chair", onclick: () => book(c) }, t("chairs.book")));
+    };
+    return h("section.card.chairs", { "data-testid": "chairs-board" },
+      h("div.card-head", icon(cat === "salon" ? "sparkles" : "armchair"), h("h3", t(`chairs.title.${cat}`))),
+      h("p.muted.small", t("chairs.lead")),
+      h("div.chair-grid",
+        h("article.chair.any", h("div.chair-top", icon("bolt"), h("b.chair-name", t("chairs.any"))),
+          h("p.chair-status", t("chairs.any_sub")),
+          h("p.chair-wait", best ? (best.ahead ? `${t("chairs.ahead", { n: num(best.ahead) })} · ${t("chairs.wait", { m: num(best.estimate_min) })}` : t("chairs.ahead_none")) : ""),
+          h("button.btn.btn-primary.btn-sm", { type: "button", "data-testid": "book-any", onclick: () => book(null) }, t("chairs.book"))),
+        ...chairs.map(card)));
   }
 
   /** «نبض المحل»: the live crowd, said the way a friend would say it, with what to do about it. */
