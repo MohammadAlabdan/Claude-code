@@ -38,6 +38,7 @@ export function requireSession(ctx, { title = "دخول صاحب المحل", le
       h("label.field", h("span", "البريد الإلكتروني"), email),
       h("label.field", h("span", "كلمة المرور"), password),
       err, submit, toggle,
+      h("p.muted.small.center", "باستخدامك «جاي» توافق على ", h("a", { href: "./privacy", target: "_blank" }, "الخصوصية والشروط")),
       api.demo || api.noMagicLink ? null : h("button.btn.btn-block", { type: "button", onclick: async () => {
         if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) { err.hidden = false; err.textContent = "اكتب بريدك أولاً"; return; }
         try { await api.auth.magicLink(email.value.trim(), redirect); toast("أرسلنا رابط الدخول على بريدك"); } catch (e2) { err.hidden = false; err.textContent = errorText(e2); }

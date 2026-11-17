@@ -88,8 +88,8 @@ export async function render(ctx) {
   }
   fill(shell.content, root);
 
-  const unsub = api.subscribe(publicId, () => load().catch(() => {}));
-  const poll = setInterval(() => document.visibilityState === "visible" && load().catch(() => {}), 30000);
+  const unsub = api.subscribe(publicId, () => load().catch(() => {}), 15000);
+  const poll = setInterval(() => document.visibilityState === "visible" && load().catch(() => {}), 60000);
   ctx.onCleanup(() => { unsub(); clearInterval(poll); });
 
   async function join(service, presetProvider = null) {
@@ -212,7 +212,7 @@ export async function render(ctx) {
         b.map_url ? h("a.btn", { href: b.map_url, target: "_blank", rel: "noopener" }, icon("map-pin"), t("shop.map")) : null),
 
       f.includes("qa_assistant") ? qaCard() : null,
-      h("p.center.muted.small", t("shop.powered")));
+      h("p.center.muted.small", t("shop.powered"), " · ", h("a", { href: "./privacy", "data-testid": "privacy-link" }, t("shop.privacy"))));
   }
 
   /** «الكراسي الحين»: every chair / stylist live, the wait for each, and a button to book there. */

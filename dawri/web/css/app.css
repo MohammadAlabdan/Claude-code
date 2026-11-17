@@ -133,6 +133,9 @@ p { margin: 0; }
 .banner i { font-size: 1.4rem; }
 .banner.ok { background: var(--ticket); color: var(--accent); }
 .banner.warn { background: color-mix(in srgb, var(--led) 22%, var(--sheet)); color: var(--amber); }
+.adm-warn { flex-wrap: wrap; }
+.adm-warn div { display: grid; gap: 2px; flex: 1 1 220px; }
+.adm-warn div span { font-weight: 400; font-size: .92rem; }
 .banner.danger { background: color-mix(in srgb, var(--danger) 14%, var(--sheet)); color: var(--danger); }
 .empty { text-align: center; display: grid; gap: 10px; justify-items: center; padding: 24px 8px; color: var(--muted); }
 .empty i { font-size: 2.4rem; color: var(--line); }
@@ -291,20 +294,87 @@ table.simple th, table.simple td { text-align: start; padding: 8px 6px; border-t
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
 
-/* ---------- printable poster ---------- */
-.poster { background: #fff; color: #1B2725; border-radius: 0; padding: 28px; display: grid; gap: 18px; justify-items: center; text-align: center; }
-.poster .p-name { font: 400 2.4rem/1.2 var(--f-display); }
-.poster .p-qr { width: 70%; max-width: 320px; }
-.poster .p-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
-.poster .p-steps div { display: grid; gap: 4px; justify-items: center; font: 400 1.25rem var(--f-display); }
-.poster .p-steps i { font-size: 2rem; color: #0B8F6E; }
+.legal ul { margin: 0; padding-inline-start: 1.2em; display: grid; gap: 8px; line-height: 1.7; }
+.legal p { margin: 0; line-height: 1.7; }
+
+/* ---------- QR print kit (door poster, mirror card, glass sticker) ----------
+   Every size inside a design is in cqw, so the same design fills A4, A5, A6 or 10×10 cm exactly. */
+.pk-tools { display: grid; gap: 12px; }
+.pk-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.pk-choice { display: grid; gap: 2px; text-align: start; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--sheet); color: var(--ink); cursor: pointer; font: inherit; }
+.pk-choice span { font-size: .8rem; color: var(--muted); }
+.pk-choice[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+.pk-stage { container-type: inline-size; margin: 16px auto 0; width: 100%; max-width: 440px; }
+.pk-stage[data-design="sticker"] { max-width: 360px; }
+.pk { --g: #0B8F6E; --gd: #075C48; --mint: #D4F1E6; --paper: #F1FAF6; --ink: #1B2725; --amber: #F5B400;
+  position: relative; overflow: hidden; background: var(--paper); color: var(--ink); font-family: var(--f-body); text-align: center;
+  box-shadow: 0 10px 40px rgba(8, 40, 30, .18); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.pk-logo { width: 13cqw; height: 13cqw; background: #fff; border-radius: 28%; padding: 1.6cqw; box-sizing: border-box; }
+.pk-logo.sm { width: 10cqw; height: 10cqw; padding: 1.2cqw; }
+.pk-logo.xs { width: 7cqw; height: 7cqw; padding: .8cqw; }
+.pk-slogan { font-family: var(--f-hand); font-weight: 700; }
+.pk-name { font: 400 9cqw/1.15 var(--f-display); margin: 0; color: var(--ink); text-wrap: balance; }
+.pk-kicker { font-weight: 700; color: var(--g); }
+.pk-qr { position: relative; background: #fff; border-radius: 4cqw; padding: 4cqw; margin-inline: auto; box-shadow: 0 .6cqw 2.4cqw rgba(8, 60, 45, .14); }
+.pk-qr .qr-box svg { display: block; width: 100%; height: auto; }
+.pk-notch { position: absolute; top: 50%; width: 5cqw; height: 5cqw; margin-top: -2.5cqw; border-radius: 50%; background: var(--paper); }
+.pk-notch.l { inset-inline-start: -2.5cqw; } .pk-notch.r { inset-inline-end: -2.5cqw; }
+.pk-url { font-size: 2.8cqw; letter-spacing: .02em; }
+
+/* door poster: A4 / A5 */
+.pk-door { aspect-ratio: 210 / 297; display: grid; grid-template-rows: auto 1fr auto; }
+.pk-band { display: flex; align-items: center; justify-content: center; gap: 3.4cqw; padding: 3.6cqw 6cqw;
+  background: radial-gradient(120% 140% at 85% 0%, var(--g) 0%, var(--gd) 70%); color: #fff; }
+.pk-band > div { text-align: start; }
+.pk-brand { font: 400 9.5cqw/1 var(--f-display); }
+.pk-band .pk-logo { width: 11.5cqw; height: 11.5cqw; }
+.pk-band .pk-slogan { font-size: 5.2cqw; color: var(--mint); line-height: 1.2; }
+.pk-door .pk-body { display: grid; align-content: space-evenly; justify-items: center; gap: 1.6cqw; padding: 3cqw 6cqw 2.4cqw; min-height: 0; }
+.pk-door .pk-name { font-size: 8.4cqw; }
+.pk-door .pk-kicker { font-size: 4cqw; background: var(--mint); color: var(--gd); padding: .8cqw 4cqw; border-radius: 99px; }
+.pk-branch { font-size: 3.4cqw; color: #56655F; margin-top: -1.6cqw; }
+.pk-door .pk-qr { width: 40cqw; padding: 3cqw; margin-block: .6cqw; }
+.pk-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3cqw; width: 100%; }
+.pk-steps li { position: relative; display: grid; justify-items: center; align-content: start; gap: .4cqw; padding: 3.8cqw 1.4cqw 2.2cqw; background: #fff; border-radius: 3cqw; }
+.pk-steps .pk-n { position: absolute; top: -2.6cqw; width: 5.2cqw; height: 5.2cqw; border-radius: 50%; background: var(--amber); color: #2A1B00; font: 400 3.4cqw/5.2cqw var(--f-display); }
+.pk-steps i { font-size: 6cqw; color: var(--g); }
+.pk-steps b { font-size: 3.5cqw; line-height: 1.25; }
+.pk-steps span { font-size: 2.7cqw; color: #56655F; line-height: 1.3; }
+.pk-free { font-size: 3.2cqw; font-weight: 600; color: var(--gd); }
+.pk-door .pk-url { background: var(--gd); color: var(--mint); padding: 2.2cqw; font-size: 2.9cqw; }
+
+/* mirror / counter card: A6 */
+.pk-card { aspect-ratio: 105 / 148; display: grid; align-content: space-between; justify-items: center; gap: 3cqw; padding: 7cqw 7cqw 5cqw;
+  border-top: 3.4cqw solid var(--g); }
+.pk-card .pk-top { display: flex; align-items: center; gap: 3cqw; }
+.pk-card .pk-slogan { font-size: 8cqw; color: var(--gd); }
+.pk-card .pk-name { font-size: 10cqw; }
+.pk-card .pk-kicker { font-size: 4.8cqw; margin-top: -2cqw; }
+.pk-card .pk-qr { width: 62cqw; }
+.pk-line { display: flex; justify-content: center; gap: 3.4cqw; flex-wrap: wrap; font-size: 3.6cqw; font-weight: 600; }
+.pk-line span { display: inline-flex; align-items: center; gap: 1cqw; }
+.pk-line i { color: var(--g); font-size: 5cqw; }
+.pk-card .pk-url { color: #56655F; font-size: 3.3cqw; }
+
+/* glass sticker: 10×10 cm */
+.pk-sticker { aspect-ratio: 1; display: grid; place-items: center; align-content: center; gap: 2.4cqw;
+  background: radial-gradient(110% 110% at 80% 0%, var(--g), var(--gd) 75%); color: #fff; border-radius: 6cqw; }
+.pk-ring { display: grid; justify-items: center; gap: 2cqw; width: 70cqw; background: #fff; border-radius: 6cqw; padding: 4.4cqw 5cqw 3.6cqw; }
+.pk-sticker .pk-kicker { font-size: 5.6cqw; color: var(--gd); }
+.pk-sticker .pk-qr { width: 52cqw; padding: 0; box-shadow: none; }
+.pk-sticker .pk-notch { display: none; }
+.pk-stk-foot { display: flex; align-items: center; gap: 2cqw; color: var(--gd); font: 400 5.6cqw var(--f-hand); }
+.pk-stk-foot b { font-weight: 700; }
+.pk-stk-name { font: 400 6.4cqw/1.1 var(--f-display); max-width: 86cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 @media print {
-  @page { size: A5 portrait; margin: 10mm; }
-  body { background: #fff; }
-  .app { box-shadow: none; max-width: none; }
-  .topbar, .tabbar, .no-print, .demo-badge, .toast { display: none !important; }
-  .content { padding: 0; }
-  .poster { padding: 0; }
+  html, body { background: #fff !important; margin: 0; }
+  .app { box-shadow: none; max-width: none !important; margin: 0; padding: 0; }
+  .topbar, .tabbar, .no-print, .demo-badge, .toast, .sheet, .sheet-backdrop { display: none !important; }
+  .content { padding: 0 !important; margin: 0 !important; }
+  .pk-stage, .pk-stage[data-design] { max-width: none; width: 100vw; margin: 0; }
+  .pk { box-shadow: none; height: 100vh; aspect-ratio: auto; break-inside: avoid; }
+  .pk-sticker { border-radius: 0; }
 }
 
 /* ---------- QuestCard: a challenge drawn as a ticket stub ---------- */

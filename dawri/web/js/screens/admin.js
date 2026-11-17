@@ -51,6 +51,35 @@ export async function render(ctx) {
   const root = h("div.adm");
   const body = h("div.stack", { style: { gap: "16px" } });
   fill(shell.content, root);
+  const me = (await api.auth.session())?.user ?? {};
+  const sharedLogin = /@demo\.dawri\.app$/i.test(me.email ?? "");
+
+  async function account() {
+    const email = h("input", { type: "email", dir: "ltr", value: sharedLogin ? "" : (me.email ?? ""), placeholder: "بريدك الخاص", "data-testid": "acc-email", autocomplete: "email" });
+    const cur = h("input", { type: "password", dir: "ltr", "data-testid": "acc-current", autocomplete: "current-password" });
+    const pass = h("input", { type: "password", dir: "ltr", minlength: 10, placeholder: "١٠ أحرف على الأقل", "data-testid": "acc-pass", autocomplete: "new-password" });
+    const pass2 = h("input", { type: "password", dir: "ltr", "data-testid": "acc-pass2", autocomplete: "new-password" });
+    const err = h("p.err", { hidden: true });
+    await openSheet({ title: "حسابي", body: [
+      h("p.muted.small", "الحساب الحالي: ", h("b", { dir: "ltr" }, me.email ?? "")),
+      h("label.field", h("span", "البريد"), email),
+      h("label.field", h("span", "كلمة المرور الجديدة"), pass),
+      h("label.field", h("span", "أعد كتابة كلمة المرور الجديدة"), pass2),
+      h("label.field", h("span", "كلمة المرور الحالية (للتأكيد)"), cur), err],
+      actions: [{ id: "save-account", label: "احفظ", primary: true, onClick: async (close) => {
+        const e = email.value.trim().toLowerCase();
+        if (!/^\S+@\S+\.\S+$/.test(e)) return fieldErr(err, "اكتب بريداً صحيحاً");
+        if (sharedLogin && /@demo\.dawri\.app$/.test(e)) return fieldErr(err, "اكتب بريدك الخاص، لا بريد التجربة");
+        if (sharedLogin && !pass.value) return fieldErr(err, "اختر كلمة مرور جديدة خاصة بك");
+        if (pass.value && pass.value.length < 10) return fieldErr(err, "كلمة المرور الجديدة ١٠ أحرف على الأقل");
+        if (pass.value !== pass2.value) return fieldErr(err, "كلمتا المرور غير متطابقتين");
+        if (!cur.value) return fieldErr(err, "اكتب كلمة المرور الحالية");
+        try {
+          await api.auth.updateAccount({ current_password: cur.value, email: e !== me.email ? e : undefined, password: pass.value || undefined });
+          close(); toast("حُفظ حسابك. ادخل بعد اليوم ببريدك وكلمة مرورك الجديدة"); ctx.rerender();
+        } catch (x) { fieldErr(err, errorText(x)); }
+      } }, { label: "إلغاء", ghost: true }] });
+  }
 
   function toolbar() {
     return h("div.adm-bar",
@@ -60,11 +89,19 @@ export async function render(ctx) {
         h("label.adm-select", h("span.sr", "الفترة"), h("select", { "aria-label": "الفترة", onchange: (e) => { days = +e.target.value; store.set("dawri.admin.days", days); reload(); } },
           [[7, "آخر ٧ أيام"], [30, "آخر ٣٠ يوم"], [90, "آخر ٩٠ يوم"]].map(([v, l]) => h("option", { value: v, selected: v === days }, l)))),
         h("label.check.small", h("input", { type: "checkbox", checked: includeDemo === true, "data-testid": "admin-demo", onchange: (e) => { includeDemo = e.target.checked; store.set("dawri.admin.demo", includeDemo); reload(); } }),
-          h("span", "تضمين المحلات التجريبية"))));
+          h("span", "تضمين المحلات التجريبية")),
+        h("button.btn.btn-ghost.btn-sm", { type: "button", "data-testid": "my-account", onclick: account }, icon("user-cog"), "حسابي"),
+        h("button.btn.btn-ghost.btn-sm", { type: "button", onclick: async () => { await api.auth.signOut(); ctx.rerender(); } }, icon("logout"), "خروج")));
+  }
+
+  function sharedWarning() {
+    return sharedLogin ? h("div.banner.danger.adm-warn", { role: "alert", "data-testid": "shared-login" }, icon("alert-triangle"),
+      h("div", h("b", "أنت داخل بحساب التجربة المشترك"), h("span", "كلمة مروره منشورة. غيّر البريد وكلمة المرور الآن، وبعدها لا يقدر أحد غيرك يدخل.")),
+      h("button.btn.btn-primary.btn-sm", { type: "button", onclick: account }, "غيّرها الآن")) : null;
   }
 
   function draw() {
-    fill(root, toolbar(), body);
+    fill(root, toolbar(), sharedWarning(), body);
     const k = ins.kpi;
     const banner = k.includes_demo && k.demo ? h("div.banner", icon("flask"), h("span", `الأرقام تشمل ${num(k.demo)} محلات تجريبية. ألغِ «تضمين المحلات التجريبية» لترى المشتركين الحقيقيين فقط.`)) : null;
     if (tab === "overview") fill(body, banner, ...overview());
@@ -136,7 +173,31 @@ export async function render(ctx) {
         h("span.rank", num(i + 1)), h("div.grow", h("div.title", r.name, r.is_demo ? h("span.badge", { style: { marginInlineStart: "6px" } }, "تجريبي") : null), h("div.muted.small", `${CAT_AR[r.category] ?? r.category} · ${PLAN_AR[r.plan] ?? r.plan}`)),
         h("div.center", h("b.num", num(r.tickets)), r.growth_pct != null ? h(`div.kpi-d.${r.growth_pct >= 0 ? "up" : "down"}`, r.growth_pct >= 0 ? "▲ " : "▼ ", `${num(Math.abs(r.growth_pct))}٪`) : null)))
         : [h("p.muted", "لا توجد تذاكر في هذه الفترة")])),
+      api.system ? systemCard() : null,
     ];
+  }
+
+  // health + daily backups (Netlify only): filled in after the board is drawn
+  function systemCard() {
+    const box = h("div.stack", { style: { gap: "10px" } }, h("p.muted.small", "جارٍ الفحص…"));
+    const paint = async () => {
+      try {
+        const [hl, list] = await Promise.all([api.system.health(), api.system.backups().catch(() => [])]);
+        const last = list[0];
+        fill(box,
+          h("div.list",
+            h("div.list-item", icon(hl.db ? "circle-check" : "circle-x"), h("div.grow", h("div.title", "قاعدة البيانات"), h("div.muted.small", hl.db ? `تعمل · استجابة ${num(hl.db_ms)} مللي ثانية` : "لا تستجيب")),
+              h(`span.badge${hl.db ? "" : ".danger"}`, hl.db ? "سليم" : "عطل")),
+            h("div.list-item", icon(hl.backup_stale ? "alert-triangle" : "database-export"), h("div.grow", h("div.title", "آخر نسخة احتياطية"),
+              h("div.muted.small", last ? `${last.key.slice(0, 10)} · ${num(last.rows ?? 0)} سجل · ${num(Math.round((last.bytes ?? 0) / 1024))} ك.ب` : "لا توجد نسخة بعد، أول نسخة الليلة ٣:٣٧ص")),
+              last ? h("button.btn.btn-sm", { type: "button", onclick: () => api.system.download(last.key).catch((x) => toast(errorText(x), { error: true })) }, icon("download"), "نزّلها") : null)),
+          h("div.row", { style: { gap: "8px", flexWrap: "wrap" } },
+            h("button.btn.btn-sm", { type: "button", "data-testid": "backup-now", onclick: async (e) => { e.currentTarget.disabled = true; try { await api.system.backupNow(); toast("أُخذت نسخة احتياطية الآن"); } catch (x) { toast(errorText(x), { error: true }); } paint(); } }, icon("database-plus"), "خذ نسخة الآن"),
+            h("span.muted.small", `نسخة تلقائية كل ليلة، ونحتفظ بآخر ٣٠ يوماً.`)));
+      } catch (x) { fill(box, h("p.err", errorText(x))); }
+    };
+    paint();
+    return card("صحة النظام والنسخ الاحتياطية", "heart-rate-monitor", box);
   }
 
   function customers() {
@@ -218,7 +279,9 @@ export async function render(ctx) {
       h("td.num", b.plan_until ? date(b.plan_until) : b.trial_until ? date(b.trial_until) : "—"),
       h("td", h(`span.badge${b.status === "inactive" ? ".danger" : b.status === "trial" ? ".warn" : ""}`, STATUS_AR[b.status] ?? (b.is_active ? "نشط" : "غير نشط"))),
       h("td.num", num(b.usage.tickets_30d)),
-      h("td", h("button.btn.btn-sm", { type: "button", onclick: () => edit(b) }, "إدارة")))));
+      h("td", h("div.row", { style: { gap: "6px", flexWrap: "nowrap" } },
+        h("button.btn.btn-sm", { type: "button", onclick: () => edit(b) }, "إدارة"),
+        b.branches?.[0]?.public_id ? h("a.btn.btn-sm.btn-ghost", { href: `./poster/${b.branches[0].public_id}`, target: "_blank", rel: "noopener", "data-testid": "shop-qr", title: "ملصقات QR للطباعة" }, icon("qrcode"), "QR") : null)))));
     paint();
     const lists = [];
     if (ins.trials_ending.length) lists.push(card("تجارب على وشك الانتهاء", "hourglass", h("div.list", ins.trials_ending.map((t) => h("div.list-item",

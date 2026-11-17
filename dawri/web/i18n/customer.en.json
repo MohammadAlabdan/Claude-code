@@ -261,5 +261,6 @@
  "chairs.any": "Anyone · fastest",
  "chairs.any_sub": "Whoever is free first serves you",
  "chairs.pick_service": "Which service?",
- "chairs.only_services": "Does: {list}"
+ "chairs.only_services": "Does: {list}",
+ "shop.privacy": "Privacy & terms"
 }

@@ -1,7 +1,7 @@
 import { test, expect, ownerLogin } from "./fixtures.js";
 
 const PUBLIC = ["/", "/s/aseel2026?stay", "/s/rukn2026?stay", "/s/lamaa2026?stay", "/staff/pair#demo-staff-aseel-chair1-000000000000",
-  "/staff/pair#demo-staff-rukn-kitchen-000000000000", "/staff/pair#demo-staff-lamaa-front-0000000000000", "/start", "/admin", "/dev/ui", "/nope"];
+  "/staff/pair#demo-staff-rukn-kitchen-000000000000", "/staff/pair#demo-staff-lamaa-front-0000000000000", "/start", "/admin", "/dev/ui", "/nope", "/privacy", "/poster/aseel2026"];
 const OWNER = ["/owner", "/owner/queue", "/owner/offers", "/owner/pulse", "/owner/settings", "/owner/poster"];
 
 test("no horizontal scroll at 360 px on any route", async ({ page }) => {

@@ -1038,6 +1038,20 @@ export async function createApi() {
       },
       async magicLink() { fail("invalid_input", { message_ar: "رابط الدخول بالبريد يعمل بعد ربط Supabase. في الوضع التجريبي ادخل بكلمة المرور.", message_en: "Magic links need the real backend" }); },
       async signOut() { store.del("dawri.demo.session"); authCbs.forEach((cb) => cb(null)); },
+      async updateAccount({ current_password, email, password }) {
+        const s = session(); const u = s && db.users.find((x) => x.id === s.user.id);
+        if (!u) fail("unauthorized");
+        if ((u.custom ? u.password : PASSWORD) !== current_password) fail("unauthorized", { message_ar: "كلمة المرور الحالية غير صحيحة", message_en: "Wrong current password" });
+        const e = email ? String(email).trim().toLowerCase() : u.email;
+        if (!/^\S+@\S+\.\S+$/.test(e)) fail("invalid_input", { message_ar: "اكتب بريداً صحيحاً" });
+        if (db.users.some((x) => x.email === e && x.id !== u.id)) fail("invalid_input", { message_ar: "هذا البريد مستخدم في حساب آخر" });
+        if (password && String(password).length < 10) fail("invalid_input", { message_ar: "كلمة المرور الجديدة ١٠ أحرف على الأقل" });
+        u.email = e; if (password) { u.custom = true; u.password = password; } else if (!u.custom) { u.custom = true; u.password = PASSWORD; }
+        commit(null);
+        store.set("dawri.demo.session", { user: { id: u.id, email: u.email } });
+        authCbs.forEach((cb) => cb(session()));
+        return session();
+      },
       onChange(cb) { authCbs.add(cb); return () => authCbs.delete(cb); },
     },
     subscribe(publicId, cb) {

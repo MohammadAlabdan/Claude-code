@@ -27,6 +27,8 @@ const ROUTES = [
   [/^\/staff\/pair\/?$/, "pair"],
   [/^\/staff\/?$/, "staff"],
   [/^\/owner\/poster\/?$/, "poster"],
+  [/^\/poster\/([a-z0-9]{4,16})\/?$/i, "poster"],
+  [/^\/privacy\/?$/, "privacy"],
   [/^\/owner(?:\/(home|queue|offers|pulse|settings))?\/?$/, "owner"],
   [/^\/start\/?$/, "onboard"],
   [/^\/admin\/?$/, "admin"],
@@ -36,7 +38,7 @@ const MODULES = {
   home: () => import("./screens/home.js"), shop: () => import("./screens/shop.js"), ticket: () => import("./screens/ticket.js"),
   claim: () => import("./screens/ticket.js"), pair: () => import("./screens/staff.js"), staff: () => import("./screens/staff.js"),
   owner: () => import("./screens/owner.js"), poster: () => import("./screens/poster.js"), onboard: () => import("./screens/onboard.js"),
-  admin: () => import("./screens/admin.js"), devui: () => import("./screens/devui.js"),
+  admin: () => import("./screens/admin.js"), privacy: () => import("./screens/privacy.js"), devui: () => import("./screens/devui.js"),
 };
 
 let cleanup = [];

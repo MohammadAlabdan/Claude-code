@@ -46,8 +46,10 @@ export async function render(ctx) {
   }
   fill(shell.content, root);
 
-  const unsub = api.subscribe(tk.branch.public_id, () => load().catch(() => {}));
-  const poll = setInterval(() => load().catch(() => {}), 20000);
+  // poll as often as the turn needs: near the front every 4s, far back every 15s
+  const every = () => tk?.status !== "waiting" ? 6000 : tk.position <= 1 ? 4000 : tk.position <= 4 ? 8000 : 15000;
+  const unsub = api.subscribe(tk.branch.public_id, () => load().catch(() => {}), every);
+  const poll = setInterval(() => load().catch(() => {}), 60000);
   const onVis = () => document.visibilityState === "visible" && load().catch(() => {});
   const unlock = () => unlockAudio();
   document.addEventListener("visibilitychange", onVis);
@@ -240,7 +242,7 @@ export async function render(ctx) {
       const consent = h("input", { id: "quest-consent", type: "checkbox" });
       const err = h("p.err", { hidden: true });
       await openSheet({ title: t("quest.phone_title"), body: [QuestCard(q, { preview: true }), h("p.muted.small", t("quest.phone_lead")),
-        h("label.field", h("span", t("loyalty.phone")), phone), h("label.check", consent, h("span", t("loyalty.consent"))), err],
+        h("label.field", h("span", t("loyalty.phone")), phone), h("label.check", consent, h("span", t("loyalty.consent"))), h("a.small", { href: "./privacy", target: "_blank" }, t("shop.privacy")), err],
         actions: [{ id: "quest-confirm", label: t("quest.start"), primary: true, onClick: async (close) => {
           if (!consent.checked) { err.hidden = false; err.textContent = t("loyalty.need_consent"); return; }
           try { await api.customer("set_phone", { token, phone: phone.value, consent: true }); await go(); close(); }
@@ -341,6 +343,7 @@ export async function render(ctx) {
       h("p.muted.small", t("loyalty.lead")),
       h("label.field", h("span", t("loyalty.phone")), phone),
       h("label.check", consent, h("span", t("loyalty.consent"))),
+      h("a.small", { href: "./privacy", target: "_blank" }, t("shop.privacy")),
       err,
       h("div.grid2",
         h("button.btn.btn-primary", { type: "button", onclick: async () => {

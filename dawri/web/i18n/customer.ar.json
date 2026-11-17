@@ -261,5 +261,6 @@
  "chairs.any": "أي واحد · الأسرع",
  "chairs.any_sub": "أول من يفضى يخدمك",
  "chairs.pick_service": "وش الخدمة؟",
- "chairs.only_services": "يقدّم: {list}"
+ "chairs.only_services": "يقدّم: {list}",
+ "shop.privacy": "الخصوصية والشروط"
 }

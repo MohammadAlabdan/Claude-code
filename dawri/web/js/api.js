@@ -60,6 +60,15 @@ export async function createApi(cfg) {
         if (error) throw new ApiError("invalid_input", { message_ar: "تعذّر إرسال الرابط", message_en: error.message });
       },
       async signOut() { await sb.auth.signOut(); },
+      async updateAccount({ current_password, email, password }) {
+        const { data: s } = await sb.auth.getSession();
+        const cur = s.session?.user?.email;
+        const { error: e1 } = await sb.auth.signInWithPassword({ email: cur, password: current_password });
+        if (e1) throw new ApiError("unauthorized", { message_ar: "كلمة المرور الحالية غير صحيحة", message_en: e1.message });
+        const { data, error } = await sb.auth.updateUser({ ...(email && email !== cur ? { email } : {}), ...(password ? { password } : {}) });
+        if (error) throw new ApiError("invalid_input", { message_ar: "تعذّر حفظ الحساب: " + error.message, message_en: error.message });
+        return data;
+      },
       onChange(cb) { return sb.auth.onAuthStateChange((_e, s) => cb(s)).data.subscription.unsubscribe; },
     },
     subscribe(publicId, cb) {

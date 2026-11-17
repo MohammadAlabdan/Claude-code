@@ -57,13 +57,21 @@ export async function createApi(cfg = {}) {
       async signUp(email, password) { const s = await post("/api/auth", { action: "signup", email, password }); setSession(s); return s; },
       async magicLink() { throw new ApiError("invalid_input", { message_ar: "الدخول برابط البريد غير متاح هنا، ادخل بكلمة المرور", message_en: "Use your password to sign in" }); },
       async signOut() { setSession(null); },
+      async updateAccount({ current_password, email, password }) {
+        const s = session();
+        const res = await post("/api/auth", { action: "update", current_password, email, password }, s ? { Authorization: `Bearer ${s.access_token}` } : {});
+        setSession(res); return res;
+      },
       onChange(cb) { authCbs.add(cb); return () => authCbs.delete(cb); },
     },
-    // No Realtime on Netlify: refresh every few seconds while the page is visible, right away when it comes back.
-    subscribe(_publicId, cb) {
+    // No Realtime on Netlify: refresh while the page is visible, right away when it comes back.
+    // `every` (ms, or a function returning ms) lets each screen poll only as often as it needs:
+    // a ticket far from its turn asks every 15s, one about to be called every 4s. Hidden pages never ask.
+    subscribe(_publicId, cb, every = 4000) {
       let last = 0;
-      const tick = () => { if (document.visibilityState === "visible" && Date.now() - last > 3500) { last = Date.now(); cb(); } };
-      const timer = setInterval(tick, 4000);
+      const gap = () => Math.max(3000, Number(typeof every === "function" ? every() : every) || 4000);
+      const tick = () => { if (document.visibilityState === "visible" && Date.now() - last >= gap() - 300) { last = Date.now(); cb(); } };
+      const timer = setInterval(tick, 1000);
       const onVis = () => { if (document.visibilityState === "visible") { last = 0; tick(); } };
       document.addEventListener("visibilitychange", onVis);
       return () => { clearInterval(timer); document.removeEventListener("visibilitychange", onVis); };
@@ -75,6 +83,19 @@ export async function createApi(cfg = {}) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new ApiError(data.error ?? "invalid_input", { message_ar: data.message_ar ?? "تعذّر رفع الصورة" });
       return data.path;
+    },
+    // platform admin: system health and the daily database backups
+    system: {
+      health: async () => (await fetch(`${base()}/api/health`, { cache: "no-store" })).json(),
+      backups: async () => { const s = session(); const r = await fetch(`${base()}/api/backup`, { headers: s ? { Authorization: `Bearer ${s.access_token}` } : {} }); if (!r.ok) throw new ApiError(r.status === 403 ? "forbidden" : "unauthorized"); return (await r.json()).backups; },
+      backupNow: () => post("/api/backup", {}),
+      async download(key) {
+        const s = session();
+        const r = await fetch(`${base()}/api/backup/${encodeURIComponent(key)}`, { headers: s ? { Authorization: `Bearer ${s.access_token}` } : {} });
+        if (!r.ok) throw new ApiError("not_found");
+        const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(await r.blob()), download: `jay-backup-${key}` });
+        document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      },
     },
     photoUrl: (path) => (/^(https?:|data:)/.test(path) ? path : `${base()}/api/photo/${path}`),
   };

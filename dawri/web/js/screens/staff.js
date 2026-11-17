@@ -80,7 +80,7 @@ export async function render(ctx) {
     reloading = true;
     try { state = await api.staff("state"); paint(); } catch { /* keep last state */ } finally { reloading = false; }
   }
-  const unsub = api.subscribe(state.branch.public_id, reload);
+  const unsub = api.subscribe(state.branch.public_id, reload, 5000);
   const poll = setInterval(reload, 15000);
   ctx.onCleanup(() => { unsub(); clearInterval(poll); clearInterval(codeTimer); window.removeEventListener("online", onOnline); window.removeEventListener("offline", onOffline); document.removeEventListener("visibilitychange", keepAwake); wake?.release?.(); });
 

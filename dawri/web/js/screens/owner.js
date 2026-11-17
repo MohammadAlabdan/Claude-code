@@ -74,7 +74,7 @@ export async function render(ctx) {
   const root = h("div.stack", { style: { gap: "16px" } });
   fill(shell.content, root);
   await draw();
-  const unsub = api.subscribe(br.public_id, () => (tab === "queue" || tab === "home") && draw().catch(() => {}));
+  const unsub = api.subscribe(br.public_id, () => (tab === "queue" || tab === "home") && draw().catch(() => {}), 8000);
   ctx.onCleanup(unsub);
 
   function planBadge() {

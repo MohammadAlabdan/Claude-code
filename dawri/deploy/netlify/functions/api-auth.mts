@@ -1,6 +1,7 @@
 // Owner accounts on Netlify: email + password (bcrypt via pgcrypto in auth.users) and a signed 14-day token.
 // POST /api/auth  {action: "signin" | "signup", email, password}  →  {access_token, expires_at, user}
 // POST /api/auth  {action: "user"} with Authorization: Bearer <token>  →  {user}
+// POST /api/auth  {action: "update", current_password, email?, password?} with Bearer  →  new token (change own email/password)
 import "../../lib/deno.mts";
 import type { Config, Context } from "@netlify/functions";
 import { query, signToken, verifyToken } from "../../src/_shared/pg.ts";
@@ -18,6 +19,31 @@ export default async (req: Request, context: Context) => {
     const h = req.headers.get("authorization") ?? "";
     const u = h.startsWith("Bearer ") ? await verifyToken(h.slice(7)) : null;
     return u ? json({ user: u }) : fail("unauthorized", "انتهت الجلسة، سجّل دخولك مرة ثانية", 401);
+  }
+
+  if (body.action === "update") {
+    const h = req.headers.get("authorization") ?? "";
+    const u = h.startsWith("Bearer ") ? await verifyToken(h.slice(7)) : null;
+    if (!u) return fail("unauthorized", "انتهت الجلسة، سجّل دخولك مرة ثانية", 401);
+    const b = body as { current_password?: string; email?: string; password?: string };
+    const [{ ok }] = await query("select public.hit_rate_limit($1, 10) as ok", [`auth-update:${u.id}`]);
+    if (!ok) return fail("rate_limited", "محاولات كثيرة، جرّب بعد ساعة", 429);
+    const cur = await query(`select id from auth.users where id = $1 and encrypted_password = extensions.crypt($2, encrypted_password)`, [u.id, String(b.current_password ?? "")]);
+    if (!cur.length) return fail("unauthorized", "كلمة المرور الحالية غير صحيحة", 401);
+    const newEmail = b.email ? String(b.email).trim().toLowerCase() : null;
+    const newPass = b.password ? String(b.password) : null;
+    if (newEmail && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail) || newEmail.length > 200)) return fail("invalid_input", "اكتب بريداً صحيحاً");
+    if (newPass && (newPass.length < 10 || newPass.length > 200)) return fail("invalid_input", "كلمة المرور الجديدة ١٠ أحرف على الأقل");
+    if (newEmail) {
+      const taken = await query("select 1 from auth.users where email = $1 and id <> $2", [newEmail, u.id]);
+      if (taken.length) return fail("email_taken", "هذا البريد مستخدم في حساب آخر");
+    }
+    const rows = await query(
+      `update auth.users set email = coalesce($2, email),
+         encrypted_password = case when $3::text is null then encrypted_password else extensions.crypt($3, extensions.gen_salt('bf')) end
+       where id = $1 returning id, email`, [u.id, newEmail, newPass]);
+    const user = { id: String(rows[0].id), email: String(rows[0].email) };
+    return json({ ...(await signToken(user)), user });
   }
 
   const email = String(body.email ?? "").trim().toLowerCase();
