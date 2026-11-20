@@ -19,12 +19,13 @@ function steps(category) {
   return [["scan", "امسح الكود", "بكاميرا جوالك"], ["armchair-2", pick, "تشوف مين فاضي الحين"], ["bell-ringing", "خذ رقمك", "ونبّهك قبل دورك"]];
 }
 
-const Logo = (cls = "") => h(`img.pk-logo${cls}`, { src: "./assets/logo.svg", alt: "جاي", width: 64, height: 64 });
+const Full = (dark = false, cls = "") => h(`img.pk-full${cls}`, { src: `./assets/logo-full${dark ? "-dark" : ""}.svg`, alt: "جاي · دورك جاي.. وأنت مرتاح" });
+const Mark = () => h("img.pk-mark", { src: "./assets/logo.svg", alt: "جاي" });
 const Code = (url) => h("div.pk-qr", h("span.pk-notch.l"), h("span.pk-notch.r"), QR(url, { label: url }));
 
 function door(b, url) {
   return h("section.pk.pk-door", { "data-testid": "poster" },
-    h("header.pk-band", Logo(), h("div", h("div.pk-brand", "جاي"), h("div.pk-slogan", "جاي دورك"))),
+    h("header.pk-band", Full(true)),
     h("div.pk-body",
       h("div.pk-kicker", "لا تنتظر واقف"),
       h("h2.pk-name", b.business_name),
@@ -37,7 +38,7 @@ function door(b, url) {
 
 function card(b, url) {
   return h("section.pk.pk-card", { "data-testid": "poster" },
-    h("div.pk-top", Logo(".sm"), h("div.pk-slogan", "جاي دورك")),
+    h("div.pk-top", Full(false, ".sm")),
     h("h2.pk-name", b.business_name),
     h("div.pk-kicker", "امسح وخذ رقمك من مكانك"),
     Code(url),
@@ -47,7 +48,7 @@ function card(b, url) {
 
 function sticker(b, url) {
   return h("section.pk.pk-sticker", { "data-testid": "poster" },
-    h("div.pk-ring", h("div.pk-kicker", "امسح · خذ رقمك"), Code(url), h("div.pk-stk-foot", Logo(".xs"), h("b", "جاي دورك"))),
+    h("div.pk-ring", h("div.pk-kicker", "امسح · خذ رقمك"), Code(url), h("div.pk-stk-foot", Mark(), h("b", "دورك جاي.. وأنت مرتاح"))),
     h("div.pk-stk-name", b.business_name));
 }
 

@@ -18,7 +18,7 @@ export async function render({ shell }) {
   shell.content.append(
     h("div.seg", { role: "group" }, [[null, "تلقائي"], ["light", "فاتح"], ["dark", "داكن"]].map(([v, l]) => h("button", { type: "button", "aria-pressed": String(currentTheme() === v), "data-theme-choice": v ?? "auto", onclick: () => { setTheme(v); location.reload(); } }, l))),
     card("الألوان", "palette", h("div.gallery-swatch", tokens.map((tk) => h("div", { style: { background: `var(${tk})`, color: ["--ink", "--board", "--accent", "--danger"].includes(tk) ? "var(--paper)" : "var(--ink)" } }, tk)))),
-    card("الخطوط", "typography", h("div.display", { style: { fontSize: "2rem" } }, "جاي Lalezar"), h("p", "IBM Plex Sans Arabic للنصوص"), h("p.hand", "Aref Ruqaa للمسة ودّية"), h("div", { style: { font: "900 2rem var(--f-led)", direction: "ltr" } }, "0123456789")),
+    card("الخطوط", "typography", h("div.display", { style: { fontSize: "2rem" } }, "جاي Readex Pro"), h("p", "IBM Plex Sans Arabic للنصوص"), h("p.hand", "دورك جاي.. وأنت مرتاح"), h("div", { style: { font: "900 2rem var(--f-led)", direction: "ltr" } }, "0123456789")),
     board,
     TicketCard({ label: "رقمك", number: 24, status: "أمامك ٣", estimate: "حوالي ١٥ دقيقة تقريباً" }),
     TicketCard({ label: "رقمك", number: 24, status: "ارجع الآن، باقي قبلك دوران", alert: true }),

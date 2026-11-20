@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="جاي">
-  <title>جاي</title>
-  <!-- ticket stub: rounded rectangle with a semicircle notch on each side -->
-  <path fill="#0B8F6E" d="M24 22h80a14 14 0 0 1 14 14v18a10 10 0 0 0 0 20v18a14 14 0 0 1-14 14H24a14 14 0 0 1-14-14V74a10 10 0 0 0 0-20V36a14 14 0 0 1 14-14z"/>
-  <!-- perforation near one end -->
-  <path d="M90 32v64" stroke="#D4F1E6" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 9"/>
-  <!-- the line: three dots, the front one solid -->
-  <circle cx="68" cy="64" r="11" fill="#FFFFFF"/>
-  <circle cx="44" cy="64" r="8" fill="#FFFFFF" fill-opacity=".7"/>
-  <circle cx="25" cy="64" r="5.5" fill="#FFFFFF" fill-opacity=".4"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="226 128 144 144" role="img" aria-label="جاي"><title>جاي</title><g transform="translate(304 194) rotate(7) scale(0.85) translate(-60 -48)"><path d="M16 0H104A16 16 0 0 1 120 16V36A12 12 0 0 0 120 60V80A16 16 0 0 1 104 96H16A16 16 0 0 1 0 80V60A12 12 0 0 0 0 36V16A16 16 0 0 1 16 0Z" fill="none" stroke="#C9A66B" stroke-width="4" stroke-opacity="0.5" stroke-linejoin="round"/></g><g transform="translate(294 202) rotate(-8) scale(0.85) translate(-60 -48)"><path d="M16 0H104A16 16 0 0 1 120 16V36A12 12 0 0 0 120 60V80A16 16 0 0 1 104 96H16A16 16 0 0 1 0 80V60A12 12 0 0 0 0 36V16A16 16 0 0 1 16 0Z" fill="#0E3B3A"/><path d="M84 26H56A22 22 0 0 0 56 70H84" fill="none" stroke="#C9A66B" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="64" cy="48" r="9" fill="#F3EDE2"/><circle cx="90" cy="48" r="5" fill="#F3EDE2" fill-opacity="0.45"/></g></svg>

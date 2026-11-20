@@ -21,6 +21,6 @@ export function QR(text, { label = "" } = {}) {
     q.addData(text);
     q.make();
     box.innerHTML = q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
-  }).catch(() => box.append(h("p.small", { style: { wordBreak: "break-all", color: "#1B2725" } }, text)));
+  }).catch(() => box.append(h("p.small", { style: { wordBreak: "break-all", color: "#0E3B3A" } }, text)));
   return box;
 }

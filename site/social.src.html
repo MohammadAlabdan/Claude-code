@@ -1,0 +1,363 @@
+<title>استوديو منشورات جاي</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: a two-pane studio. Controls on the right, the live canvas on the left; stacked on phones. */
+:root{
+  --teal:#0E3B3A; --gold:#C9A66B; --cream:#F3EDE2;
+  --bg:#F7F3EC; --panel:#FFFFFF; --ink:#10292A; --muted:#5C6B67; --line:#E2D9C9; --accent:#0E3B3A; --on-accent:#F3EDE2; --stage:#ECE5D8;
+  --f-display:"Readex Pro","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic","Readex Pro",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0A1918;--panel:#102423;--ink:#F3EDE2;--muted:#A7B4AF;--line:#21403E;--accent:#D7B57A;--on-accent:#0E3B3A;--stage:#061211;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A1918;--panel:#102423;--ink:#F3EDE2;--muted:#A7B4AF;--line:#21403E;--accent:#D7B57A;--on-accent:#0E3B3A;--stage:#061211;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.6 var(--f-body);direction:rtl}
+.wrap{max-width:1240px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+header .lg{height:48px;width:auto}
+header .lg.dk{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) header .lg.lt{display:none}:root:not([data-theme="light"]) header .lg.dk{display:block}}
+:root[data-theme="dark"] header .lg.lt{display:none}:root[data-theme="dark"] header .lg.dk{display:block}
+header h1{font:700 1.4rem/1.3 var(--f-display);margin:0}
+header p{margin:0;color:var(--muted);font-size:.92rem}
+.studio{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.studio{grid-template-columns:minmax(0,1fr)}.stage{order:-1}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;display:grid;gap:14px;min-width:0}
+.group{display:grid;gap:8px}
+.group>span,.field>span{font:600 .82rem var(--f-display);color:var(--muted);letter-spacing:.02em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:6px 10px;font:500 .86rem var(--f-body);cursor:pointer;display:grid;text-align:start;gap:0}
+.chip small{color:var(--muted);font-size:.72rem;direction:ltr;text-align:start}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.chip:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.swatch{width:26px;height:26px;border-radius:50%;display:inline-block;vertical-align:middle;margin-inline-end:6px;border:1px solid var(--line)}
+.field{display:grid;gap:5px}
+.field input,.field textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;resize:vertical}
+.field textarea{min-height:84px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:12px;padding:12px 16px;font:600 .95rem var(--f-display);cursor:pointer;background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.check{display:flex;gap:8px;align-items:center;font-size:.88rem}
+.stage{background:var(--stage);border-radius:18px;padding:18px;display:grid;gap:10px;justify-items:center;min-width:0;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+.frame{position:relative;width:100%;display:grid;place-items:center}
+.frame canvas{display:block;max-width:100%;height:auto;box-shadow:0 18px 50px -20px rgba(14,59,58,.45);border-radius:6px}
+.meta{font-size:.82rem;color:var(--muted);text-align:center}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+[hidden]{display:none!important}
+.modal{position:fixed;inset:0;background:rgba(6,18,17,.72);display:grid;place-items:center;padding:24px;z-index:30}
+.modal .box{background:var(--panel);border-radius:18px;padding:16px;max-width:min(560px,100%);display:grid;gap:10px;max-height:90vh;overflow:auto}
+.modal img{max-height:62vh;width:auto;margin:0 auto;border-radius:8px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <span id="hdrLogo"></span>
+    <div><h1>استوديو منشورات جاي</h1><p>قوالب جاهزة بهوية جاي لإكس وتيك توك وانستقرام: اختر المقاس والقالب، واكتب المحتوى، ونزّل الصورة.</p></div>
+  </header>
+
+  <div class="studio">
+    <form class="panel" id="form" autocomplete="off">
+      <div class="group"><span>المنصة والمقاس</span><div class="chips" id="formats"></div></div>
+      <div class="group"><span>القالب</span><div class="chips" id="layouts"></div></div>
+      <div class="group"><span>الألوان</span><div class="chips" id="themes"></div></div>
+      <label class="field" id="f-kicker"><span>سطر صغير فوق العنوان</span><input id="kicker" maxlength="40"></label>
+      <label class="field" id="f-number"><span>الرقم الكبير</span><input id="number" maxlength="8"></label>
+      <label class="field" id="f-title"><span>العنوان</span><textarea id="title" rows="2" maxlength="90"></textarea></label>
+      <label class="field" id="f-gold"><span>كلمة تتلوّن بالذهبي (من العنوان)</span><input id="gold" maxlength="30"></label>
+      <label class="field" id="f-body"><span id="bodyLabel">النص</span><textarea id="body" rows="4" maxlength="320"></textarea></label>
+      <label class="field" id="f-cta"><span>زر الدعوة</span><input id="cta" maxlength="34"></label>
+      <label class="field"><span>الحساب أو الموقع في الأسفل</span><input id="handle" maxlength="40" dir="ltr"></label>
+      <label class="check" id="f-safe"><input type="checkbox" id="safe" checked> أظهر منطقة الأمان (لا تُطبع في الصورة)</label>
+      <div class="row">
+        <button class="btn" type="submit" id="export">نزّل الصورة PNG</button>
+        <button class="btn ghost" type="button" id="reset">رجّع المثال</button>
+      </div>
+      <p class="hint">تتحفظ كتابتك في متصفحك. منطقة الأمان تبيّن الأماكن اللي تغطيها أزرار التطبيق، فخلّ النص بعيداً عنها.</p>
+    </form>
+
+    <section class="stage" aria-label="معاينة المنشور">
+      <div class="frame"><canvas id="cv" width="1080" height="1350"></canvas></div>
+      <div class="meta" id="meta"></div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="box">
+    <b>صورتك جاهزة</b>
+    <img id="out" alt="المنشور بالمقاس الكامل">
+    <p class="hint">إذا ما بدأ التنزيل تلقائياً: اضغط مطولاً على الصورة (أو زر الفأرة الأيمن) واختر «حفظ الصورة».</p>
+    <button class="btn" type="button" id="close">تم</button>
+  </div>
+</div>
+
+<script>
+/*LOGOS*/
+const C = { teal: "#0E3B3A", teal2: "#15504E", gold: "#C9A66B", goldDk: "#8E6A2C", cream: "#F3EDE2", paper: "#F7F3EC" };
+const FORMATS = [
+  { id: "ig-post", name: "انستقرام منشور", size: [1080, 1350] },
+  { id: "square", name: "منشور مربع", size: [1080, 1080] },
+  { id: "story", name: "ستوري · ريلز · تيك توك", size: [1080, 1920], safe: { top: 250, bottom: 420, right: 0, left: 150 } },
+  { id: "x-post", name: "منشور إكس", size: [1600, 900] },
+  { id: "x-header", name: "غلاف إكس", size: [1500, 500], safe: { top: 0, bottom: 0, right: 0, left: 0, avatar: true } },
+  { id: "avatar", name: "صورة الحساب", size: [1080, 1080], safe: { circle: true } },
+];
+const LAYOUTS = [
+  { id: "announce", name: "إعلان", fields: ["kicker", "title", "gold", "body", "cta"] },
+  { id: "tip", name: "نصيحة", fields: ["number", "title", "gold", "body"] },
+  { id: "quote", name: "رأي عميل", fields: ["title", "gold", "body"], bodyLabel: "الاسم والصفة" },
+  { id: "stat", name: "رقم", fields: ["number", "title", "body"] },
+  { id: "steps", name: "خطوات", fields: ["kicker", "title", "gold", "body"], bodyLabel: "الخطوات (كل خطوة في سطر)" },
+  { id: "blank", name: "خلفية فاضية", fields: [] },
+];
+const THEMES = [
+  { id: "teal", name: "أخضر جاي", bg: C.teal, bg2: C.teal2, ink: C.cream, soft: "rgba(243,237,226,.72)", accent: C.gold, card: "rgba(243,237,226,.07)", logo: "Dark", btnBg: C.gold, btnInk: C.teal },
+  { id: "cream", name: "كريمي", bg: C.paper, bg2: C.cream, ink: C.teal, soft: "rgba(14,59,58,.72)", accent: C.goldDk, card: "#FFFFFF", logo: "Light", btnBg: C.teal, btnInk: C.cream },
+  { id: "gold", name: "ذهبي", bg: C.gold, bg2: "#D3B37E", ink: C.teal, soft: "rgba(14,59,58,.78)", accent: C.cream, card: "rgba(255,255,255,.18)", logo: "Light", btnBg: C.teal, btnInk: C.cream },
+];
+const SAMPLES = {
+  announce: { kicker: "للحلاقين والمشاغل", title: "خلّ زبونك ينتظر في سيارته مو عند الباب", gold: "في سيارته", body: "يمسح الكود، ياخذ رقمه، ويجيه تنبيه قبل دوره. بدون تطبيق وبدون تسجيل.", cta: "جرّب مجاناً ١٤ يوم" },
+  tip: { number: "١", title: "علّق ملصق QR عند الباب ووقت الانتظار", gold: "عند الباب", body: "أغلب الزبائن يقررون في أول ١٠ ثوانٍ. لما يشوف الكود، يحجز دوره بدل ما يمشي." },
+  quote: { title: "أول مرة أحس إن الانتظار ما أخذ من وقتي شي", gold: "ما أخذ من وقتي", body: "أبو عبدالله · زبون حلاق الأصيل" },
+  stat: { number: "٢ ثانية", title: "ويوصل تنبيه «وصل دورك» لجوال الزبون", body: "سرعة جربناها على جوالين حقيقيين" },
+  blank: {},
+  steps: { kicker: "كيف يشتغل؟", title: "دورك في ثلاث خطوات", gold: "ثلاث خطوات", body: "امسح الكود بكاميرا جوالك\nاختر الخدمة والكرسي\nخذ رقمك ونبّهك قبل دورك" },
+};
+const DEFAULTS = { format: "ig-post", layout: "announce", theme: "teal", handle: "jay-live.netlify.app", safe: true };
+
+const $ = (id) => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+let st = load();
+let downloads = null;
+if (window.claude && window.claude.use) window.claude.use("downloads").then((d) => { downloads = d; }).catch(() => {});
+
+function load() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("jay.studio") || "null"); } catch (e) { saved = null; }
+  const s = Object.assign({}, DEFAULTS, { texts: {} }, saved || {});
+  for (const k of Object.keys(SAMPLES)) s.texts[k] = Object.assign({}, SAMPLES[k], (saved && saved.texts && saved.texts[k]) || {});
+  return s;
+}
+function save() { try { localStorage.setItem("jay.studio", JSON.stringify(st)); } catch (e) { /* private window */ } }
+
+// ---------- images ----------
+const imgs = {};
+function svgImage(svg) { return new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); }); }
+async function loadImages() { for (const k of Object.keys(LOGOS)) imgs[k] = await svgImage(LOGOS[k]); }
+
+// ---------- text ----------
+const FD = '"Readex Pro","IBM Plex Sans Arabic",sans-serif', FB = '"IBM Plex Sans Arabic","Readex Pro",sans-serif';
+const font = (w, px, fam) => `${w} ${Math.round(px)}px ${fam}`;
+/** Wraps words into lines no wider than maxW. Returns [{words:[{t,w,gold}], w}] */
+function wrap(text, maxW, f, goldPhrase) {
+  ctx.font = f;
+  const goldWords = new Set((goldPhrase || "").trim().split(/\s+/).filter(Boolean));
+  const space = ctx.measureText(" ").width;
+  const lines = [];
+  for (const para of String(text || "").split("\n")) {
+    let line = { words: [], w: 0 };
+    for (const t of para.split(/\s+/).filter(Boolean)) {
+      const w = ctx.measureText(t).width;
+      const add = line.words.length ? space + w : w;
+      if (line.words.length && line.w + add > maxW) { lines.push(line); line = { words: [], w: 0 }; }
+      line.words.push({ t, w, gold: goldWords.has(t) || goldWords.has(t.replace(/[.,،!؟?«»:"]/g, "")) });
+      line.w += line.words.length > 1 ? space + w : w;
+    }
+    if (line.words.length) lines.push(line);
+  }
+  return { lines, space };
+}
+/** Draws wrapped lines right-to-left. align: "right" | "center". Returns height used. */
+function drawLines(block, x, y, maxW, lh, color, gold, align) {
+  const { lines, space } = block;
+  ctx.textBaseline = "alphabetic"; ctx.textAlign = "right"; ctx.direction = "rtl";
+  lines.forEach((ln, i) => {
+    let cx = align === "center" ? x - (maxW - ln.w) / 2 : x;   // x is the right edge
+    const by = y + lh * (i + 0.78);
+    for (const wd of ln.words) { ctx.fillStyle = wd.gold ? gold : color; ctx.fillText(wd.t, cx, by); cx -= wd.w + space; }
+  });
+  return lines.length * lh;
+}
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+/** Ticket outline (the logo's shape) */
+function ticketPath(x, y, w, h, r, notch) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h / 2 - notch); ctx.arc(x + w, y + h / 2, notch, -Math.PI / 2, Math.PI / 2, true);
+  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + h / 2 + notch); ctx.arc(x, y + h / 2, notch, Math.PI / 2, -Math.PI / 2, true);
+  ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.closePath();
+}
+
+// ---------- background ----------
+function background(W, H, th, s) {
+  const g = ctx.createRadialGradient(W * .85, 0, 0, W * .85, 0, Math.max(W, H) * 1.1);
+  g.addColorStop(0, th.bg2); g.addColorStop(.75, th.bg); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // two tilted ticket outlines, the logo's back ticket, as a quiet signature in a corner
+  ctx.save(); ctx.strokeStyle = th.id === "gold" ? "rgba(14,59,58,.16)" : "rgba(201,166,107,.22)"; ctx.lineWidth = 6 * s;
+  const tw = 520 * s, thh = 416 * s;
+  ctx.translate(W - tw * .25, H - thh * .2); ctx.rotate(-.14); ticketPath(-tw / 2, -thh / 2, tw, thh, 64 * s, 52 * s); ctx.stroke();
+  ctx.rotate(.28); ticketPath(-tw / 2 + 30 * s, -thh / 2 - 20 * s, tw, thh, 64 * s, 52 * s); ctx.globalAlpha = .6; ctx.stroke();
+  ctx.restore();
+}
+
+// ---------- blocks ----------
+function header(W, P, s, th, y) {
+  const img = imgs["compact" + th.logo]; if (!img) return y;
+  const h = 96 * s, w = h * img.width / img.height;
+  ctx.drawImage(img, W - P - w, y, w, h);
+  return y + h;
+}
+function footer(W, H, P, s, th) {
+  const fs = 28 * s, y = H - P * .62;
+  ctx.font = font(500, fs, FB); ctx.fillStyle = th.soft; ctx.textBaseline = "alphabetic";
+  ctx.direction = "rtl"; ctx.textAlign = "right"; ctx.fillText("دورك جاي.. وأنت مرتاح", W - P, y);
+  ctx.direction = "ltr"; ctx.textAlign = "left"; ctx.fillText(st.handle || "", P, y); ctx.direction = "rtl";
+  ctx.fillStyle = th.accent; ctx.fillRect(W - P, y - fs * 1.6, -64 * s, 4 * s);
+}
+
+/** Lays out the content column; draw=false only measures. Returns the height. */
+function content(t, L, x, y, cw, s, th, draw, align, big) {
+  let h = 0; const gap = 34 * s * big;
+  const put = (fn) => { const used = fn(y + h); h += used + gap; };
+  const text = (str, w, px, fam, color, lhK, gold) => {
+    const f = font(w, px, fam), b = wrap(str, cw, f, gold), lh = px * lhK;
+    return (yy) => { if (draw) { ctx.font = f; drawLines(b, x, yy, cw, lh, color, th.accent, align); } return b.lines.length * lh; };
+  };
+  if (L.id === "announce" || L.id === "steps") if (t.kicker) {
+    const px = 32 * s * big; ctx.font = font(600, px, FD); const tw = ctx.measureText(t.kicker).width, ph = px * 1.9;
+    put((yy) => { if (draw) { const bx = align === "center" ? x - (cw - tw) / 2 - tw - px * 1.4 : x - tw - px * 1.4; rr(bx, yy, tw + px * 1.4, ph, ph / 2); ctx.fillStyle = th.id === "teal" ? "rgba(201,166,107,.18)" : "rgba(14,59,58,.1)"; ctx.fill(); ctx.fillStyle = th.id === "teal" ? C.gold : C.teal; ctx.direction = "rtl"; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText(t.kicker, bx + tw + px * .7, yy + ph / 2 + px * .05); ctx.textBaseline = "alphabetic"; } return ph; });
+  }
+  if (L.id === "tip" && t.number) {
+    const px = 30 * s * big, label = "نصيحة " + t.number; ctx.font = font(700, px, FD); const tw = ctx.measureText(label).width, ph = px * 2;
+    put((yy) => { if (draw) { const bw = tw + px * 1.6, bx = align === "center" ? x - (cw + bw) / 2 : x - bw; ticketPath(bx, yy, bw, ph, ph * .28, ph * .16); ctx.fillStyle = th.btnBg; ctx.fill(); ctx.fillStyle = th.btnInk; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, bx + bw / 2, yy + ph / 2); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; } return ph; });
+  }
+  if (L.id === "stat" && t.number) {
+    const px = 260 * s * big; put((yy) => { if (draw) { ctx.font = font(700, px, FD); ctx.fillStyle = th.accent; ctx.direction = "rtl"; ctx.textAlign = align === "center" ? "center" : "right"; ctx.fillText(t.number, align === "center" ? x - cw / 2 : x, yy + px * .82); ctx.textAlign = "left"; } return px * .95; });
+  }
+  if (L.id === "quote") {
+    const px = 180 * s * big; put((yy) => { if (draw) { ctx.font = font(700, px, FD); ctx.fillStyle = th.accent; ctx.textAlign = align === "center" ? "center" : "right"; ctx.fillText("”", align === "center" ? x - cw / 2 : x, yy + px * .78); ctx.textAlign = "left"; } return px * .42; });
+  }
+  const titlePx = (L.id === "stat" ? 62 : L.id === "quote" ? 70 : 84) * s * big;
+  if (t.title) put(text(t.title, 700, titlePx, FD, th.ink, 1.32, L.fields.includes("gold") ? t.gold : ""));
+  if (L.id === "steps") {
+    const rows = String(t.body || "").split("\n").map((r) => r.trim()).filter(Boolean).slice(0, 5), px = 38 * s * big, dot = px * 1.7;
+    for (const [i, r] of rows.entries()) {
+      const b = wrap(r, cw - dot - px, font(600, px, FB)), lh = px * 1.4, rowH = Math.max(dot, b.lines.length * lh);
+      put((yy) => { if (draw) { const nx = x - dot; rr(nx, yy + (rowH - dot) / 2, dot, dot, dot * .32); ctx.fillStyle = th.btnBg; ctx.fill(); ctx.fillStyle = th.btnInk; ctx.font = font(700, px * .9, FD); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("١٢٣٤٥"[i], nx + dot / 2, yy + rowH / 2); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.font = font(600, px, FB); drawLines(b, x - dot - px * .7, yy + (rowH - b.lines.length * lh) / 2, cw - dot - px, lh, th.ink, th.accent, "right"); } return rowH; });
+    }
+  } else if (t.body) {
+    const px = (L.id === "quote" ? 34 : 38) * s * big;
+    put(text(L.id === "quote" ? "— " + t.body : t.body, L.id === "quote" ? 600 : 400, px, L.id === "quote" ? FD : FB, L.id === "quote" ? th.accent : th.soft, 1.6, ""));
+  }
+  if (L.id === "announce" && t.cta) {
+    const px = 36 * s * big; ctx.font = font(700, px, FD); const tw = ctx.measureText(t.cta).width, bh = px * 2.3, bw = tw + px * 2.4;
+    put((yy) => { if (draw) { const bx = align === "center" ? x - (cw + bw) / 2 : x - bw; ticketPath(bx, yy, bw, bh, bh * .3, bh * .14); ctx.fillStyle = th.btnBg; ctx.fill(); ctx.fillStyle = th.btnInk; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(t.cta, bx + bw / 2, yy + bh / 2 + px * .04); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; } return bh; });
+  }
+  return Math.max(0, h - gap);
+}
+
+// ---------- compose ----------
+function render(forExport = false) {
+  const F = FORMATS.find((f) => f.id === st.format), L = LAYOUTS.find((l) => l.id === st.layout), th = THEMES.find((x) => x.id === st.theme);
+  const [W, H] = F.size; if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  const s = Math.min(W, H) / 1080, t = st.texts[L.id];
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, W, H); ctx.direction = "rtl";
+  background(W, H, th, F.id === "x-header" ? s * 1.6 : s);
+
+  if (F.id === "avatar") {
+    const img = imgs["mark" + th.logo]; const k = .64 * W; if (img) ctx.drawImage(img, (W - k) / 2, (H - k) / 2 + 10 * s, k, k);
+  } else if (F.id === "x-header") {
+    // X shows the profile picture over the bottom corner: keep the logo right and the line of text in the middle
+    const P = 80, img = imgs["full" + th.logo], lh = 210, lw = img ? lh * img.width / img.height : 0;
+    if (img) ctx.drawImage(img, W - P - lw, (H - lh) / 2, lw, lh);
+    const cw = W - lw - P * 2 - 340, x = W - P * 1.8 - lw;
+    const HL = Object.assign({}, L, { id: "header", fields: ["title", "gold"] }), ht = { title: t.title, gold: t.gold };
+    let big = .9, ch = content(ht, HL, x, 0, cw, 1, th, false, "right", big);
+    while (ch > H - 160 && big > .4) { big -= .05; ch = content(ht, HL, x, 0, cw, 1, th, false, "right", big); }
+    content(ht, HL, x, (H - ch) / 2, cw, 1, th, true, "right", big);
+  } else {
+    const wide = W / H > 1.3, P = (wide ? 80 : 84) * s;
+    const safe = F.safe || {};
+    const top = Math.max(P, (safe.top || 0) * s * .9), bottom = Math.max(P * 1.6, (safe.bottom || 0) * s * .95);
+    const hy = header(W, P, s, th, top);
+    footer(W, H - (bottom - P * 1.6), P, s, th);
+    const cw = wide ? W * .56 : W - P * 2 - (safe.left || 0) * s * .5;
+    const x = W - P, areaTop = hy + 40 * s, areaBot = H - bottom - 30 * s;
+    let big = F.id === "story" ? 1.5 : 1;
+    let ch = content(t, L, x, 0, cw, s, th, false, "right", big);
+    while (ch > areaBot - areaTop && big > .55) { big -= .05; ch = content(t, L, x, 0, cw, s, th, false, "right", big); }
+    content(t, L, x, areaTop + Math.max(0, (areaBot - areaTop - ch) / 2), cw, s, th, true, "right", big);
+    if (wide) { const img = imgs["mark" + th.logo], k = H * .62; if (img) { ctx.save(); ctx.globalAlpha = .96; ctx.drawImage(img, P * .6, (H - k) / 2, k, k); ctx.restore(); } }
+  }
+  if (!forExport && st.safe && F.safe) drawSafe(F, W, H);
+  $("meta").textContent = `${F.name} · ${W}×${H} بكسل`;
+}
+function drawSafe(F, W, H) {
+  const sf = F.safe; ctx.save(); ctx.fillStyle = "rgba(220,60,60,.18)"; ctx.strokeStyle = "rgba(220,60,60,.7)"; ctx.setLineDash([14, 10]); ctx.lineWidth = 3;
+  if (sf.circle) { ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(W / 2, H / 2, W / 2, 0, Math.PI * 2, true); ctx.fill("evenodd"); }
+  if (sf.avatar) { ctx.beginPath(); ctx.arc(W - 150, H - 30, 120, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+  if (sf.top) { ctx.fillRect(0, 0, W, sf.top); }
+  if (sf.bottom) { ctx.fillRect(0, H - sf.bottom, W, sf.bottom); }
+  if (sf.left) { ctx.fillRect(0, sf.top || 0, sf.left, H - (sf.top || 0) - (sf.bottom || 0)); }
+  ctx.restore();
+}
+
+// ---------- controls ----------
+function chips(el, items, key, label) {
+  el.replaceChildren(...items.map((it) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.v = it.id; b.id = key + "-" + it.id;
+    b.setAttribute("aria-pressed", String(st[key] === it.id));
+    b.innerHTML = label(it);
+    b.onclick = () => { st[key] = it.id; save(); sync(); };
+    return b;
+  }));
+}
+function sync() {
+  chips($("formats"), FORMATS, "format", (f) => `${f.name}<small>${f.size[0]}×${f.size[1]}</small>`);
+  chips($("layouts"), LAYOUTS, "layout", (l) => l.name);
+  chips($("themes"), THEMES, "theme", (t) => `<span><i class="swatch" style="background:${t.bg}"></i>${t.name}</span>`);
+  const L = LAYOUTS.find((l) => l.id === st.layout), F = FORMATS.find((f) => f.id === st.format), t = st.texts[L.id];
+  const contentless = F.id === "avatar";
+  for (const k of ["kicker", "number", "title", "gold", "body", "cta"]) { $("f-" + k).hidden = contentless || !L.fields.includes(k); $(k).value = t[k] ?? ""; }
+  $("bodyLabel").textContent = L.bodyLabel || "النص";
+  $("handle").value = st.handle; $("safe").checked = st.safe; $("f-safe").hidden = !F.safe;
+  render();
+}
+for (const k of ["kicker", "number", "title", "gold", "body", "cta"]) $(k).addEventListener("input", (e) => { st.texts[st.layout][k] = e.target.value; save(); render(); });
+$("handle").addEventListener("input", (e) => { st.handle = e.target.value; save(); render(); });
+$("safe").addEventListener("change", (e) => { st.safe = e.target.checked; save(); render(); });
+$("reset").onclick = () => { st.texts[st.layout] = Object.assign({}, SAMPLES[st.layout]); save(); sync(); };
+$("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  render(true);
+  cv.toBlob(async (blob) => {
+    render();
+    if (!blob) return;
+    const name = `jay-${st.format}-${st.layout}.png`;
+    // inside Claude: the viewer confirms the save; on the website: a normal download
+    if (downloads) {
+      try { await downloads.save({ filename: name, data: blob }); return; }
+      catch (x) { if (x && x.code === "declined") return; }
+    }
+    const url = URL.createObjectURL(blob);
+    $("out").src = url; $("modal").hidden = false;
+    if (!window.claude) { try { const a = document.createElement("a"); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); } catch (x) { /* the image in the dialog can still be saved */ } }
+  }, "image/png");
+});
+$("close").onclick = () => { $("modal").hidden = true; };
+
+(async () => {
+  $("hdrLogo").innerHTML = LOGOS.compactLight.replace("<svg ", '<svg class="lg lt" ') + LOGOS.compactDark.replace("<svg ", '<svg class="lg dk" ');
+  await Promise.all(["700 40px 'Readex Pro'", "600 40px 'Readex Pro'", "500 40px 'Readex Pro'", "400 40px 'IBM Plex Sans Arabic'", "600 40px 'IBM Plex Sans Arabic'"].map((f) => document.fonts.load(f, "جاي").catch(() => null)));
+  await loadImages();
+  sync();
+  window.__studioReady = true;
+})();
+</script>
