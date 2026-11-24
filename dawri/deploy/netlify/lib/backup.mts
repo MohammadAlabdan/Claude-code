@@ -5,7 +5,7 @@ import { getStore } from "@netlify/blobs";
 import { query } from "../src/_shared/pg.ts";
 
 export const KEEP_DAYS = 30;
-const SKIP = new Set(["app_secrets", "rate_limits"]);
+const SKIP = new Set(["app_secrets", "rate_limits", "whatsapp_config"]);
 export const backups = () => getStore({ name: "db-backups", consistency: "strong" });
 
 export async function runBackup() {

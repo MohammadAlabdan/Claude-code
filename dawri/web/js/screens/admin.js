@@ -174,7 +174,59 @@ export async function render(ctx) {
         h("div.center", h("b.num", num(r.tickets)), r.growth_pct != null ? h(`div.kpi-d.${r.growth_pct >= 0 ? "up" : "down"}`, r.growth_pct >= 0 ? "▲ " : "▼ ", `${num(Math.abs(r.growth_pct))}٪`) : null)))
         : [h("p.muted", "لا توجد تذاكر في هذه الفترة")])),
       api.system ? systemCard() : null,
+      whatsappCard(),
     ];
+  }
+
+  // WhatsApp alerts: status, this month's usage, and the settings sheet (keys are typed here and never shown again)
+  function whatsappCard() {
+    const box = h("div.wa-box", h("p.muted.small", "جارٍ التحميل…"));
+    const paint = async () => {
+      let w;
+      try { w = await api.admin("whatsapp"); } catch (x) { fill(box, h("p.err", errorText(x))); return; }
+      const state = w.ready ? ["مفعّل", ""] : w.enabled ? ["ناقصه إعدادات", ".warn"] : ["موقوف", ".warn"];
+      fill(box,
+        h("div.list",
+          h("div.list-item", icon("brand-whatsapp"), h("div.grow", h("div.title", "تنبيهات واتساب"),
+            h("div.muted.small", w.display_number ? h("span", { dir: "ltr" }, "+" + w.display_number) : "ما أُضيف الرقم بعد")),
+            h(`span.badge${state[1]}`, state[0])),
+          h("div.list-item", icon("send"), h("div.grow", h("div.title", "هذا الشهر"),
+            h("div.muted.small", `${num(w.month?.sent ?? 0)} رسالة · ${num(w.month?.linked ?? 0)} زبون ربط تذكرته · ${num(w.month?.failed ?? 0)} فشلت`)),
+            h("b.num", { title: "تقدير أعلى بسعر الرسالة الخدمية في السعودية" }, sar(Math.round((w.month?.sent ?? 0) * 0.04))))),
+        h("div.row", { style: { gap: "8px", flexWrap: "wrap" } },
+          h("button.btn.btn-sm", { type: "button", "data-testid": "wa-settings", onclick: () => settings(w) }, icon("settings"), "الإعدادات"),
+          h("span.muted.small", "التكلفة تقديرية: حوالي ٠٫٠٤ ريال للرسالة، والردود داخل ٢٤ ساعة من رسالة الزبون غالباً أرخص.")));
+    };
+    async function settings(w) {
+      const f = (id, attrs) => h("input", { id, dir: "ltr", autocomplete: "off", ...attrs });
+      const number = f("wa-number", { type: "tel", value: w.display_number ? "+" + w.display_number : "", placeholder: "05xxxxxxxx" });
+      const pid = f("wa-pid", { value: w.phone_number_id ?? "", placeholder: "Phone number ID" });
+      const token = f("wa-token", { type: "password", placeholder: w.has_token ? "محفوظ · اتركه فاضي إذا ما تغيّر" : "Access token" });
+      const secret = f("wa-secret", { type: "password", placeholder: w.has_secret ? "محفوظ · اتركه فاضي إذا ما تغيّر" : "App secret" });
+      const on = h("input", { type: "checkbox", id: "wa-enabled", checked: w.enabled });
+      const hook = `${new URL(".", document.baseURI).href.replace(/\/$/, "")}/api/whatsapp`;
+      const copy = (txt) => h("button.btn.btn-sm", { type: "button", onclick: async () => { try { await navigator.clipboard.writeText(txt); toast("نُسخ"); } catch { toast("انسخه يدوياً", { error: true }); } } }, icon("copy"), "نسخ");
+      const err = h("p.err", { hidden: true });
+      await openSheet({ title: "إعدادات واتساب", body: [
+        h("p.muted.small", "من حساب ميتا للمطوّرين: WhatsApp ← API Setup، وApp settings ← Basic للـ App secret."),
+        h("label.field", h("span", "رقم واتساب جاي"), number),
+        h("label.field", h("span", "Phone number ID"), pid),
+        h("label.field", h("span", "Access token (الدائم)"), token),
+        h("label.field", h("span", "App secret"), secret),
+        h("div.field", h("span", "رابط الـ Webhook (الصقه في ميتا)"), h("div.copy-row", h("code", hook), copy(hook))),
+        h("div.field", h("span", "Verify token (الصقه في ميتا)"), h("div.copy-row", h("code", w.verify_token), copy(w.verify_token))),
+        h("label.check", on, h("span", "شغّل تنبيهات واتساب للزبائن")), err],
+        actions: [{ id: "wa-save", label: "احفظ", primary: true, onClick: async (close) => {
+          try {
+            const r = await api.admin("whatsapp_save", { whatsapp: { display_number: number.value, phone_number_id: pid.value.trim(),
+              access_token: token.value.trim(), app_secret: secret.value.trim(), enabled: on.checked } });
+            close(); toast(r.ready ? "حُفظت، والتنبيهات شغّالة" : on.checked ? "حُفظت، لكن باقي حقول ناقصة" : "حُفظت");
+            paint();
+          } catch (x) { fieldErr(err, x.extra?.field === "display_number" ? "اكتب رقم واتساب صحيح، مثل 05xxxxxxxx" : x.extra?.field === "phone_number_id" ? "Phone number ID أرقام فقط" : errorText(x)); }
+        } }, { label: "إلغاء", ghost: true }] });
+    }
+    paint();
+    return card("واتساب", "brand-whatsapp", box);
   }
 
   // health + daily backups (Netlify only): filled in after the board is drawn

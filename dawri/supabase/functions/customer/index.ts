@@ -53,6 +53,9 @@ export default serve(async (req, body) => {
         p_reason: str(body, "reason", 20, false), p_note: str(body, "note", 280, false),
       })));
 
+    case "whatsapp_code":
+      return json(await settle(await rpc("c_whatsapp_code", { p_token: token() })));
+
     case "set_phone":
       return json(await settle(await rpc("c_set_phone", { p_token: token(), p_phone: str(body, "phone", 20), p_consent: body.consent === true })));
 

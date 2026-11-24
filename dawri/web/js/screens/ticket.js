@@ -25,7 +25,7 @@ export async function render(ctx) {
   }
 
   const token = params[0];
-  let tk, prev = null, overlayShown = null, pushDenied = false;
+  let tk, prev = null, overlayShown = null, pushDenied = false, wa = null;
   shell.content.append(...skeleton(3));
 
   const board = NowServingBoard(t("ticket.now_serving"));
@@ -50,7 +50,8 @@ export async function render(ctx) {
   const every = () => tk?.status !== "waiting" ? 6000 : tk.position <= 1 ? 4000 : tk.position <= 4 ? 8000 : 15000;
   const unsub = api.subscribe(tk.branch.public_id, () => load().catch(() => {}), every);
   const poll = setInterval(() => load().catch(() => {}), 60000);
-  const onVis = () => document.visibilityState === "visible" && load().catch(() => {});
+  const onVis = () => document.visibilityState === "visible" && load().then(refreshWa).catch(() => {});
+  refreshWa();
   const unlock = () => unlockAudio();
   document.addEventListener("visibilitychange", onVis);
   document.addEventListener("pointerdown", unlock, { once: true });
@@ -139,6 +140,7 @@ export async function render(ctx) {
       }),
 
       active ? pushCard() : null,
+      waiting ? whatsappCard() : null,
       active ? showcaseSection() : null,
       waiting ? h("section.card", { "aria-label": t("ticket.line") }, line,
         h("p.muted.small.center", [tk.service.name, tk.provider?.name, tk.party_size > 1 ? t("ticket.party", { n: num(tk.party_size) }) : null].filter(Boolean).join(" · "))) : null,
@@ -166,6 +168,31 @@ export async function render(ctx) {
       h("div.card-head", icon("bell-ringing"), h("h3", t("push.title"))),
       h("p.muted.small", t("push.lead")),
       h("button.btn.btn-primary.btn-block", { type: "button", "data-testid": "enable-push", onclick: enablePush }, icon("bell"), t("push.cta")));
+  }
+
+  // WhatsApp, customer-initiated: the code is fetched ahead so the tap opens WhatsApp straight away
+  async function refreshWa() {
+    if (!api.whatsapp || !tk || tk.mode !== "remote" || tk.status !== "waiting") return;
+    try { const r = await api.customer("whatsapp_code", { token }); const was = wa?.linked; wa = r; if (was !== r.linked) paint(); } catch { wa = null; }
+  }
+  function waUrl() { return `https://wa.me/${wa.number}?text=${encodeURIComponent(t("wa.message", { code: wa.code }))}`; }
+  function whatsappCard() {
+    if (!api.whatsapp || !wa) return null;
+    if (wa.linked) return h("div.banner.ok", { "data-testid": "wa-on" }, icon("brand-whatsapp"), h("span", t("wa.on")));
+    const go = (e) => {
+      if (!api.demo) return;          // real site: the link itself opens WhatsApp
+      e.preventDefault();
+      openSheet({ title: t("wa.demo_title"), body: [h("p", t("wa.demo_body")), h("pre.wa-preview", t("wa.message", { code: wa.code }))],
+        actions: [{ id: "wa-demo-link", label: t("wa.demo_link"), primary: true, onClick: async (close) => { await api.customer("whatsapp_demo_link", { token }); close(); await refreshWa(); toast(t("wa.on")); } },
+          { label: t("action.cancel"), ghost: true }] });
+    };
+    const btn = (cls, label) => h(`a.btn${cls}`, { href: waUrl(), target: "_blank", rel: "noopener", "data-testid": "wa-link", onclick: go }, icon("brand-whatsapp"), label);
+    if (tk.push_enabled) return h("div.center", btn(".btn-ghost.btn-block", t("wa.alt")));
+    return h("section.card.wa-card", { "data-testid": "wa-card" },
+      h("div.card-head", icon("brand-whatsapp"), h("h3", t("wa.title"))),
+      h("p.muted.small", t("wa.lead")),
+      btn(".btn-block.btn-wa", t("wa.cta")),
+      h("p.muted.small", icon("shield-check"), " ", t("wa.privacy")));
   }
 
   async function enablePush() {

@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { adminClient } from "./db.ts";
 import { customerPush, ownerBusyAlert, quietPush } from "./i18n.ts";
+import { deliverWhatsApp } from "./whatsapp.ts";
 
 let configured: boolean | null = null;
 
@@ -56,6 +57,9 @@ export async function deliver(notify: Notify[] | undefined) {
   const db = adminClient();
   const ticketIds = notify.filter((n) => n.ticket_id).map((n) => n.ticket_id!);
   if (ticketIds.length) {
+    // WhatsApp for the customers who linked it, alongside web push (errors there never block push)
+    const wa = deliverWhatsApp(notify.filter((n) => n.ticket_id).map((n) => ({ ticket_id: n.ticket_id!, kind: n.kind, stage: n.stage })))
+      .catch((e) => console.warn("whatsapp failed", e));
     const [{ data: tickets }, { data: subs }] = await Promise.all([
       db.from("tickets").select("id, number, lang, receipt_code, branches(name, public_id)").in("id", ticketIds),
       db.from("push_subscriptions").select("id, endpoint, p256dh, auth, ticket_id").in("ticket_id", ticketIds),
@@ -69,6 +73,7 @@ export async function deliver(notify: Notify[] | undefined) {
       return sendAll((subs ?? []).filter((s) => s.ticket_id === n.ticket_id),
         { ...msg, kind: n.kind, tag: `ticket-${n.ticket_id}`, url: `/s/${t.branches?.public_id ?? ""}`, vibrate: n.kind === "called" || n.kind === "ready" || n.stage === "ready" });
     }));
+    await wa;
   }
   await Promise.all(notify.filter((n) => n.kind === "quiet" && n.endpoint).map((n) =>
     sendAll([{ id: "", endpoint: n.endpoint!, p256dh: n.p256dh!, auth: n.auth! }],

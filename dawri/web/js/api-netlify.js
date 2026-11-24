@@ -9,9 +9,12 @@ const base = () => new URL(".", document.baseURI).href.replace(/\/$/, "");
 export async function createApi(cfg = {}) {
   const authCbs = new Set();
   // push public key comes from the server (generated there, see deploy/netlify/lib/secrets.mts)
-  if (!cfg.VAPID_PUBLIC_KEY) {
-    try { cfg.VAPID_PUBLIC_KEY = (await (await fetch(`${base()}/api/config`)).json()).vapid_public_key ?? ""; } catch { /* offline: push stays off */ }
-  }
+  // push public key and the WhatsApp switch come from the server (see deploy/netlify/functions/api-config.mts)
+  try {
+    const c = await (await fetch(`${base()}/api/config`)).json();
+    cfg.VAPID_PUBLIC_KEY ||= c.vapid_public_key ?? "";
+    cfg.WHATSAPP = c.whatsapp === true;
+  } catch { /* offline: push and WhatsApp stay off */ }
   const session = () => {
     const s = store.get(SESSION);
     if (s && s.expires_at * 1000 > Date.now()) return s;
@@ -42,6 +45,7 @@ export async function createApi(cfg = {}) {
   return {
     demo: false,
     noMagicLink: true,
+    whatsapp: cfg.WHATSAPP === true,
     demoAccounts: cfg.SHOW_DEMO_ACCOUNTS === true,
     publicBranch: (publicId) => post("/api/rpc/public_branch", { p_public_id: publicId }),
     publicTicket: (token) => post("/api/rpc/public_ticket", { p_token: token }),

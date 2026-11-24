@@ -16,6 +16,16 @@ export default serve(async (req, body) => {
       return json(await rpcOk("a_create_business", { p_user: user.id, p: body.business ?? {} }));
     case "delete_business":
       return json(await rpcOk("a_delete_business", { p_user: user.id, p_business: uuid(body, "business_id"), p_delete_owner: body.delete_owner === true }));
+    case "whatsapp":
+      return json(await rpcOk("a_whatsapp", { p_user: user.id }));
+    case "whatsapp_save": {
+      const w = (body.whatsapp ?? {}) as Record<string, unknown>;
+      const s = (k: string, max: number) => (typeof w[k] === "string" ? (w[k] as string).trim().slice(0, max) : "");
+      return json(await rpcOk("a_whatsapp_save", { p_user: user.id, p: {
+        display_number: s("display_number", 20), phone_number_id: s("phone_number_id", 30),
+        access_token: s("access_token", 1000), app_secret: s("app_secret", 200),
+        ...(typeof w.enabled === "boolean" ? { enabled: w.enabled } : {}) } }));
+    }
     case "branch_dashboard":
       return json(await rpcOk("o_dashboard", { p_user: user.id, p_branch: uuid(body, "branch_id"), p_range: body.range ?? "7d" }));
     default:

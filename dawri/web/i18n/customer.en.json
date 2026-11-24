@@ -262,5 +262,15 @@
  "chairs.any_sub": "Whoever is free first serves you",
  "chairs.pick_service": "Which service?",
  "chairs.only_services": "Does: {list}",
- "shop.privacy": "Privacy & terms"
+ "shop.privacy": "Privacy & terms",
+ "wa.title": "Get the alert on WhatsApp?",
+ "wa.lead": "Tap the button, WhatsApp opens with a ready message, just send it. We'll message you two turns before yours, and when it's your turn.",
+ "wa.cta": "Alert me on WhatsApp",
+ "wa.alt": "Or alert me on WhatsApp",
+ "wa.on": "WhatsApp alert is on ✓",
+ "wa.message": "Alert me about my turn on Jay 🔔\nTicket code: {code}",
+ "wa.privacy": "We don't ask for your number; it reaches us only from your message and is deleted a day after your ticket ends.",
+ "wa.demo_title": "This is a demo",
+ "wa.demo_body": "On the real site WhatsApp opens with this message and you just send it. Here we simulate the link without real messages.",
+ "wa.demo_link": "Simulate sending it"
 }

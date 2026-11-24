@@ -180,8 +180,9 @@ const settings = (b) => ({ ...DEFAULTS, ...b.settings });
 function effectivePlan(z) {
   if (!z.is_active) return null;
   if (z.trial_until && Date.parse(z.trial_until) > Date.now()) return "full";
-  if (z.plan_until && Date.parse(z.plan_until) <= Date.now()) return null;
-  return z.plan;
+  if (z.plan_until && Date.parse(z.plan_until) > Date.now()) return z.plan;
+  if (z.trial_until) return null;   // the trial ended and nothing was paid after it
+  return z.plan_until ? null : z.plan;
 }
 const features = (b) => PLANS[effectivePlan(biz(b))] ?? [];
 const has = (b, f) => features(b).includes(f);
@@ -513,6 +514,18 @@ const customer = {
     db.feedback.push({ id: uid(), ticket_id: t.id, branch_id: b.id, positive, reason: positive ? null : reason ?? null, note: positive ? null : note || null, created_at: iso(), ticket_number: t.number });
     commit(b.public_id);
     return { ok: true, google_review_url: positive ? b.google_review_url : null };
+  },
+  whatsapp_code({ token: tok }) {
+    const t = byToken(tok);
+    if (!["waiting", "called", "serving"].includes(t.status)) fail("not_waiting");
+    t.wa_code ??= "J" + Array.from({ length: 6 }, () => "ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 31)]).join("");
+    return { code: t.wa_code, number: "966500000000", linked: t.wa_linked === true };
+  },
+  // demo only: what the webhook does when the customer's message arrives
+  whatsapp_demo_link({ token: tok }) {
+    const t = byToken(tok); t.wa_linked = true; db.wa = { ...(db.wa ?? {}), linked: (db.wa?.linked ?? 0) + 1 };
+    commit(branch(t.branch_id).public_id);
+    return { ok: true, linked: true };
   },
   set_phone({ token: tok, phone, consent }) {
     const t = byToken(tok), b = branch(t.branch_id);
@@ -893,6 +906,7 @@ export async function createApi() {
   tickTimer ??= setInterval(autoTick, 15000);
   return {
     demo: true,
+    whatsapp: true,
     publicBranch: wrap((publicId) => {
       const b = branchByPublic(publicId) ?? fail("branch_not_found"), f = features(b), st = openState(b);
       return {
@@ -1014,6 +1028,22 @@ export async function createApi() {
         commit("*"); return { ok: true, owner_deleted: ownerDeleted };
       }
       if (action === "branch_dashboard") return dashboard(branch(body.branch_id) ?? fail("not_found"), body.range ?? "7d");
+      if (action === "whatsapp" || action === "whatsapp_save") {
+        db.wa ??= { enabled: false, display_number: null, phone_number_id: null, has_token: false, has_secret: false, linked: 0 };
+        if (action === "whatsapp_save") {
+          const w = body.whatsapp ?? {}; let num = String(w.display_number ?? "").replace(/\D/g, "");
+          if (/^05\d{8}$/.test(num)) num = "966" + num.slice(1);
+          if (num && !/^\d{8,15}$/.test(num)) fail("invalid_input", { field: "display_number" });
+          Object.assign(db.wa, { display_number: num || null, phone_number_id: w.phone_number_id || null,
+            has_token: db.wa.has_token || !!w.access_token, has_secret: db.wa.has_secret || !!w.app_secret,
+            ...(typeof w.enabled === "boolean" ? { enabled: w.enabled } : {}) });
+          commit(null);
+        }
+        const z = db.wa;
+        return { enabled: z.enabled, ready: !!(z.enabled && z.display_number && z.phone_number_id && z.has_token && z.has_secret),
+          display_number: z.display_number, phone_number_id: z.phone_number_id, has_token: z.has_token, has_secret: z.has_secret,
+          verify_token: "demo-verify-token-0000", month: { sent: (z.linked ?? 0) * 2, failed: 0, linked: z.linked ?? 0 }, active_links: z.linked ?? 0 };
+      }
       if (action === "insights") return demoInsights(Math.min(180, Math.max(7, body.days ?? 30)), body.include_demo === true);
       fail("invalid_action");
     }),
@@ -1069,7 +1099,7 @@ export async function createApi() {
 }
 const authCbs = new Set();
 
-const demoStatus = (z) => (!z.is_active ? "inactive" : z.trial_until && Date.parse(z.trial_until) > Date.now() ? "trial" : !z.plan_until || Date.parse(z.plan_until) > Date.now() ? "active" : "inactive");
+const demoStatus = (z) => (!z.is_active ? "inactive" : z.trial_until && Date.parse(z.trial_until) > Date.now() ? "trial" : z.plan_until && Date.parse(z.plan_until) > Date.now() ? "active" : z.trial_until ? "inactive" : !z.plan_until ? "active" : "inactive");
 /** Same rules as a_update_business: status + start + duration → dates; also name/category/plan/note/phone. */
 function demoApplySub(z, p) {
   if (p.name) z.name = p.name.trim();

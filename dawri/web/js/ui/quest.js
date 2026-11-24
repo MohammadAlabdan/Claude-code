@@ -135,7 +135,8 @@ export function GiftCard(item, { onStart, onRedeem, onUseOffer, sealed = false, 
   const cover = h("button.g-seal", { type: "button", "data-testid": "gift-reveal", "aria-label": t("gift.reveal") },
     h("span.g-seal-icon", { "aria-hidden": "true" }, "🎁"), h("b", t("gift.reveal")), h("span", t("gift.reveal_sub")));
   const wrap = h("div.gift-wrap.sealed", card, cover);
-  cover.addEventListener("click", () => { wrap.classList.add("opening"); setTimeout(() => { wrap.classList.remove("sealed", "opening"); cover.remove(); onReveal?.(); }, 450); });
+  // remember the reveal at the tap, so a refresh during the animation does not seal the gift again
+  cover.addEventListener("click", () => { onReveal?.(); wrap.classList.add("opening"); setTimeout(() => { wrap.classList.remove("sealed", "opening"); cover.remove(); }, 450); });
   return wrap;
 }
 
