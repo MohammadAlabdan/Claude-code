@@ -129,7 +129,8 @@ export async function render(ctx) {
 
     fill(root, 
       tk.mode === "remote" && active ? board : null,
-      waiting && tk.return_now ? h("div.banner.warn", { "data-testid": "return-now", role: "alert" }, icon("walk"), h("span", t("ticket.return_now"))) : null,
+      waiting && tk.return_now && !tk.arrived ? h("div.banner.warn", { "data-testid": "return-now", role: "alert" }, icon(tk.travel_min ? "car" : "walk"),
+        h("span", tk.travel_min ? t("travel.leave_now", { m: num(promiseMinutes()) }) : t("ticket.return_now"))) : null,
 
       TicketCard({
         label: tk.mode === "receipt" ? t("ticket.order_number") : tk.mode === "dropoff" ? t("ticket.your_number") : t("ticket.your_number"),
@@ -139,6 +140,7 @@ export async function render(ctx) {
         alert: waiting && tk.return_now,
       }),
 
+      waiting ? arrivalCard() : null,
       active ? pushCard() : null,
       waiting ? whatsappCard() : null,
       active ? showcaseSection() : null,
@@ -168,6 +170,37 @@ export async function render(ctx) {
       h("div.card-head", icon("bell-ringing"), h("h3", t("push.title"))),
       h("p.muted.small", t("push.lead")),
       h("button.btn.btn-primary.btn-block", { type: "button", "data-testid": "enable-push", onclick: enablePush }, icon("bell"), t("push.cta")));
+  }
+
+  // «كم تبعد؟» and «وصلت»: the alert comes by travel time, and the staff screen knows who is here
+  function travelChoices() {
+    const c = tk.category;
+    return c === "cafe" ? [0, 5, 10, 15] : c === "barber" || c === "salon" ? [0, 5, 15, 30, 45] : [0, 5, 15, 30];
+  }
+  function clock(min) { return new Date(Date.now() + min * 60000).toLocaleTimeString(document.documentElement.lang === "en" ? "en-US" : "ar-SA", { hour: "numeric", minute: "2-digit" }); }
+  function arrivalCard() {
+    if (tk.mode !== "remote") return null;
+    if (tk.arrived) return h("div.banner.ok", { "data-testid": "arrived-on" }, icon("map-pin-check"), h("span", t("travel.arrived_on")));
+    const est = promiseMinutes();
+    const leaveIn = tk.travel_min != null ? Math.max(0, est - tk.travel_min - 5) : null;
+    return h("section.card.travel", { "data-testid": "travel-card" },
+      h("div.card-head", icon("route"), h("h3", t("travel.title"))),
+      h("p.muted.small", t("travel.lead")),
+      h("div.chips", { role: "group", "aria-label": t("travel.title") }, travelChoices().map((m) =>
+        h("button.chip", { type: "button", "data-travel": m, "aria-pressed": String(tk.travel_min === m), onclick: () => setTravel(m) },
+          m === 0 ? t("travel.here") : t("travel.min", { m: num(m) })))),
+      h("div.travel-times",
+        h("div", h("span.muted.small", t("travel.turn_at")), h("b", { "data-testid": "turn-at" }, clock(est))),
+        leaveIn != null ? h("div", h("span.muted.small", t("travel.leave_at")), h("b", { "data-testid": "leave-at" }, leaveIn === 0 ? t("travel.now") : clock(leaveIn))) : null),
+      h("button.btn.btn-block", { type: "button", "data-testid": "arrived", onclick: arrived }, icon("map-pin-check"), t("travel.arrived")));
+  }
+  async function setTravel(m) {
+    try { await api.customer("set_travel", { token, minutes: m }); await load(); toast(m === 0 ? t("travel.saved_here") : t("travel.saved", { m: num(m) })); }
+    catch (e) { toast(errorText(e), { error: true }); }
+  }
+  async function arrived() {
+    try { await api.customer("arrived", { token }); vibrate(30); await load(); toast(t("travel.arrived_on")); }
+    catch (e) { toast(errorText(e), { error: true }); }
   }
 
   // WhatsApp, customer-initiated: the code is fetched ahead so the tap opens WhatsApp straight away

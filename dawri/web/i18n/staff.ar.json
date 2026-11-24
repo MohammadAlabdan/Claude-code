@@ -70,5 +70,7 @@
  "stage.received": "استلمنا",
  "stage.in_progress": "قيد العمل",
  "stage.ready": "جاهزة",
- "stage.picked_up": "تم الاستلام"
+ "stage.picked_up": "تم الاستلام",
+ "travel.here_badge": "وصل",
+ "travel.on_way": "في الطريق"
 }

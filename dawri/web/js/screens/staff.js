@@ -169,8 +169,10 @@ export async function render(ctx) {
           x.provider_id ? h("span", prov(x.provider_id)?.name) : null,
           x.priority ? h("span.badge.warn", t(`priority.${x.priority_reason ?? "other"}`)) : null,
           x.source === "walk_in" ? h("span.badge", t("source.walk_in")) : null,
+          x.arrived ? h("span.badge.here", { "data-testid": "staff-arrived" }, icon("map-pin-check"), " ", t("travel.here_badge"))
+            : x.on_way ? h("span.badge.warn", { "data-testid": "staff-on-way" }, icon("car"), " ", t("travel.on_way")) : null,
           (x.interests ?? []).map((n) => h("span.staff-want", { "data-testid": "staff-want" }, `+ ${n}`)))),
-      !x.push_enabled ? h("span", { title: t("bell.off"), "data-testid": "bell-off", style: { color: "var(--danger)", fontSize: "1.3rem" } }, icon("bell-off", t("bell.off"))) : null);
+      !x.push_enabled && !x.whatsapp ? h("span", { title: t("bell.off"), "data-testid": "bell-off", style: { color: "var(--danger)", fontSize: "1.3rem" } }, icon("bell-off", t("bell.off"))) : null);
     return el;
   }
 

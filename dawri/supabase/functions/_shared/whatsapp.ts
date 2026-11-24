@@ -12,7 +12,7 @@ export interface WaConfig {
 }
 export interface WaTicket {
   ticket_id: string; number: number; lang: "ar" | "en"; status: string; shop: string; public_id: string;
-  branch_id: string; position: number | null; estimate_min: number | null; wa_id?: string;
+  branch_id: string; position: number | null; estimate_min: number | null; travel_min?: number | null; wa_id?: string;
 }
 
 let cached: { at: number; cfg: WaConfig } | null = null;
@@ -40,6 +40,10 @@ export function waText(kind: string, t: WaTicket | null, lang: "ar" | "en" = t?.
         ? `تم ✅ ربطنا تذكرتك\n${where}\n${wait(t!)}\n\nبنرسل لك هنا قبل دورك بدورين، ولما يوصل دورك.\nتبي تعرف وين وصل الطابور؟ اكتب أي رسالة.\nلإيقاف التنبيهات اكتب: إيقاف`
         : `Done ✅ your ticket is linked\n${where}\n${wait(t!)}\n\nWe'll message you here two turns before yours, and when it's your turn.\nSend any message to see the line. To stop, send: stop`;
     case "return_now":
+      if (t?.travel_min != null && t.estimate_min != null) {
+        return ar ? `جاي دورك! اطلع الحين 🚗\nدورك تقريباً بعد ${n(t.estimate_min, lang)} دقيقة، وأنت قلت تبعد ${n(t.travel_min, lang)}.\nلما توصل اضغط «وصلت» في صفحة تذكرتك.\n${where}${page}`
+          : `Your turn is coming! Leave now 🚗\nAbout ${t.estimate_min} min to your turn, and you said you're ${t.travel_min} min away.\nTap «I'm here» on your ticket page when you arrive.\n${where}${page}`;
+      }
       return ar ? `جاي دورك! ارجع الحين، باقي قبلك دوران 🚶\n${where}${page}` : `Your turn is coming! Head back now, two turns before you 🚶\n${where}${page}`;
     case "called":
       return ar ? `وصل دورك، تفضّل 🙌\n${where}` : `It's your turn, come in 🙌\n${where}`;

@@ -70,5 +70,7 @@
  "stage.received": "Received",
  "stage.in_progress": "In progress",
  "stage.ready": "Ready",
- "stage.picked_up": "Picked up"
+ "stage.picked_up": "Picked up",
+ "travel.here_badge": "Here",
+ "travel.on_way": "On the way"
 }

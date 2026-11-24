@@ -70,5 +70,7 @@
  "stage.received": "গ্রহণ করা হয়েছে",
  "stage.in_progress": "কাজ চলছে",
  "stage.ready": "প্রস্তুত",
- "stage.picked_up": "নিয়ে গেছে"
+ "stage.picked_up": "নিয়ে গেছে",
+ "travel.here_badge": "এসেছেন",
+ "travel.on_way": "পথে আছেন"
 }

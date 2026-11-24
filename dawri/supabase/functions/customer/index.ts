@@ -53,6 +53,12 @@ export default serve(async (req, body) => {
         p_reason: str(body, "reason", 20, false), p_note: str(body, "note", 280, false),
       })));
 
+    case "set_travel":
+      return json(await settle(await rpc("c_set_travel", { p_token: token(), p_minutes: int(body, "minutes", 0, 90) })));
+
+    case "arrived":
+      return json(await settle(await rpc("c_arrived", { p_token: token() })));
+
     case "whatsapp_code":
       return json(await settle(await rpc("c_whatsapp_code", { p_token: token() })));
 

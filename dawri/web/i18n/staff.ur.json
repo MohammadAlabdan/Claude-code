@@ -70,5 +70,7 @@
  "stage.received": "وصول کیا",
  "stage.in_progress": "کام جاری",
  "stage.ready": "تیار",
- "stage.picked_up": "لے لیا"
+ "stage.picked_up": "لے لیا",
+ "travel.here_badge": "پہنچ گیا",
+ "travel.on_way": "راستے میں"
 }

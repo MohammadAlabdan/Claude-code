@@ -7,7 +7,7 @@ export function customerPush(kind: string, lang: Lang, t: { number?: number; sta
   const n = lang === "ar" ? toArabicDigits(t.number ?? "") : String(t.number ?? "");
   const shop = t.shop ?? (lang === "ar" ? "جاي" : "Jay");
   const texts: Record<string, [string, string]> = {
-    return_now: ["جاي دورك! ارجع الحين، باقي قبلك دوران", "Your turn is coming! Head back now, two turns before you"],
+    return_now: ["جاي دورك! اطلع الحين عشان توصل على وقتك 🚶", "Your turn is coming! Head over now to make it on time 🚶"],
     called: [`وصل دورك، تفضّل (رقم ${n})`, `It's your turn, number ${n}`],
     ready: ["طلبك جاهز", "Your order is ready"],
     stage_in_progress: ["بدأنا الشغل على طلبك", "We started working on your order"],

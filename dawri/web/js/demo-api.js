@@ -270,6 +270,12 @@ function loyaltyView(b, phone) {
   const v = c.visits - c.rewards_redeemed * c.goal;
   return { visits: v, goal: c.goal, reward_available: v >= c.goal, reward_text: settings(b).loyalty_reward_text };
 }
+/** Same rule as return_now_due(): by travel time when the customer gave one, else two turns before. */
+function returnNowDue(t) {
+  if (t.mode !== "remote" || t.status !== "waiting" || t.arrived_at) return false;
+  const pos = position(t);
+  return t.travel_min == null ? pos <= settings(branch(t.branch_id)).return_now_threshold : pos === 0 || estimate(t) <= t.travel_min + 5;
+}
 function ticketView(t) {
   const b = branch(t.branch_id), s = db.services.find((x) => x.id === t.service_id), p = db.providers.find((x) => x.id === t.provider_id);
   const waitingRemote = t.mode === "remote" && t.status === "waiting", pos = waitingRemote ? position(t) : null;
@@ -277,7 +283,8 @@ function ticketView(t) {
   return {
     id: t.id, number: t.number, mode: t.mode, status: t.status, stage: t.stage, receipt_code: t.receipt_code, item_label: t.item_label,
     party_size: t.party_size, service: { id: s.id, name: s.name }, provider: p ? { id: p.id, name: p.display_name } : null,
-    position: pos, estimate_min: waitingRemote ? estimate(t) : null, return_now: waitingRemote && pos <= settings(b).return_now_threshold,
+    position: pos, estimate_min: waitingRemote ? estimate(t) : null, return_now: returnNowDue(t),
+    travel_min: t.travel_min ?? null, arrived: !!t.arrived_at, category: biz(b).category, whatsapp_linked: t.wa_linked === true,
     called: t.mode === "remote" && ["called", "serving"].includes(t.status),
     ready: (t.mode === "receipt" && t.status === "done") || (t.mode === "dropoff" && t.stage === "ready"),
     now_serving: nowServing(t.service_id), waiting_in_service: db.tickets.filter((x) => x.service_id === t.service_id && x.status === "waiting").length,
@@ -515,6 +522,19 @@ const customer = {
     commit(b.public_id);
     return { ok: true, google_review_url: positive ? b.google_review_url : null };
   },
+  set_travel({ token: tok, minutes }) {
+    const t = byToken(tok);
+    if (t.status !== "waiting" || t.mode !== "remote") fail("not_waiting");
+    if (![0, 5, 10, 15, 20, 30, 45, 60].includes(minutes)) fail("invalid_input");
+    t.travel_min = minutes; commit(branch(t.branch_id).public_id);
+    return { ticket: ticketView(t) };
+  },
+  arrived({ token: tok }) {
+    const t = byToken(tok);
+    if (!["waiting", "called"].includes(t.status) || t.mode !== "remote") fail("not_waiting");
+    t.arrived_at ??= iso(); commit(branch(t.branch_id).public_id);
+    return { ticket: ticketView(t) };
+  },
   whatsapp_code({ token: tok }) {
     const t = byToken(tok);
     if (!["waiting", "called", "serving"].includes(t.status)) fail("not_waiting");
@@ -632,7 +652,8 @@ function staffAction(d, action, body) {
           .map((t) => ({ id: t.id, number: t.number, mode: t.mode, status: t.status, stage: t.stage, service_id: t.service_id, provider_id: t.provider_id, party_size: t.party_size,
             priority: t.priority, priority_reason: t.priority_reason, push_enabled: t.push_enabled, source: t.source, receipt_code: t.receipt_code, item_label: t.item_label,
             push_back_count: t.push_back_count, joined_at: t.joined_at, called_at: t.called_at, called_by_me: t.called_by === d.id, position: t.status === "waiting" && t.mode === "remote" ? position(t) : null,
-            interests: (t.interests ?? []).map((id) => db.menu.find((m) => m.id === id)?.name).filter(Boolean) })),
+            interests: (t.interests ?? []).map((id) => db.menu.find((m) => m.id === id)?.name).filter(Boolean),
+            arrived: !!t.arrived_at, on_way: !t.arrived_at && t.status === "waiting" && returnNowDue(t), travel_min: t.travel_min ?? null, whatsapp: t.wa_linked === true })),
         ready_numbers: db.ready.filter((r) => r.branch_id === b.id && r.day === dayOf()).sort((x, y) => (x.ready_at < y.ready_at ? 1 : -1)).slice(0, 12).map((r) => r.code),
         labels: LABELS[d.language] ?? LABELS.ar, server_time: iso(),
       };

@@ -70,5 +70,7 @@
  "stage.received": "Natanggap",
  "stage.in_progress": "Ginagawa",
  "stage.ready": "Handa na",
- "stage.picked_up": "Nakuha na"
+ "stage.picked_up": "Nakuha na",
+ "travel.here_badge": "Nandito na",
+ "travel.on_way": "Papunta na"
 }
