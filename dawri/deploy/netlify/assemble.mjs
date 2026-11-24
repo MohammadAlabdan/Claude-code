@@ -38,6 +38,7 @@ if (existsSync(join(repo, "site/index.html"))) {
 // social media studio and the brand kit (logos, profile pictures, ready post templates)
 if (existsSync(join(repo, "site/studio/index.html"))) cpSync(join(repo, "site/studio"), join(pub, "studio"), { recursive: true });
 if (existsSync(join(repo, "brand"))) cpSync(join(repo, "brand"), join(pub, "brand"), { recursive: true, filter: (p) => !/studio-ui\.png$/.test(p) });
+if (existsSync(join(repo, "site/infographics"))) cpSync(join(repo, "site/infographics"), join(pub, "brand/infographics"), { recursive: true });
 // SPA fallback, but never for the API routes
 writeFileSync(join(pub, "_redirects"), "/*    /index.html   200\n");
 
