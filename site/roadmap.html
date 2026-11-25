@@ -1,0 +1,280 @@
+<title>خريطة طريق جاي</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: a road of six ticket-shaped milestones on top, then one card per phase with its checklist. Jay palette. */
+:root{
+  --bg:#F7F3EC; --card:#FFFFFF; --ink:#10292A; --muted:#5C6B67; --line:#E2D9C9;
+  --teal:#0E3B3A; --gold:#C9A66B; --gold-ink:#8E6A2C; --cream:#F3EDE2; --done:#1F7A4D; --soft:#E8EFEB;
+  --f-display:"Readex Pro","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic","Readex Pro",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0A1918;--card:#102423;--ink:#F3EDE2;--muted:#A7B4AF;--line:#21403E;--teal:#D7B57A;--gold:#C9A66B;--gold-ink:#E3C285;--cream:#15403D;--done:#5FD08F;--soft:#15403D;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A1918;--card:#102423;--ink:#F3EDE2;--muted:#A7B4AF;--line:#21403E;--teal:#D7B57A;--gold:#C9A66B;--gold-ink:#E3C285;--cream:#15403D;--done:#5FD08F;--soft:#15403D;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.65 var(--f-body);direction:rtl}
+.wrap{max-width:1120px;margin:0 auto;padding-block:0 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* hero */
+.hero{margin-top:calc(-1 * env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 28px);padding-bottom:30px;
+  background:radial-gradient(120% 140% at 90% 0%,#18595A 0%,#0E3B3A 55%,#0A2C2B 100%);color:#F3EDE2;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset-inline-start:-50px;bottom:-80px;width:280px;height:210px;border:4px solid rgba(201,166,107,.22);border-radius:38px;transform:rotate(10deg)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center;padding-bottom:0;position:relative;z-index:1}
+.eyebrow{color:#C9A66B;font:700 13px var(--f-display);letter-spacing:.04em}
+.hero h1{font:700 clamp(28px,5vw,44px)/1.15 var(--f-display);margin:6px 0 8px;text-wrap:balance}
+.hero p{margin:0;color:#CFDCD6;max-width:58ch}
+.hero-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.hero-stats span{background:rgba(243,237,226,.1);border:1px solid rgba(243,237,226,.18);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+.hero-stats b{color:#C9A66B;font-variant-numeric:tabular-nums}
+.ring{width:150px;height:150px;position:relative;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .num b{font:700 38px/1 var(--f-display);color:#F3EDE2;font-variant-numeric:tabular-nums}
+.ring .num small{display:block;color:#C9A66B;font-size:12px;font-weight:600;margin-top:4px}
+@media (max-width:640px){.hero .wrap{grid-template-columns:minmax(0,1fr)}.ring{width:120px;height:120px;justify-self:start}.ring .num b{font-size:30px}}
+
+/* the road */
+.road{position:relative;margin:-22px auto 0;z-index:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.road::before{content:"";position:absolute;top:34px;inset-inline:6%;height:4px;border-radius:4px;
+  background:repeating-linear-gradient(90deg,var(--gold) 0 14px,transparent 14px 24px);opacity:.55;z-index:-1}
+.stop{display:grid;justify-items:center;gap:6px;text-align:center;text-decoration:none;color:var(--ink);background:none;border:0;font:inherit;cursor:pointer;padding:0}
+.ticket{width:68px;height:68px;border-radius:20px;background:var(--card);border:2px solid var(--line);display:grid;place-items:center;position:relative;
+  box-shadow:0 10px 24px -16px rgba(14,59,58,.6);transition:transform .2s ease}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--bg)}
+.ticket::before{inset-inline-start:-7px}.ticket::after{inset-inline-end:-7px}
+.ticket b{font:700 22px var(--f-display);color:var(--muted)}
+.stop:hover .ticket{transform:translateY(-3px)}
+.stop.done .ticket{background:var(--done);border-color:var(--done)}
+.stop.done .ticket b{color:#fff}
+.stop.now .ticket{background:#0E3B3A;border-color:var(--gold);box-shadow:0 0 0 5px color-mix(in srgb,var(--gold) 30%,transparent),0 10px 24px -16px rgba(14,59,58,.6)}
+.stop.now .ticket b{color:#C9A66B}
+.stop .lbl{font:600 13px/1.3 var(--f-display);max-width:13ch}
+.stop .pct{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stop .now-tag{font-size:11px;font-weight:700;color:var(--gold-ink)}
+@media (max-width:760px){.road{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:18px}.road::before{display:none}}
+
+/* toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:28px 0 14px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--f-body);padding:7px 14px;border-radius:9px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#0E3B3A;color:#F3EDE2}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:#C9A66B;color:#0E3B3A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:#C9A66B;color:#0E3B3A}}
+.status{font-size:13px;color:var(--muted)}
+
+/* phases */
+.phases{display:grid;gap:16px}
+.phase{background:var(--card);border:1px solid var(--line);border-radius:22px;overflow:hidden;scroll-margin-top:20px}
+.phase.now{border:2px solid var(--gold);box-shadow:0 20px 44px -34px color-mix(in srgb,var(--gold) 90%,transparent)}
+.ph-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:18px 20px}
+.ph-num{width:46px;height:46px;border-radius:14px;background:var(--soft);display:grid;place-items:center;font:700 20px var(--f-display);color:var(--teal)}
+.phase.done .ph-num{background:var(--done);color:#fff}
+.phase.now .ph-num{background:#0E3B3A;color:#C9A66B}
+.ph-head h2{margin:0;font:700 19px/1.3 var(--f-display);text-wrap:balance}
+.ph-head p{margin:2px 0 0;color:var(--muted);font-size:13.5px}
+.ph-meta{text-align:end;display:grid;gap:4px;justify-items:end}
+.ph-meta b{font:700 18px var(--f-display);font-variant-numeric:tabular-nums}
+.chip{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--teal);white-space:nowrap}
+.chip.done{background:color-mix(in srgb,var(--done) 16%,transparent);color:var(--done)}
+.chip.now{background:color-mix(in srgb,var(--gold) 24%,transparent);color:var(--gold-ink)}
+.bar-track{height:6px;background:var(--soft);margin:0 20px;border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--done),#2FA36B);border-radius:6px;transition:width .5s ease}
+.tasks{list-style:none;margin:0;padding:10px 12px 6px;display:grid}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:start;padding:11px 8px;border-radius:14px}
+.task + .task{border-top:1px dashed var(--line)}
+.task:hover{background:color-mix(in srgb,var(--soft) 50%,transparent)}
+.check{width:28px;height:28px;border-radius:9px;border:2px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;flex:none;margin-top:1px;
+  transition:background .15s,border-color .15s,transform .15s}
+.check:hover{border-color:var(--done)}
+.check:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.check svg{width:16px;height:16px;opacity:0;transform:scale(.6);transition:all .18s ease}
+.task.is-done .check{background:var(--done);border-color:var(--done)}
+.task.is-done .check svg{opacity:1;transform:none}
+.t-body{min-width:0}
+.t-title{font-weight:600;line-height:1.5}
+.task.is-done .t-title{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 50%,transparent)}
+.t-note{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+.t-when{display:block;color:var(--done);font-size:12px;margin-top:2px}
+.t-side{display:flex;gap:6px;align-items:center}
+.who{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:8px;white-space:nowrap}
+.who.you{background:color-mix(in srgb,var(--gold) 22%,transparent);color:var(--gold-ink)}
+.who.claude{background:var(--soft);color:var(--teal)}
+.del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:6px}
+.del:hover{color:#B8432F}
+.add{display:flex;gap:8px;padding:8px 20px 18px;flex-wrap:wrap}
+.add input{flex:1 1 220px;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--bg);color:var(--ink);font:inherit}
+.add select{border:1.5px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--bg);color:var(--ink);font:inherit}
+.add button,.btn{border:0;border-radius:12px;padding:9px 16px;background:#0E3B3A;color:#F3EDE2;font:600 14px var(--f-display);cursor:pointer}
+:root[data-theme="dark"] .add button{background:#C9A66B;color:#0E3B3A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .add button{background:#C9A66B;color:#0E3B3A}}
+.empty{text-align:center;color:var(--muted);padding:40px 16px;border:1.5px dashed var(--line);border-radius:20px;display:grid;gap:6px;justify-items:center}
+.empty b{color:var(--ink);font:700 17px var(--f-display)}
+.hidden-done .task.is-done{display:none}
+.toast{position:fixed;inset-inline:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));margin-inline:auto;max-width:380px;background:#0E3B3A;color:#F3EDE2;
+  padding:12px 16px;border-radius:14px;text-align:center;font-weight:600;box-shadow:0 18px 40px -20px rgba(0,0,0,.5);opacity:0;transform:translateY(16px);transition:all .25s ease;pointer-events:none;z-index:20}
+.toast.show{opacity:1;transform:none}
+.foot{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">دورك جاي.. وأنت مرتاح</span>
+      <h1>خريطة طريق «جاي»</h1>
+      <p>من المنتج الجاهز إلى أول خمسة حلاقين، ثم التشغيل التجاري والتوسع. علّم كل مهمة تخلص، ويتحدّث التقدّم لك ولي.</p>
+      <div class="hero-stats" id="stats"><span>جارٍ التحميل…</span></div>
+    </div>
+    <div class="ring" aria-label="نسبة الإنجاز">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(243,237,226,.14)" stroke-width="12"/>
+        <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="#C9A66B" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .6s ease"/></svg>
+      <div class="num"><div><b id="ringPct">0٪</b><small>منجز</small></div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <nav class="road" id="road" aria-label="مراحل الطريق"></nav>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="عرض المهام">
+      <button type="button" data-f="all" aria-pressed="true">كل المهام</button>
+      <button type="button" data-f="you" aria-pressed="false">مهامي</button>
+      <button type="button" data-f="claude" aria-pressed="false">مهام Claude</button>
+    </div>
+    <label class="status"><input type="checkbox" id="hideDone"> أخفِ المنجز</label>
+  </div>
+  <div class="phases" id="phases">
+    <div class="empty"><b>جارٍ تحميل المهام…</b><span>تظهر هنا مهام كل مرحلة، وتقدر تضيف مهامك.</span></div>
+  </div>
+  <p class="foot" id="foot">التقدّم محفوظ ومشترك: أي علامة تضعها تظهر على كل أجهزتك.</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const PHASES = [
+  { id: "p1", title: "بناء المنتج", lead: "النظام كامل: الزبون، والموظف، والمالك، ولوحة المنصة" },
+  { id: "p2", title: "الهوية والتسويق", lead: "الاسم والشعار، وموقع العرض، والإنفوجرافيك، والمنشورات" },
+  { id: "p3", title: "جاهزية الإطلاق", lead: "الأمان، والوثائق، والبيانات النظامية، والتنبيهات" },
+  { id: "p4", title: "التجربة الميدانية", lead: "خمسة حلاقين لمدة أسبوعين، بأرقام حقيقية" },
+  { id: "p5", title: "التشغيل التجاري", lead: "أول اشتراكات مدفوعة، والسجل، والعلامة" },
+  { id: "p6", title: "التوسع", lead: "أنشطة ومدن جديدة، وربط مع الأنظمة" },
+];
+const $ = (id) => document.getElementById(id);
+const AR = (n) => String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+let tasks = [], db = null, filter = "all", hideDone = false;
+try { hideDone = localStorage.getItem("jay.rm.hide") === "1"; filter = localStorage.getItem("jay.rm.filter") || "all"; } catch (e) {}
+$("hideDone").checked = hideDone;
+
+const el = (tag, attrs = {}, ...kids) => { const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (v == null || v === false) continue; if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else if (k === "class") e.className = v; else e.setAttribute(k, v === true ? "" : v); }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return e; };
+const CHECK = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+const dateAr = (iso) => { try { return new Date(iso).toLocaleDateString("ar-SA-u-ca-gregory-nu-latn", { day: "numeric", month: "long" }); } catch (e) { return ""; } };
+
+function stats() {
+  const by = PHASES.map((p) => { const t = tasks.filter((x) => x.phase === p.id); const d = t.filter((x) => x.done).length; return { ...p, total: t.length, done: d, pct: t.length ? Math.round(100 * d / t.length) : 0 }; });
+  const current = by.find((p) => p.total && p.done < p.total) ?? by[by.length - 1];
+  return { by, current, total: tasks.length, done: tasks.filter((x) => x.done).length };
+}
+
+function render() {
+  const s = stats();
+  const pct = s.total ? Math.round(100 * s.done / s.total) : 0;
+  $("ringPct").textContent = `${AR(pct)}٪`;
+  $("ringArc").setAttribute("stroke-dashoffset", String(326.7 * (1 - pct / 100)));
+  const mine = tasks.filter((x) => x.owner === "you" && !x.done).length;
+  $("stats").replaceChildren(
+    el("span", {}, el("b", {}, AR(s.done)), ` من ${AR(s.total)} مهمة منجزة`),
+    el("span", {}, "المرحلة الحالية: ", el("b", {}, s.current?.title ?? "—")),
+    el("span", {}, el("b", {}, AR(mine)), " مهمة بانتظارك"));
+  $("road").replaceChildren(...s.by.map((p, i) => {
+    const state = p.total && p.done === p.total ? "done" : p.id === s.current?.id ? "now" : "";
+    return el("button", { type: "button", class: `stop ${state}`, "aria-label": `${p.title}: ${p.pct}٪`, onclick: () => document.getElementById(p.id)?.scrollIntoView({ behavior: "smooth", block: "start" }) },
+      el("span", { class: "ticket" }, el("b", {}, state === "done" ? "✓" : AR(i + 1))),
+      el("span", { class: "lbl" }, p.title),
+      state === "now" ? el("span", { class: "now-tag" }, "نحن هنا") : el("span", { class: "pct" }, `${AR(p.pct)}٪`));
+  }));
+  const box = $("phases");
+  box.className = `phases${hideDone ? " hidden-done" : ""}`;
+  if (!tasks.length) { box.replaceChildren(el("div", { class: "empty" }, el("b", {}, "ما فيه مهام بعد"), el("span", {}, "أضف أول مهمة من خانة «أضف مهمة» تحت أي مرحلة."))); }
+  else box.replaceChildren(...s.by.map((p, i) => phaseCard(p, i, s.current)));
+  document.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.f === filter)));
+}
+
+function phaseCard(p, i, current) {
+  const state = p.total && p.done === p.total ? "done" : p.id === current?.id ? "now" : "";
+  const list = tasks.filter((x) => x.phase === p.id && (filter === "all" || x.owner === filter)).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const input = el("input", { id: `add-${p.id}`, placeholder: "أضف مهمة لهذه المرحلة", maxlength: "140" });
+  const who = el("select", { id: `who-${p.id}`, "aria-label": "المسؤول" }, el("option", { value: "you" }, "أنا"), el("option", { value: "claude" }, "Claude"));
+  return el("section", { class: `phase ${state}`, id: p.id },
+    el("div", { class: "ph-head" },
+      el("span", { class: "ph-num" }, state === "done" ? "✓" : AR(i + 1)),
+      el("div", {}, el("h2", {}, p.title), el("p", {}, p.lead)),
+      el("div", { class: "ph-meta" }, el("b", {}, `${AR(p.done)}/${AR(p.total)}`),
+        el("span", { class: `chip ${state}` }, state === "done" ? "اكتملت" : state === "now" ? "المرحلة الحالية" : "قادمة"))),
+    el("div", { class: "bar-track" }, el("div", { class: "bar-fill", style: `width:${p.pct}%` })),
+    el("ul", { class: "tasks" }, list.map(taskRow)),
+    el("form", { class: "add", onsubmit: (e) => { e.preventDefault(); addTask(p.id, input.value, who.value, input); } }, input, who, el("button", { type: "submit" }, "أضف")));
+}
+
+function taskRow(t) {
+  const btn = el("button", { type: "button", class: "check", role: "checkbox", "aria-checked": String(!!t.done), "aria-label": t.title, onclick: () => toggle(t) });
+  btn.innerHTML = CHECK;
+  return el("li", { class: `task${t.done ? " is-done" : ""}`, "data-id": t.id },
+    btn,
+    el("div", { class: "t-body" }, el("span", { class: "t-title" }, t.title), t.note ? el("span", { class: "t-note" }, t.note) : null,
+      t.done && t.done_at ? el("span", { class: "t-when" }, `أُنجزت ${dateAr(t.done_at)}`) : null),
+    el("div", { class: "t-side" }, el("span", { class: `who ${t.owner === "claude" ? "claude" : "you"}` }, t.owner === "claude" ? "Claude" : "أنت"),
+      t.custom ? el("button", { type: "button", class: "del", "aria-label": "احذف المهمة", onclick: () => remove(t) }, "×") : null));
+}
+
+async function toggle(t) {
+  if (!db) { toast("التخزين غير متاح هنا، افتح الصفحة من رابطها"); return; }
+  const done = !t.done;
+  const before = stats();
+  try {
+    await db.doc(`tasks/${t.id}`).update({ done, done_at: done ? new Date().toISOString() : null });
+    if (done) {
+      const after = stats();
+      const ph = after.by.find((p) => p.id === t.phase);
+      toast(ph && ph.total && ph.done === ph.total && before.by.find((p) => p.id === t.phase).done < ph.total ? `🎉 اكتملت مرحلة «${ph.title}»` : "أُنجزت ✓");
+    }
+  } catch (e) { toast("ما انحفظت العلامة، جرّب مرة ثانية"); }
+}
+async function addTask(phase, title, owner, input) {
+  title = (title || "").trim();
+  if (title.length < 3) { toast("اكتب المهمة"); return; }
+  if (!db) { toast("التخزين غير متاح هنا"); return; }
+  const order = Math.max(0, ...tasks.filter((x) => x.phase === phase).map((x) => x.order ?? 0)) + 1;
+  try { await db.collection("tasks").add({ phase, title, owner, done: false, done_at: null, order, custom: true }); input.value = ""; toast("أُضيفت المهمة"); }
+  catch (e) { toast(e && e.code === "quota_exceeded" ? "وصلت الحد الأقصى للمهام" : "ما انحفظت المهمة، جرّب مرة ثانية"); }
+}
+async function remove(t) {
+  try { await db.doc(`tasks/${t.id}`).delete(); toast("حُذفت المهمة"); } catch (e) { toast("ما انحذفت، جرّب مرة ثانية"); }
+}
+
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => { filter = b.dataset.f; try { localStorage.setItem("jay.rm.filter", filter); } catch (e) {} render(); }));
+$("hideDone").addEventListener("change", (e) => { hideDone = e.target.checked; try { localStorage.setItem("jay.rm.hide", hideDone ? "1" : "0"); } catch (e2) {} render(); });
+
+(async () => {
+  render();
+  const use = window.claude && window.claude.use;
+  db = use ? await window.claude.use("db").catch(() => null) : null;
+  if (!db) {
+    $("phases").replaceChildren(el("div", { class: "empty" }, el("b", {}, "افتح الخريطة من رابطها في Claude"), el("span", {}, "المهام والعلامات محفوظة هناك، ومشتركة بين أجهزتك.")));
+    $("stats").replaceChildren(el("span", {}, "التخزين غير متاح في هذا العرض"));
+    return;
+  }
+  const slow = setTimeout(() => { $("foot").textContent = "ما قدرنا نوصل للمهام الحين، تأكد من الاتصال وبتظهر تلقائياً."; }, 10000);
+  db.collection("tasks").onSnapshot((snap) => {
+    tasks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    if (!snap.metadata.fromCache) { clearTimeout(slow); $("foot").textContent = "التقدّم محفوظ ومشترك: أي علامة تضعها تظهر على كل أجهزتك."; }
+    render();
+  }, () => { clearTimeout(slow); $("foot").textContent = "انقطع الاتصال بالمهام. أعد فتح الصفحة لاحقاً."; });
+})();
+</script>

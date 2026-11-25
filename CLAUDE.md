@@ -28,6 +28,9 @@ A change is not done until everything that describes it is updated, published, a
    | Competitors | `site/competitors.html` | https://claude.ai/artifact/4CMZyMesQwptJs17GFALhE |
    | Readiness | `site/readiness.html` | https://claude.ai/artifact/Rr9ZSXyjmr7rWzELq8Q92V |
    | Social studio | `site/social.html` | https://claude.ai/artifact/JMa5tjfTUXCJhCuWJAaveX (capability: downloads) |
+   | Roadmap | `site/roadmap.html` | https://claude.ai/artifact/BZzxSL2nDaZH23fqNrfKpT (capability: db; tasks live in its `tasks` collection) |
+
+   **Roadmap upkeep.** After finishing work that matches a roadmap task, mark it done with `ArtifactData` `update` (`done: true`, `done_at`, pinned with `if_version`). Add new planned work as a task (`phase` p1–p6, `owner` you|claude, `order`, `custom: false`). Never untick or delete the owner's own ticks or tasks.
 
 4. **Deploy the live site**
    - Run `node dawri/deploy/netlify/assemble.mjs <scratch>/nl-build`.
@@ -38,7 +41,7 @@ A change is not done until everything that describes it is updated, published, a
 6. **Tell the owner what changed, with every link:**
    - Live: `/s/<shop>`, `/owner`, `/admin` (its «المبيعات» tab holds quotes, invoices, products, the agreement and business details), `/start`, `/about/`, `/studio/`, `/privacy`, `/brand/`
    - Documents: a quote at `/q/<token>`, plus `/doc/invoice/<id>` and `/doc/contract/<id>`
-   - The five artifact URLs above.
+   - The six artifact URLs above.
 
 ## Never
 - Put secrets in code or chat.
