@@ -19,6 +19,17 @@ export default serve(async (req, body) => {
   };
 
   switch (body.action) {
+    // ---------- agreement and invoices ----------
+    case "billing":
+      return json(await rpcOk("o_billing", { p_user: user.id }));
+    case "contract_accept":
+      return json(await rpcOk("o_contract_accept", { p_user: user.id, p_version: int(body, "version", 1, 100000), p_name: str(body, "name", 80) }));
+    case "contract":
+      return json(await rpcOk("o_contract", { p_user: user.id, p_contract: uuid(body, "contract_id") }));
+    case "invoice":
+      return json(await rpcOk("o_invoice", { p_user: user.id, p_invoice: uuid(body, "invoice_id") }));
+    case "quote_link":
+      return json(await rpcOk("o_quote_link", { p_user: user.id, p_token: str(body, "token", 40) }));
     case "overview":
       return json(await rpcOk("o_overview", { p_user: user.id }));
 

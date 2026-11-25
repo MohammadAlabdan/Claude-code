@@ -36,7 +36,8 @@ A change is not done until everything that describes it is updated, published, a
    - Then check https://jay-live.netlify.app/api/health.
 5. **Commit and push** to `claude/new-session-kshbvu` and to `main`. Do not open PRs unless asked.
 6. **Tell the owner what changed, with every link:**
-   - Live: `/s/<shop>`, `/owner`, `/admin`, `/start`, `/about/`, `/studio/`, `/privacy`, `/brand/`
+   - Live: `/s/<shop>`, `/owner`, `/admin` (its «المبيعات» tab holds quotes, invoices, products, the agreement and business details), `/start`, `/about/`, `/studio/`, `/privacy`, `/brand/`
+   - Documents: a quote at `/q/<token>`, plus `/doc/invoice/<id>` and `/doc/contract/<id>`
    - The five artifact URLs above.
 
 ## Never

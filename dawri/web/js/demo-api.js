@@ -5,6 +5,7 @@
 import { ApiError } from "./errors.js";
 import { store } from "./ui/dom.js";
 import { subscriptionEnd } from "./ui/subscription.js";
+import { billingApi } from "./billing/demo-billing.js";
 
 const KEY = "dawri.demo.v3";
 const PASSWORD = "Dawri-Demo-2026";
@@ -754,6 +755,8 @@ const tableFeature = (table, row) => ({ menu_items: "menu", news_posts: "news", 
 function pick(row, cols) { const o = {}; for (const c of cols) if (row && c in row) o[c] = row[c]; return o; }
 
 function ownerAction(user, action, body) {
+  const billed = bill.owner(user, action, body);
+  if (billed !== undefined) return billed;
   switch (action) {
     case "overview":
       return {
@@ -953,6 +956,8 @@ export async function createApi() {
       };
     }),
     publicTicket: wrap((tok) => ticketView(byToken(tok))),
+    publicQuote: wrap((tok) => bill.publicQuote(tok)),
+    acceptQuote: wrap((tok, name) => bill.acceptQuote(tok, name)),
     customer: wrap((action, body = {}) => (customer[action] ?? fail("invalid_action"))(body)),
     staff: wrap((action, body = {}) => {
       const d = deviceByToken(store.get("dawri.device"));
@@ -1065,6 +1070,8 @@ export async function createApi() {
           display_number: z.display_number, phone_number_id: z.phone_number_id, has_token: z.has_token, has_secret: z.has_secret,
           verify_token: "demo-verify-token-0000", month: { sent: (z.linked ?? 0) * 2, failed: 0, linked: z.linked ?? 0 }, active_links: z.linked ?? 0 };
       }
+      const billed = bill.admin(action, body);
+      if (billed !== undefined) return billed;
       if (action === "insights") return demoInsights(Math.min(180, Math.max(7, body.days ?? 30)), body.include_demo === true);
       fail("invalid_action");
     }),
@@ -1122,6 +1129,10 @@ const authCbs = new Set();
 
 const demoStatus = (z) => (!z.is_active ? "inactive" : z.trial_until && Date.parse(z.trial_until) > Date.now() ? "trial" : z.plan_until && Date.parse(z.plan_until) > Date.now() ? "active" : z.trial_until ? "inactive" : !z.plan_until ? "active" : "inactive");
 /** Same rules as a_update_business: status + start + duration → dates; also name/category/plan/note/phone. */
+// sales documents (quotes, agreement, invoices) on the demo database
+const bill = billingApi({ getDb: () => db, commit, fail, uid, iso, users: () => db.users, businesses: () => db.businesses,
+  updateBusiness: (id, p) => { const z = db.businesses.find((x) => x.id === id); if (z) demoApplySub(z, p); } });
+
 function demoApplySub(z, p) {
   if (p.name) z.name = p.name.trim();
   if (p.category) z.category = p.category;

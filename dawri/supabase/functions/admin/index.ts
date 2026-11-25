@@ -26,6 +26,27 @@ export default serve(async (req, body) => {
         access_token: s("access_token", 1000), app_secret: s("app_secret", 200),
         ...(typeof w.enabled === "boolean" ? { enabled: w.enabled } : {}) } }));
     }
+    // ---------- sales documents ----------
+    case "billing":
+      return json(await rpcOk("a_billing", { p_user: user.id }));
+    case "billing_settings_save":
+      return json(await rpcOk("a_billing_settings_save", { p_user: user.id, p: body.settings ?? {} }));
+    case "product_save":
+      return json(await rpcOk("a_product_save", { p_user: user.id, p: body.product ?? {} }));
+    case "quote_save":
+      return json(await rpcOk("a_quote_save", { p_user: user.id, p: body.quote ?? {} }));
+    case "quote_status":
+      return json(await rpcOk("a_quote_status", { p_user: user.id, p_quote: uuid(body, "quote_id"), p_action: String(body.status ?? "") }));
+    case "invoice_create":
+      return json(await rpcOk("a_invoice_create", { p_user: user.id, p: body.invoice ?? {} }));
+    case "invoice_update":
+      return json(await rpcOk("a_invoice_update", { p_user: user.id, p_invoice: uuid(body, "invoice_id"), p: body.changes ?? {} }));
+    case "invoice":
+      return json(await rpcOk("a_invoice", { p_user: user.id, p_invoice: uuid(body, "invoice_id") }));
+    case "contract_template_save":
+      return json(await rpcOk("a_contract_template_save", { p_user: user.id, p_title: String(body.title ?? "").slice(0, 120), p_body: String(body.body ?? "").slice(0, 30000) }));
+    case "contract":
+      return json(await rpcOk("a_contract", { p_user: user.id, p_contract: uuid(body, "contract_id") }));
     case "branch_dashboard":
       return json(await rpcOk("o_dashboard", { p_user: user.id, p_branch: uuid(body, "branch_id"), p_range: body.range ?? "7d" }));
     default:

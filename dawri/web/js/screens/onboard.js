@@ -4,6 +4,7 @@ import { num, errorText, WEEKDAYS } from "../i18n.js";
 import { toast } from "../ui/toast.js";
 import { QR } from "../ui/qr.js";
 import { requireSession } from "./auth.js";
+import { contractBanner } from "../billing/owner-docs.js";
 
 const ACTIVITIES = [
   ["barber", "حلاق", "scissors", "remote"], ["salon", "صالون", "brush", "remote"], ["clinic", "عيادة", "stethoscope", "remote"], ["lab", "مختبر", "flask", "remote"],
@@ -24,6 +25,8 @@ export async function render(ctx) {
   shell.setTitle("تهيئة المحل");
   const data = store.get("dawri.onboard.draft") ?? { category: null, business_name: "", district: "", services: [], open: "09:00", close: "23:00", days: [0, 1, 2, 3, 4, 6], staff_language: "ar" };
   const save = () => store.set("dawri.onboard.draft", data);
+  const fromQuote = new URLSearchParams(location.search).get("quote");
+  if (fromQuote && /^[0-9a-f]{36}$/.test(fromQuote)) store.set("dawri.quote", fromQuote);
   let step = 0;
   const steps = [activity, name, services, hours, language, finish];
 
@@ -90,14 +93,18 @@ export async function render(ctx) {
     } });
   }
 
-  function finish() {
+  async function finish() {
     const r = data.result;
     store.del("dawri.onboard.draft");
+    const qt = store.get("dawri.quote");
+    if (qt) { try { await api.owner("quote_link", { token: qt }); } catch { /* the quote may be linked already */ } store.del("dawri.quote"); }
+    const billing = await api.owner("billing").catch(() => null);
     store.set("dawri.owner.branch", r.branch_id);
     toast("جاهز!");
     fill(shell.content, 
       h("section.card.center", { style: { justifyItems: "center" }, "data-testid": "onboard-done" }, icon("circle-check"), h("h2", "محلك جاهز على جاي"),
         h("p.badge.warn", `تجربة مجانية ${num(14)} يوم`), h("p.hand", "مبروك، أول زبون على الطريق")),
+      contractBanner(api, billing, () => { document.querySelector("[data-testid=contract-banner]")?.remove(); }),
       h("section.card", h("div.card-head", icon("link"), h("h3", "رابط صفحة المحل")), h("p.small", { dir: "ltr", style: { wordBreak: "break-all" } }, r.shop_url),
         h("div.grid2", h("a.btn", { href: `./s/${r.public_id}` }, "افتح الصفحة"), h("a.btn", { href: "./owner/poster" }, icon("printer"), "ملصق QR"))),
       h("section.card", h("div.card-head", icon("device-mobile"), h("h3", "اربط جوال الموظف")), h("p.muted.small", "امسح هذا الرمز من جوال الموظف، ويفتح شاشة النداء مباشرة. يظهر مرة وحدة."),

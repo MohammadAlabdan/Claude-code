@@ -1,5 +1,5 @@
 // Jay service worker: offline shell, Web Push, notification clicks.
-const VERSION = "dawri-v9";
+const VERSION = "dawri-v11";
 const SHELL = [
   "./", "./index.html", "./config.js", "./manifest.webmanifest", "./css/tokens.css", "./css/app.css", "./assets/logo.svg",
   "./js/app.js", "./js/i18n.js", "./js/errors.js", "./js/ui/dom.js", "./js/ui/sheet.js", "./js/ui/toast.js", "./js/ui/components.js",

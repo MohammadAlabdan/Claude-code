@@ -10,6 +10,7 @@ import { subscribePush } from "../ui/push.js";
 import { setTheme, currentTheme } from "../app.js";
 import { requireSession } from "./auth.js";
 import { QuestCard } from "../ui/quest.js";
+import { contractBanner, billingCard } from "../billing/owner-docs.js";
 
 const TABS = [
   { key: "home", href: "./owner", icon: "home", label: "الرئيسية" },
@@ -88,7 +89,9 @@ export async function render(ctx) {
   async function home() {
     const d = await api.owner("dashboard", { branch_id: br.id, range: "today" });
     const q = await api.owner("queue", { branch_id: br.id });
+    const billing = await api.owner("billing").catch(() => null);
     fill(root, 
+      contractBanner(api, billing, () => ctx.rerender()),
       planBadge(),
       h("div.grid2",
         stat("خدمت اليوم", num(d.served)),
@@ -355,6 +358,7 @@ export async function render(ctx) {
         h("button.btn.btn-block", { type: "button", "data-testid": "audit-log", onclick: auditLog }, icon("list-search"), "افتح السجل")),
       card("ملصق QR للطباعة", "printer", h("p.muted.small", "ملصق باسم المحل ورمز يفتح صفحتك."), h("a.btn.btn-block", { href: "./owner/poster" }, "افتح الملصق")),
       planCard(),
+      billingCard(api, await api.owner("billing").catch(() => null), () => ctx.rerender()),
       h("button.btn.btn-ghost.btn-block", { type: "button", onclick: async () => { await api.auth.signOut(); nav("./"); } }, icon("logout"), "تسجيل خروج"));
     fill(root, ...parts.filter(Boolean));
     if (location.hash === "#devices") document.getElementById("devices")?.scrollIntoView({ block: "start" });

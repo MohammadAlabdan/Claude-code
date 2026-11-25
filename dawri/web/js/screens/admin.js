@@ -7,6 +7,7 @@ import { toast } from "../ui/toast.js";
 import { requireSession } from "./auth.js";
 import { BarChart } from "../ui/charts.js";
 import { subscriptionEnd, riyadhToday } from "../ui/subscription.js";
+import { salesView } from "./admin-sales.js";
 
 const PLAN_AR = { basic: "الأساسية", growth: "النمو", full: "المتكاملة", seasonal: "المواسم" };
 const CAT_AR = { cafe: "مقاهي", restaurant: "مطاعم", bakery: "مخابز", barber: "حلاقين", salon: "مشاغل وصالونات", clinic: "عيادات", lab: "مختبرات",
@@ -14,7 +15,7 @@ const CAT_AR = { cafe: "مقاهي", restaurant: "مطاعم", bakery: "مخاب
 const STATUS_AR = { trial: "تجريبي مؤقت", active: "نشط", inactive: "غير نشط" };
 const UNIT_AR = { day: "يوم", month: "شهر", year: "سنة" };
 const REASON_AR = { long_wait: "طول الانتظار", quality: "جودة الخدمة", treatment: "التعامل", price: "السعر", other: "أخرى" };
-const TABS = [["overview", "نظرة عامة", "layout-dashboard"], ["shops", "المحلات", "building-store"], ["customers", "العملاء", "users"], ["tips", "نصائح وتقارير", "bulb"]];
+const TABS = [["overview", "نظرة عامة", "layout-dashboard"], ["shops", "المحلات", "building-store"], ["customers", "العملاء", "users"], ["tips", "نصائح وتقارير", "bulb"], ["sales", "المبيعات", "receipt"]];
 const sar = (n) => `${num(Math.round(n ?? 0).toLocaleString("en-US"))} ر.س`;
 const pct = (n) => (n == null ? "—" : `${num(n)}٪`);
 
@@ -106,6 +107,7 @@ export async function render(ctx) {
     const banner = k.includes_demo && k.demo ? h("div.banner", icon("flask"), h("span", `الأرقام تشمل ${num(k.demo)} محلات تجريبية. ألغِ «تضمين المحلات التجريبية» لترى المشتركين الحقيقيين فقط.`)) : null;
     if (tab === "overview") fill(body, banner, ...overview());
     else if (tab === "shops") fill(body, ...shops());
+    else if (tab === "sales") fill(body, salesView({ api, reload }));
     else if (tab === "customers") fill(body, banner, ...customers());
     else fill(body, banner, ...tipsAndReports());
   }

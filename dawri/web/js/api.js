@@ -37,6 +37,8 @@ export async function createApi(cfg) {
     demo: false,
     publicBranch: (publicId) => rpc("public_branch", { p_public_id: publicId }),
     publicTicket: (token) => rpc("public_ticket", { p_token: token }),
+    publicQuote: (token) => rpc("public_quote", { p_token: token }),
+    acceptQuote: (token, name) => rpc("quote_accept", { p_token: token, p_name: name }),
     customer: (action, body = {}) => fn("customer", { action, ...body }),
     staff: (action, body = {}) => fn("staff", { action, ...body }, { "x-device-token": store.get("dawri.device") ?? "" }),
     owner: (action, body = {}) => fn("owner", { action, ...body }),

@@ -49,6 +49,8 @@ export async function createApi(cfg = {}) {
     demoAccounts: cfg.SHOW_DEMO_ACCOUNTS === true,
     publicBranch: (publicId) => post("/api/rpc/public_branch", { p_public_id: publicId }),
     publicTicket: (token) => post("/api/rpc/public_ticket", { p_token: token }),
+    publicQuote: (token) => post("/api/rpc/public_quote", { p_token: token }),
+    acceptQuote: (token, name) => post("/api/rpc/quote_accept", { p_token: token, p_name: name }),
     customer: (action, body = {}) => fn("customer", { action, ...body }),
     staff: (action, body = {}) => fn("staff", { action, ...body }, { "x-device-token": store.get("dawri.device") ?? "" }),
     owner: (action, body = {}) => fn("owner", { action, ...body }),
